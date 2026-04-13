@@ -5,11 +5,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AXIS — Integrated Code & Design</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@600;700&family=Orbitron:wght@700;900&family=DM+Sans:wght@200;300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap"
     rel="stylesheet">
-  <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.76/build/spline-viewer.js"></script>
+  <script>
+  // Only load Spline on non-touch, wider screens to avoid mobile lag
+  if (window.innerWidth > 960 && !('ontouchstart' in window)) {
+    var s = document.createElement('script');
+    s.type = 'module';
+    s.src = 'https://unpkg.com/@splinetool/viewer@1.12.76/build/spline-viewer.js';
+    document.head.appendChild(s);
+  } else {
+    // Mark as mobile so spline-viewer element is inert
+    document.documentElement.classList.add('no-spline');
+  }
+</script>
   <style>
+
+    /* ─── MOBILE: hide spline, show fallback gradient ─── */
+    .no-spline spline-viewer { display: none !important; }
+    @media (max-width: 960px) {
+      spline-viewer { display: none !important; }
+    }
+
     /* ─── RESET ─────────────────────────────────── */
     * {
       margin: 0;
@@ -481,6 +501,7 @@
     /* ─── SECTIONS ───────────────────────────────── */
     section {
       padding: 9rem 4rem;
+      contain: layout style;
     }
 
     .container {
@@ -1096,7 +1117,7 @@
     .reveal-up,
     .reveal-blur,
     .reveal-drop {
-      will-change: opacity, transform, filter;
+      /* will-change removed: too many GPU layers on mobile */
     }
 
     .reveal {
@@ -1145,9 +1166,14 @@
 
     .reveal-blur {
       opacity: 0;
-      filter: blur(16px);
       transform: translateY(40px) scale(0.94);
-      transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), filter 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (min-width: 961px) {
+      .reveal-blur {
+        filter: blur(16px);
+        transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), filter 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
     }
 
     .reveal-blur.on {
@@ -1546,11 +1572,16 @@
       }
     }
 
-    /* HERO — slow dark sweep */
+    /* HERO — static dark bg (animated bg-size is expensive on mobile) */
     #hero {
-      background: linear-gradient(-45deg, #0e0d0b, #131210, #161410, #0f0e0c, #131211, #0e0d0b);
-      background-size: 400% 400%;
-      animation: gradShift 14s ease infinite;
+      background: #111009;
+    }
+    @media (min-width: 961px) {
+      #hero {
+        background: linear-gradient(-45deg, #0e0d0b, #131210, #161410, #0f0e0c, #131211, #0e0d0b);
+        background-size: 400% 400%;
+        animation: gradShift 14s ease infinite;
+      }
     }
 
     /* ABOUT — dark with faint depth */
@@ -1586,9 +1617,14 @@
 
     /* FOOTER — deep dark */
     footer {
-      background: linear-gradient(135deg, #0a0908, #0d0c0a, #111009, #0a0908) !important;
-      background-size: 200% 200%;
-      animation: gradShift 12s ease infinite;
+      background: #0a0908 !important;
+    }
+    @media (min-width: 961px) {
+      footer {
+        background: linear-gradient(135deg, #0a0908, #0d0c0a, #111009, #0a0908) !important;
+        background-size: 200% 200%;
+        animation: gradShift 12s ease infinite;
+      }
     }
 
     /* Big divider */
@@ -1837,23 +1873,25 @@
       pointer-events: none;
     }
 
-    /* Gloss on hero background */
-    #hero::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      background: linear-gradient(115deg,
-          transparent 0%,
-          transparent 30%,
-          rgba(255, 255, 255, 0.03) 45%,
-          rgba(255, 255, 255, 0.05) 50%,
-          rgba(255, 255, 255, 0.03) 55%,
-          transparent 70%,
-          transparent 100%);
-      background-size: 250% 100%;
-      animation: glossSweep 8s ease-in-out infinite;
-      pointer-events: none;
+    /* Gloss on hero background — desktop only */
+    @media (min-width: 961px) {
+      #hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background: linear-gradient(115deg,
+            transparent 0%,
+            transparent 30%,
+            rgba(255, 255, 255, 0.03) 45%,
+            rgba(255, 255, 255, 0.05) 50%,
+            rgba(255, 255, 255, 0.03) 55%,
+            transparent 70%,
+            transparent 100%);
+        background-size: 250% 100%;
+        animation: glossSweep 8s ease-in-out infinite;
+        pointer-events: none;
+      }
     }
 
     /* Deck cards gloss */
@@ -1862,40 +1900,44 @@
       overflow: hidden;
     }
 
-    .deck-card::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 45%;
-      background: linear-gradient(180deg,
-          rgba(255, 255, 255, 0.05) 0%,
-          rgba(255, 255, 255, 0.02) 60%,
-          transparent 100%);
-      pointer-events: none;
-      z-index: 3;
-      animation: glossPulse 4s ease-in-out infinite;
+    @media (min-width: 961px) {
+      .deck-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 45%;
+        background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.05) 0%,
+            rgba(255, 255, 255, 0.02) 60%,
+            transparent 100%);
+        pointer-events: none;
+        z-index: 3;
+        animation: glossPulse 4s ease-in-out infinite;
+      }
     }
 
-    /* Moving gloss stripe on sections */
-    #about::before,
-    #services::before,
-    #contact::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -100%;
-      right: auto;
-      width: 50%;
-      height: 100%;
-      background: linear-gradient(90deg,
-          transparent,
-          rgba(255, 255, 255, 0.06) 50%,
-          transparent);
-      animation: glossSweep 12s linear infinite;
-      pointer-events: none;
-      z-index: 0;
+    /* Moving gloss stripe on sections — desktop only */
+    @media (min-width: 961px) {
+      #about::before,
+      #services::before,
+      #contact::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        right: auto;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.06) 50%,
+            transparent);
+        animation: glossSweep 12s linear infinite;
+        pointer-events: none;
+        z-index: 0;
+      }
     }
 
     #about,
@@ -2707,27 +2749,38 @@
       if (e.key === 'ArrowUp') targetY = Math.max(targetY - s, 0);
       if (e.key === 'End') targetY = m; if (e.key === 'Home') targetY = 0;
     });
+    var _lastScrollY = -1;
     function smoothLoop() {
       currentY = lerp(currentY, targetY, ease);
       var r = Math.round(currentY * 100) / 100;
-      smoothContent.style.transform = 'translateY(-' + r + 'px)';
-      updateParallax(r);
+      if (Math.abs(r - _lastScrollY) > 0.05) {
+        smoothContent.style.transform = 'translateY(-' + r + 'px)';
+        updateParallax(r);
+        _lastScrollY = r;
+      }
       requestAnimationFrame(smoothLoop);
     }
     requestAnimationFrame(smoothLoop);
 
     // ─── NAV SCROLL ──────────────────────────────
+    var _splineEl = null, _heroTextEl = null, _navEl = null, _lastPast = null, _lastScrolled = null;
     function updateParallax(scrollY) {
-      var nav = document.getElementById('mainNav');
-      if (scrollY > 60) nav.classList.add('scrolled');
-      else nav.classList.remove('scrolled');
-      // hide the fixed spline + particle canvas once past hero
+      if (!_navEl) _navEl = document.getElementById('mainNav');
+      var scrolled = scrollY > 60;
+      if (scrolled !== _lastScrolled) {
+        if (scrolled) _navEl.classList.add('scrolled');
+        else _navEl.classList.remove('scrolled');
+        _lastScrolled = scrolled;
+      }
       var heroH = window.innerHeight;
-      var spline = document.querySelector('spline-viewer');
-      var pCanvas = document.getElementById('heroTextCanvas');
       var past = scrollY > heroH * 0.85;
-      if (spline) spline.style.opacity = past ? '0' : '1';
-      if (pCanvas) pCanvas.style.opacity = past ? '0' : '1';
+      if (past !== _lastPast) {
+        if (!_splineEl) _splineEl = document.querySelector('spline-viewer');
+        if (!_heroTextEl) _heroTextEl = document.getElementById('heroTextCanvas');
+        if (_splineEl) _splineEl.style.opacity = past ? '0' : '1';
+        if (_heroTextEl) _heroTextEl.style.opacity = past ? '0' : '1';
+        _lastPast = past;
+      }
     }
 
     // ─── MOBILE MENU ─────────────────────────────
@@ -2765,12 +2818,14 @@
     var mx = window.innerWidth / 2, my = window.innerHeight / 2;
     var rx = mx, ry = my, cs = 1;
     document.addEventListener('mousemove', function (e) { mx = e.clientX; my = e.clientY; });
-    (function cursorLoop() {
-      rx += (mx - rx) * 0.14; ry += (my - ry) * 0.14;
-      curDot.style.transform = 'translate(' + (mx - 2.5) + 'px,' + (my - 2.5) + 'px)';
-      curRing.style.transform = 'translate(' + (rx - 16) + 'px,' + (ry - 16) + 'px) scale(' + cs + ')';
-      requestAnimationFrame(cursorLoop);
-    })();
+    if (!('ontouchstart' in window)) {
+      (function cursorLoop() {
+        rx += (mx - rx) * 0.14; ry += (my - ry) * 0.14;
+        curDot.style.transform = 'translate(' + (mx - 2.5) + 'px,' + (my - 2.5) + 'px)';
+        curRing.style.transform = 'translate(' + (rx - 16) + 'px,' + (ry - 16) + 'px) scale(' + cs + ')';
+        requestAnimationFrame(cursorLoop);
+      })();
+    }
     document.querySelectorAll('a,button,.svc,.pf,.btn-primary,.btn-ghost,.nav-cta,.fsub').forEach(function (el) {
       el.addEventListener('mouseenter', function () {
         cs = 2.2;
@@ -2795,22 +2850,25 @@
       gmx = (e.clientX / window.innerWidth - 0.5) * 2;
       gmy = (e.clientY / window.innerHeight - 0.5) * 2;
     });
-    (function gravLoop() {
-      sgx += (gmx - sgx) * 0.07; sgy += (gmy - sgy) * 0.07;
-      gravLayers.forEach(function (item) {
-        var r = item.el.getBoundingClientRect();
-        var vh = window.innerHeight;
-        if (r.bottom < -vh * 0.3 || r.top > vh * 1.3) return;
-        var tx = sgx * item.depth * 20, ty = sgy * item.depth * 12;
-        item.cx += (tx - item.cx) * 0.09; item.cy += (ty - item.cy) * 0.09;
-        var base = item.el._baseTransform || '';
-        item.el.style.transform = base + ' translate(' + item.cx + 'px,' + item.cy + 'px)';
-      });
-      requestAnimationFrame(gravLoop);
-    })();
+    // Gravity parallax: desktop only (getBoundingClientRect every frame hurts mobile)
+    if (window.innerWidth > 960 && !('ontouchstart' in window)) {
+      (function gravLoop() {
+        sgx += (gmx - sgx) * 0.07; sgy += (gmy - sgy) * 0.07;
+        gravLayers.forEach(function (item) {
+          var r = item.el.getBoundingClientRect();
+          var vh = window.innerHeight;
+          if (r.bottom < -vh * 0.3 || r.top > vh * 1.3) return;
+          var tx = sgx * item.depth * 20, ty = sgy * item.depth * 12;
+          item.cx += (tx - item.cx) * 0.09; item.cy += (ty - item.cy) * 0.09;
+          var base = item.el._baseTransform || '';
+          item.el.style.transform = base + ' translate(' + item.cx + 'px,' + item.cy + 'px)';
+        });
+        requestAnimationFrame(gravLoop);
+      })();
+    }
 
-    // ─── MAGNETIC BUTTONS ─────────────────────────
-    document.querySelectorAll('.mag').forEach(function (btn) {
+    // ─── MAGNETIC BUTTONS — desktop only ───────────
+    if (!('ontouchstart' in window)) document.querySelectorAll('.mag').forEach(function (btn) {
       btn.addEventListener('mousemove', function (e) {
         var r = btn.getBoundingClientRect();
         var dx = (e.clientX - r.left - r.width * 0.5) * 0.36;
@@ -2824,8 +2882,8 @@
       });
     });
 
-    // ─── CARD TILT ────────────────────────────────
-    document.querySelectorAll('.svc,.pf').forEach(function (card) {
+    // ─── CARD TILT — desktop only ──────────────────
+    if (!('ontouchstart' in window)) document.querySelectorAll('.svc,.pf').forEach(function (card) {
       card.addEventListener('mousemove', function (e) {
         var r = card.getBoundingClientRect();
         var nx = (e.clientX - r.left) / r.width - 0.5;
@@ -2852,11 +2910,21 @@
       canvas.classList.add('fullscreen-canvas');
       canvas.style.background = 'transparent';
 
+      // Skip heavy particle system on mobile/touch devices
+      if (window.innerWidth <= 960 || ('ontouchstart' in window)) {
+        // Show a plain text fallback
+        canvas.style.display = 'none';
+        var fallback = document.createElement('div');
+        fallback.textContent = 'AXIS';
+        fallback.style.cssText = 'font-family:"Rajdhani",sans-serif;font-weight:700;font-size:clamp(3rem,9vw,8rem);color:#dce6f5;letter-spacing:0.08em;line-height:1;';
+        canvas.parentNode.insertBefore(fallback, canvas);
+        return;
+      }
       document.fonts.load('700 100px "Rajdhani"').then(init);
 
       function init() {
         var ctx = canvas.getContext('2d');
-        var DPR = Math.min(window.devicePixelRatio || 1, 2);
+        var DPR = Math.min(window.devicePixelRatio || 1, window.innerWidth < 960 ? 1 : 1.5);
         var VW, VH, FONT_SIZE, explodeRadius;
         var textOriginX = 0, textOriginY = 0, textW = 0, textH = 0;
         var particles = [];
@@ -3013,16 +3081,18 @@
               } else { allSettled = false; }
 
             } else if (state === 'idle') {
-              // subtle breathing wave — very cheap, no trig per pixel
-              var wave = Math.sin(tick_count * 0.015 + p.tx * 0.03 + p.phase * 0.3) * 0.22;
-              var waveY = Math.sin(tick_count * 0.020 + p.ty * 0.04 + p.phase * 0.5) * 0.11;
+              // subtle breathing wave
+              var _tc015 = tick_count * 0.015, _tc020 = tick_count * 0.020;
+              var wave = Math.sin(_tc015 + p.tx * 0.03 + p.phase * 0.3) * 0.22;
+              var waveY = Math.sin(_tc020 + p.ty * 0.04 + p.phase * 0.5) * 0.11;
               p.x = p.tx + wave;
               p.y = p.ty + waveY;
-              // gentle mouse repulsion
+              // gentle mouse repulsion — skip sqrt if clearly far
               var mdx = p.tx - mouse.x, mdy = p.ty - mouse.y;
-              var md = Math.sqrt(mdx * mdx + mdy * mdy);
               var softR = explodeRadius * 0.32;
-              if (md < softR) {
+              var md2 = mdx * mdx + mdy * mdy;
+              if (md2 < softR * softR) {
+                var md = Math.sqrt(md2);
                 var push = (1 - md / softR) * 4;
                 p.x += (mdx / (md || 1)) * push;
                 p.y += (mdy / (md || 1)) * push;
@@ -3044,9 +3114,24 @@
               color = 'rgba(220,230,245,0.88)';
             }
 
+            // collect for batched draw
+            p._color = color;
+          });
+
+          // ── batched draw: group by color to minimize fillStyle changes ──
+          var byColor = {};
+          particles.forEach(function(p) {
+            var c = p._color;
+            if (!byColor[c]) byColor[c] = [];
+            byColor[c].push(p);
+          });
+          Object.keys(byColor).forEach(function(c) {
             ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fillStyle = color;
+            ctx.fillStyle = c;
+            byColor[c].forEach(function(p) {
+              ctx.moveTo(p.x + p.size, p.y);
+              ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            });
             ctx.fill();
           });
 
