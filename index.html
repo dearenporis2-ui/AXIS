@@ -68,6 +68,10 @@
   body.on-dark .cursor-ring { border-color: rgba(255,255,255,0.25); }
   body.on-dark .cursor-ring.expanded { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); }
 
+  @media (hover: none) or (pointer: coarse) {
+    .cursor-dot, .cursor-ring { display: none !important; }
+  }
+
   /* ── NAV ── */
   nav {
     position: fixed;
@@ -1692,6 +1696,7 @@
   });
 
   /* ── CUSTOM CURSOR ── */
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
   const dot = document.createElement('div');
   dot.className = 'cursor-dot';
   const ring = document.createElement('div');
@@ -1719,6 +1724,7 @@
     el.addEventListener('mouseenter', () => { ring.classList.add('expanded'); dot.classList.add('expanded'); });
     el.addEventListener('mouseleave', () => { ring.classList.remove('expanded'); dot.classList.remove('expanded'); });
   });
+  }
 
   /* ── PORTFOLIO FILTER ── */
   const filterBtns = document.querySelectorAll('.filter-btn');
