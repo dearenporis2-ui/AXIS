@@ -26,8 +26,8 @@
 
   body {
     font-family: 'Outfit', sans-serif;
-    background: var(--off-white);
-    color: var(--ink);
+    background: #0f1117;
+    color: var(--white);
     overflow-x: hidden;
   }
 
@@ -421,15 +421,15 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(255,255,255,0.25);
+    background: rgba(0,0,0,0.52);
     z-index: 0;
   }
 
   #about > * { position: relative; z-index: 1; }
 
   .about-card {
-    background: var(--off-white);
-    border: 0.5px solid var(--glass-border);
+    background: rgba(15,17,23,0.82);
+    border: 0.5px solid rgba(255,255,255,0.12);
     border-radius: 2px;
     padding: 2.8rem;
     position: relative;
@@ -441,7 +441,8 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: var(--ink);
+    background: var(--white);
+    opacity: 0.25;
   }
 
   .about-card p {
@@ -490,7 +491,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(248,247,244,0.25);
+    background: rgba(0,0,0,0.52);
     z-index: 0;
   }
 
@@ -803,7 +804,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(244,243,240,0.25);
+    background: rgba(0,0,0,0.52);
     z-index: 0;
   }
 
@@ -1308,7 +1309,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(255,255,255,0.25);
+    background: rgba(0,0,0,0.52);
     z-index: 0;
   }
 
@@ -1383,7 +1384,7 @@
 
   /* ── TESTIMONIALS ── */
   #testimonials {
-    background: var(--off-white);
+    background: #0f1117;
     position: relative;
     overflow: hidden;
   }
@@ -1417,8 +1418,8 @@
     margin: 0 auto;
   }
   .testimonial-card {
-    background: var(--white);
-    border: 0.5px solid var(--glass-border);
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.1);
     border-radius: 2px;
     padding: 2.4rem;
     position: relative;
@@ -1549,6 +1550,55 @@
       inset 0 1px 0 rgba(255,255,255,0.8);
     border-color: rgba(255,255,255,0.75);
   }
+
+  /* ── ALL TEXT WHITE OVERRIDE ── */
+  .nav-logo-text { color: var(--white) !important; }
+  .nav-links a.active { color: var(--white) !important; }
+  .hamburger span { background: var(--white) !important; }
+
+  .section-label { color: var(--white) !important; text-shadow: none !important; }
+  .section-title { color: var(--white) !important;
+    text-shadow:
+      0 1px 0 rgba(0,0,0,0.3),
+      0 2px 0 rgba(0,0,0,0.25),
+      0 4px 0 rgba(0,0,0,0.2),
+      0 6px 0 rgba(0,0,0,0.15),
+      0 8px 0 rgba(0,0,0,0.1),
+      0 16px 32px rgba(0,0,0,0.25) !important;
+  }
+  .section-desc { color: var(--white) !important; }
+
+  .about-card p { color: var(--white) !important; }
+  .stat-num { color: var(--white) !important; }
+  .stat-label { color: rgba(255,255,255,0.8) !important; }
+  .stat-item { border-left-color: rgba(255,255,255,0.6) !important; }
+
+  .service-num { color: rgba(255,255,255,0.5) !important; }
+  .service-name { color: var(--white) !important; text-shadow: none !important; }
+  .service-desc { color: rgba(255,255,255,0.85) !important; }
+
+  .project-row-name { color: var(--white) !important; }
+  .project-row-tag { color: rgba(255,255,255,0.9) !important; border-color: rgba(255,255,255,0.3) !important; }
+  .project-row-desc { color: rgba(255,255,255,0.7) !important; }
+  .project-row-link { color: var(--white) !important; border-color: rgba(255,255,255,0.35) !important; }
+  .project-row-logo { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.1) !important; }
+
+  .project-title { color: var(--white) !important; }
+  .project-desc { color: rgba(255,255,255,0.85) !important; }
+  .project-link { color: var(--white) !important; }
+  .project-link::after { background: var(--white) !important; }
+  .project-tag { color: var(--white) !important; background: rgba(0,0,0,0.45) !important; border-color: rgba(255,255,255,0.3) !important; }
+
+  .process-step-num { color: rgba(255,255,255,0.5) !important; }
+  .process-step-title { color: var(--white) !important; }
+  .process-step-desc { color: rgba(255,255,255,0.85) !important; }
+
+  .testimonial-text { color: var(--white) !important; }
+  .testimonial-name { color: var(--white) !important; }
+  .testimonial-role { color: rgba(255,255,255,0.6) !important; }
+
+  .filter-btn { color: rgba(255,255,255,0.75) !important; border-color: rgba(255,255,255,0.35) !important; }
+  .filter-btn:hover { color: var(--white) !important; border-color: rgba(255,255,255,0.8) !important; }
 
 </style>
 </head>
