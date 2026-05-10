@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXIS — PS5 Services</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:       #0f1117;
+    --ink-mid:   #1a1e28;
+    --ink-raised:#161b24;
+    --white:     #ffffff;
+    --linen:     #e8e5de;
+    --gold:      #b8a98a;
+    --border:    rgba(255,255,255,0.09);
+    --neo-up:    4px 4px 14px rgba(0,0,0,0.7), -2px -2px 8px rgba(255,255,255,0.035);
+    --neo-inset: inset 3px 3px 8px rgba(0,0,0,0.6), inset -2px -2px 6px rgba(255,255,255,0.03);
+    --neo-card:  8px 8px 24px rgba(0,0,0,0.8), -3px -3px 10px rgba(255,255,255,0.04);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { font-family:'Outfit',sans-serif; background:var(--ink); color:var(--white); overflow-x:hidden; }
+  ::-webkit-scrollbar { width:2px; }
+  ::-webkit-scrollbar-track { background:var(--ink); }
+  ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.18); border-radius:2px; }
+
+  /* ── CURSOR ── */
+  .cursor-dot {
+    width:5px; height:5px; background:var(--white); border-radius:50%;
+    position:fixed; pointer-events:none; z-index:9999; transform:translate(-50%,-50%);
+    transition:width .2s,height .2s,opacity .2s; will-change:left,top;
+  }
+  .cursor-ring {
+    width:34px; height:34px; border:1px solid rgba(255,255,255,0.3); border-radius:50%;
+    position:fixed; pointer-events:none; z-index:9998; transform:translate(-50%,-50%);
+    transition:width .38s cubic-bezier(.23,1,.32,1),height .38s cubic-bezier(.23,1,.32,1),border-color .3s;
+    will-change:left,top;
+  }
+  .cursor-ring.big { width:56px; height:56px; border-color:rgba(255,255,255,0.12); background:rgba(255,255,255,0.03); }
+  .cursor-dot.small { width:3px; height:3px; opacity:.5; }
+  @media(hover:none),(pointer:coarse){ .cursor-dot,.cursor-ring{display:none!important} }
+
+  /* ── NAV ── */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:1000;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.6rem 2.5rem;
+    background:rgba(15,17,23,0.4);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border-bottom:.5px solid rgba(255,255,255,0.05);
+    transition:padding .5s cubic-bezier(.16,1,.3,1), background .5s, box-shadow .5s;
+  }
+  nav.scrolled {
+    padding:.3rem 2.5rem;
+    background:rgba(10,12,18,0.96);
+    box-shadow:0 8px 40px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.04);
+  }
+  /* scroll progress bar */
+  nav::before {
+    content:''; position:absolute; bottom:0; left:0;
+    height:1.5px;
+    width:var(--scroll-pct, 0%);
+    background:linear-gradient(90deg, rgba(184,169,138,0.3), rgba(184,169,138,0.9), rgba(255,255,255,0.6));
+    transition:width .1s linear;
+    z-index:2;
+  }
+  /* spotlight */
+  nav::after {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(200px circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.055) 0%, transparent 70%);
+    opacity:0; transition:opacity .4s;
+  }
+  nav.lit::after { opacity:1; }
+
+  .nav-logo { display:flex; align-items:center; gap:.55rem; text-decoration:none; position:relative; z-index:2; }
+  .nav-logo img { height:56px; width:auto; transition:height .5s cubic-bezier(.16,1,.3,1), filter .3s; }
+  nav.scrolled .nav-logo img { height:42px; }
+  .nav-logo:hover img { filter:drop-shadow(0 0 12px rgba(184,169,138,0.5)); }
+
+  /* nav links container — has the sliding pill */
+  .nav-links {
+    display:flex; gap:0; list-style:none; align-items:center;
+    position:relative;
+    background:rgba(255,255,255,0.04);
+    border:.5px solid rgba(255,255,255,0.07);
+    border-radius:100px;
+    padding:.22rem .3rem;
+    box-shadow:var(--neo-inset);
+  }
+  /* sliding active pill */
+  .nav-pill {
+    position:absolute; top:.22rem; left:.3rem;
+    height:calc(100% - .44rem);
+    background:rgba(255,255,255,0.1);
+    border-radius:100px;
+    border:.5px solid rgba(255,255,255,0.12);
+    transition:left .4s cubic-bezier(.16,1,.3,1), width .4s cubic-bezier(.16,1,.3,1);
+    pointer-events:none;
+    box-shadow:0 2px 12px rgba(0,0,0,0.4);
+  }
+  .nav-links a {
+    text-decoration:none; font-size:.7rem; font-weight:500;
+    letter-spacing:.16em; text-transform:uppercase;
+    color:rgba(255,255,255,0.45);
+    transition:color .3s, transform .35s cubic-bezier(.23,1,.32,1);
+    position:relative; display:inline-block;
+    padding:.38rem .9rem; border-radius:100px;
+    white-space:nowrap;
+  }
+  .nav-links a:hover { color:rgba(255,255,255,0.85); }
+  .nav-links a.active { color:var(--white); }
+
+  /* CTA button — outside the pill group */
+  .nav-cta {
+    margin-left:1rem;
+    padding:.48rem 1.3rem !important;
+    background:var(--white); color:var(--ink) !important;
+    border:none !important; border-radius:100px !important;
+    font-size:.7rem !important; font-weight:600 !important;
+    letter-spacing:.12em !important;
+    transition:transform .35s cubic-bezier(.23,1,.32,1), box-shadow .35s, background .25s !important;
+    box-shadow:0 4px 20px rgba(255,255,255,0.15);
+    position:relative; z-index:2;
+  }
+  .nav-cta::after { display:none !important; }
+  .nav-cta:hover {
+    background:var(--linen) !important;
+    box-shadow:0 8px 32px rgba(255,255,255,0.25) !important;
+    transform:translateY(-2px) scale(1.04) !important;
+  }
+
+  /* hamburger */
+  .hamburger {
+    display:none; flex-direction:column; gap:5px; cursor:pointer;
+    padding:8px; background:rgba(255,255,255,0.05);
+    border:.5px solid rgba(255,255,255,0.1);
+    border-radius:10px; box-shadow:var(--neo-up);
+    transition:background .3s, box-shadow .3s;
+  }
+  .hamburger:hover { background:rgba(255,255,255,0.1); }
+  .hamburger span { display:block; width:20px; height:1.5px; background:var(--white); transition:all .35s cubic-bezier(.16,1,.3,1); transform-origin:center; }
+  .hamburger.open { background:rgba(255,255,255,0.08); box-shadow:var(--neo-inset); }
+  .hamburger.open span:nth-child(1){ transform:translateY(6.5px) rotate(45deg); }
+  .hamburger.open span:nth-child(2){ opacity:0; transform:scaleX(0); }
+  .hamburger.open span:nth-child(3){ transform:translateY(-6.5px) rotate(-45deg); }
+
+  /* MOBILE MENU — luxury compact drawer */
+  .mobile-menu {
+    position:fixed; top:0; right:0; width:280px; height:100%;
+    background:rgba(10,11,16,0.97); backdrop-filter:blur(40px); -webkit-backdrop-filter:blur(40px);
+    border-left:.5px solid rgba(255,255,255,0.07);
+    z-index:998; flex-direction:column; justify-content:center; align-items:flex-start;
+    padding:5rem 2.5rem 3rem;
+    display:flex; gap:.2rem;
+    opacity:0; pointer-events:none;
+    transform:translateX(100%);
+    transition:transform .55s cubic-bezier(.16,1,.3,1), opacity .4s;
+    box-shadow:-24px 0 80px rgba(0,0,0,0.8);
+  }
+  .mobile-menu::before {
+    content:''; position:absolute; top:0; left:0; right:0; bottom:0;
+    background:linear-gradient(135deg, rgba(184,169,138,0.03) 0%, transparent 60%);
+    pointer-events:none;
+  }
+  .mobile-menu::after {
+    content:'AXIS'; position:absolute; bottom:2rem; right:1.5rem;
+    font-family:'Bebas Neue',sans-serif; font-size:5rem; letter-spacing:.1em;
+    color:rgba(255,255,255,0.03); pointer-events:none; line-height:1;
+  }
+  .mobile-menu.open { opacity:1; pointer-events:all; transform:translateX(0); }
+
+  .mobile-menu a {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:2rem; letter-spacing:.1em; text-transform:uppercase;
+    color:rgba(255,255,255,0.18); text-decoration:none;
+    padding:.3rem 0; width:100%; border-bottom:none; text-align:left;
+    transition:color .3s, letter-spacing .3s, padding-left .3s;
+    opacity:0; transform:translateX(20px);
+    position:relative;
+  }
+  .mobile-menu a::before {
+    content:''; position:absolute; left:-1rem; top:50%; transform:translateY(-50%);
+    width:3px; height:0; background:var(--gold); border-radius:2px;
+    transition:height .3s cubic-bezier(.16,1,.3,1);
+  }
+  .mobile-menu a:hover::before { height:60%; }
+  .mobile-menu.open a {
+    opacity:1; transform:translateX(0);
+  }
+  .mobile-menu.open a:nth-child(1){ transition:opacity .4s .1s, transform .4s .1s, color .3s, letter-spacing .3s, padding-left .3s; }
+  .mobile-menu.open a:nth-child(2){ transition:opacity .4s .17s, transform .4s .17s, color .3s, letter-spacing .3s, padding-left .3s; }
+  .mobile-menu.open a:nth-child(3){ transition:opacity .4s .24s, transform .4s .24s, color .3s, letter-spacing .3s, padding-left .3s; }
+  .mobile-menu.open a:nth-child(4){ transition:opacity .4s .31s, transform .4s .31s, color .3s, letter-spacing .3s, padding-left .3s; }
+  .mobile-menu.open a:nth-child(5){ transition:opacity .4s .38s, transform .4s .38s, color .3s, letter-spacing .3s, padding-left .3s; }
+  .mobile-menu.open a:nth-child(6){ transition:opacity .4s .45s, transform .4s .45s, color .3s, letter-spacing .3s, padding-left .3s; }
+  .mobile-menu a:hover { color:var(--white); padding-left:.6rem; }
+  .mobile-menu a:last-child {
+    margin-top:2rem;
+    font-size:1rem; letter-spacing:.22em;
+    background:var(--white); color:var(--ink) !important;
+    border-radius:100px; padding:.65rem 1.8rem;
+    width:auto; text-align:center;
+    box-shadow:0 4px 20px rgba(255,255,255,0.15);
+  }
+  .mobile-menu a:last-child:hover { background:var(--linen); padding-left:1.8rem; }
+
+  /* dim overlay behind drawer */
+  .menu-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.5);
+    backdrop-filter:blur(2px); z-index:997;
+    opacity:0; pointer-events:none;
+    transition:opacity .4s;
+  }
+  .menu-overlay.open { opacity:1; pointer-events:all; }
+
+  /* ══════════════════════════════════════
+     PARALLAX STAGE
+     220vh tall. Hero is sticky inside it.
+     Controllers are absolutely positioned
+     inside the sticky panel and shifted
+     by JS on scroll.
+  ══════════════════════════════════════ */
+  #parallax-stage {
+    position:relative;
+    height:220vh;
+  }
+
+  #hero-sticky {
+    position:sticky; top:0; height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+
+  /* vignette */
+  .hero-vignette {
+    position:absolute; inset:0; pointer-events:none; z-index:2;
+    background:radial-gradient(ellipse 80% 80% at 50% 50%, transparent 35%, rgba(15,17,23,0.75) 100%);
+  }
+
+  /* bottom fade — blends into next section */
+  .hero-fade {
+    position:absolute; bottom:0; left:0; right:0; height:260px;
+    pointer-events:none; z-index:6;
+    background:linear-gradient(to bottom, transparent, var(--ink));
+  }
+
+  /* ── CONTROLLER IMAGES ── */
+  .ctrl-img {
+    position:absolute;
+    will-change:transform,opacity;
+    pointer-events:none; user-select:none;
+    z-index:1;
+    opacity:0;
+    transition:opacity .8s ease;
+  }
+
+  #ctrl-black {
+    width: clamp(260px, 36vw, 500px);
+    left: -3vw;
+    top: 10vh;
+    filter: drop-shadow(0 40px 80px rgba(0,0,0,0.9)) drop-shadow(0 0 40px rgba(255,255,255,0.03));
+  }
+
+  #ctrl-gold {
+    width: clamp(240px, 32vw, 460px);
+    right: -2vw;
+    top: 16vh;
+    filter: drop-shadow(0 40px 80px rgba(0,0,0,0.8)) drop-shadow(0 0 50px rgba(184,169,138,0.12));
+  }
+
+  /* ── HERO TEXT ── */
+  .hero-content {
+    position:relative; z-index:4;
+    text-align:center; display:flex; flex-direction:column; align-items:center;
+    padding:0 1rem;
+  }
+
+  .hero-eyebrow {
+    font-family:'DM Mono',monospace;
+    font-size:.64rem; letter-spacing:.42em; text-transform:uppercase;
+    color:rgba(255,255,255,0.28); margin-bottom:1.4rem;
+    opacity:0; animation:fadeUp .8s ease forwards .3s;
+  }
+
+  .hero-title {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(5rem,13vw,11rem);
+    letter-spacing:.05em; line-height:.86;
+    color:var(--white);
+    opacity:0; animation:fadeUp 1s ease forwards .5s;
+    text-shadow:
+      0 2px 0 rgba(255,255,255,0.06),
+      0 4px 0 rgba(0,0,0,0.5),
+      0 20px 60px rgba(0,0,0,0.7),
+      0 50px 100px rgba(0,0,0,0.4);
+  }
+  .hero-title em { font-style:normal; color:rgba(255,255,255,0.2); }
+
+  .hero-sub {
+    font-size:.78rem; font-weight:300; letter-spacing:.3em; text-transform:uppercase;
+    color:rgba(255,255,255,0.35); margin-top:1.1rem;
+    opacity:0; animation:fadeUp .8s ease forwards .75s;
+  }
+
+  .hero-divider {
+    width:42px; height:1px; background:rgba(255,255,255,0.18); margin:1.8rem auto;
+    opacity:0; animation:fadeUp .6s ease forwards .95s;
+  }
+
+  .hero-btns {
+    display:flex; gap:.9rem;
+    opacity:0; animation:fadeUp .6s ease forwards 1.05s;
+  }
+
+  .btn {
+    font-family:'DM Mono',monospace;
+    font-size:.64rem; letter-spacing:.28em; text-transform:uppercase;
+    text-decoration:none; border-radius:1px; cursor:pointer;
+    transition:all .28s ease; border:none; display:inline-block; padding:.76rem 1.9rem;
+  }
+  .btn-primary { background:var(--white); color:var(--ink); }
+  .btn-primary:hover { background:var(--linen); }
+  .btn-ghost { background:transparent; color:rgba(255,255,255,0.55); border:1px solid rgba(255,255,255,0.2) !important; }
+  .btn-ghost:hover { color:var(--white); border-color:rgba(255,255,255,0.5) !important; }
+
+  /* scroll hint */
+  .hero-scroll {
+    position:absolute; bottom:2rem; left:50%; transform:translateX(-50%);
+    z-index:5; display:flex; flex-direction:column; align-items:center; gap:.45rem;
+    opacity:0; animation:fadeUp .6s ease forwards 1.35s;
+  }
+  .hero-scroll span {
+    font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.3em;
+    text-transform:uppercase; color:rgba(255,255,255,0.22);
+  }
+  .scroll-line {
+    width:1px; height:36px;
+    background:linear-gradient(to bottom,rgba(255,255,255,0.4),transparent);
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:.2;transform:scaleY(1)} 50%{opacity:.9;transform:scaleY(1.15)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── TRUST BAR ── */
+  #trust {
+    background:var(--ink-mid);
+    border-top:.5px solid var(--border); border-bottom:.5px solid var(--border);
+    padding:2rem 3rem; display:flex; align-items:center; justify-content:center;
+    gap:4rem; flex-wrap:wrap; position:relative; z-index:10;
+    box-shadow:inset 0 2px 12px rgba(0,0,0,0.5), inset 0 -2px 8px rgba(255,255,255,0.02);
+  }
+  .t-item { display:flex; flex-direction:column; align-items:center; gap:.16rem;
+    background:var(--ink-raised); border-radius:12px; padding:.9rem 1.6rem;
+    box-shadow:var(--neo-up);
+    border:.5px solid rgba(255,255,255,0.05);
+  }
+  .t-num { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:.04em; color:var(--white); line-height:1; }
+  .t-label { font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,0.28); }
+  .t-div { width:1px; height:30px; background:rgba(255,255,255,0.07); }
+
+  /* ── SHARED ── */
+  section { padding:7rem 3rem; }
+  .sec-label { font-family:'DM Mono',monospace; font-size:.62rem; letter-spacing:.32em; text-transform:uppercase; color:rgba(255,255,255,0.28); margin-bottom:.55rem; }
+  .sec-title {
+    font-family:'Bebas Neue',sans-serif; font-size:clamp(2.8rem,5.5vw,4.5rem);
+    letter-spacing:.06em; line-height:.94; color:var(--white); margin-bottom:1rem;
+    text-shadow:0 2px 0 rgba(0,0,0,0.4),0 16px 40px rgba(0,0,0,0.3);
+  }
+  .sec-desc { font-size:.93rem; font-weight:400; color:rgba(255,255,255,0.4); max-width:500px; line-height:1.85; }
+
+  /* ── WHY ── */
+  #why { background:var(--ink); position:relative; overflow:hidden; }
+  #why::before {
+    content:'PS5'; position:absolute; bottom:-4rem; right:-1rem;
+    font-family:'Bebas Neue',sans-serif; font-size:22vw; letter-spacing:.05em;
+    color:rgba(255,255,255,0.016); user-select:none; pointer-events:none;
+  }
+  .why-inner { max-width:1200px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:6rem; align-items:center; position:relative; z-index:1; }
+  .why-list { list-style:none; display:flex; flex-direction:column; gap:1.7rem; margin-top:2.5rem; }
+  .why-item { display:flex; gap:1.1rem; align-items:flex-start; }
+  .why-icon { width:38px; height:38px; flex-shrink:0; border-radius:10px; border:.5px solid rgba(255,255,255,0.06); background:var(--ink-raised); display:flex; align-items:center; justify-content:center; box-shadow:var(--neo-up); }
+  .why-icon svg { width:16px; height:16px; stroke:rgba(255,255,255,0.55); }
+  .why-item-title { font-size:.87rem; font-weight:600; color:var(--white); margin-bottom:.17rem; }
+  .why-item-desc { font-size:.77rem; color:rgba(255,255,255,0.35); line-height:1.7; }
+  .why-visual { display:flex; align-items:center; justify-content:center; }
+  .why-visual-stack {
+    position:relative;
+    width:100%; max-width:480px;
+    height:480px;
+  }
+  .why-ps5 {
+    position:absolute;
+    width:100%;
+    bottom:0; left:50%; transform:translateX(-50%) rotate(-6deg);
+    opacity:0.78;
+    filter:drop-shadow(0 40px 80px rgba(0,0,0,0.6));
+    animation:floatSlow 8s ease-in-out infinite;
+  }
+  .why-ctrl {
+    position:absolute;
+    width:68%;
+    bottom:2%; right:-4%;
+    filter:drop-shadow(0 20px 50px rgba(0,0,0,0.8)) drop-shadow(0 0 40px rgba(184,169,138,0.15));
+    animation:floatFront 6s ease-in-out infinite;
+  }
+  @keyframes floatSlow  { 0%,100%{transform:translateX(-50%) rotate(-6deg) translateY(0)}  50%{transform:translateX(-50%) rotate(-6deg) translateY(-14px)} }
+  @keyframes floatFront { 0%,100%{transform:translateY(0) rotate(5deg)} 50%{transform:translateY(-20px) rotate(5deg)} }
+
+  /* ── SERVICES ── */
+  #services { background:var(--ink-mid); position:relative; overflow:hidden; }
+  .services-header { max-width:1100px; margin:0 auto 4rem; }
+  .svc-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.3rem; max-width:1100px; margin:0 auto 1.3rem; }
+
+  .svc-card {
+    background:var(--ink-raised); border:.5px solid rgba(255,255,255,0.06);
+    border-radius:18px; padding:2.8rem 2.6rem; position:relative; overflow:hidden;
+    cursor:default;
+    box-shadow:var(--neo-card);
+    transition:transform .55s cubic-bezier(.23,1,.32,1), box-shadow .55s cubic-bezier(.23,1,.32,1), border-color .4s, background .4s;
+  }
+  /* shimmer sweep */
+  .svc-card::after {
+    content:''; position:absolute; top:0; left:-100%; width:55%; height:100%;
+    background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,0.038) 50%,transparent 70%);
+    transition:left .65s ease; pointer-events:none; z-index:1;
+  }
+  .svc-card:hover::after { left:160%; }
+  /* top line reveal */
+  .svc-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:rgba(255,255,255,0.45); transform:scaleX(0); transform-origin:left;
+    transition:transform .4s ease; z-index:2;
+  }
+  .svc-card:hover::before { transform:scaleX(1); }
+  .svc-card:hover {
+    transform:translateY(-14px) scale(1.015);
+    border-color:rgba(255,255,255,0.16);
+    background:var(--ink-raised);
+    box-shadow:16px 16px 48px rgba(0,0,0,0.9), -4px -4px 16px rgba(255,255,255,0.055), 0 0 0 1px rgba(255,255,255,0.08);
+  }
+
+  .card-num { font-family:'DM Mono',monospace; font-size:.56rem; letter-spacing:.3em; color:rgba(255,255,255,0.17); margin-bottom:2rem; position:relative; z-index:3; }
+  .card-icon { width:46px; height:46px; border:.5px solid rgba(255,255,255,0.06); border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:1.5rem; background:var(--ink); box-shadow:var(--neo-inset); position:relative; z-index:3; transition:all .35s cubic-bezier(.23,1,.32,1); }
+  .card-icon svg { width:20px; height:20px; stroke:rgba(255,255,255,0.65); transition:stroke .3s; }
+  .svc-card:hover .card-icon { background:var(--white); border-color:var(--white); box-shadow:none; }
+  .svc-card:hover .card-icon svg { stroke:var(--ink); }
+  .card-title { font-family:'Outfit',sans-serif; font-size:1.22rem; font-weight:700; color:var(--white); margin-bottom:.7rem; letter-spacing:.01em; position:relative; z-index:3; }
+  .card-desc { font-size:.83rem; color:rgba(255,255,255,0.4); line-height:1.8; margin-bottom:1.7rem; position:relative; z-index:3; }
+  .card-features { list-style:none; display:flex; flex-direction:column; gap:.52rem; position:relative; z-index:3; }
+  .card-feature { display:flex; align-items:center; gap:.6rem; font-size:.79rem; color:rgba(255,255,255,0.57); }
+  .card-feature::before {
+    content:''; width:14px; height:14px; flex-shrink:0; border-radius:50%;
+    border:.5px solid rgba(255,255,255,0.18);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 10 10'%3E%3Cpolyline points='2,5 4,7 8,3' stroke='rgba(255,255,255,0.65)' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:center;
+  }
+  .card-price { display:inline-flex; align-items:center; gap:.5rem; margin-top:1.8rem; padding:.48rem 1rem; border:.5px solid rgba(255,255,255,0.13); border-radius:1px; position:relative; z-index:3; transition:background .3s,border-color .3s; }
+  .svc-card:hover .card-price { background:var(--white); border-color:var(--white); }
+  .price-label { font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,0.3); transition:color .3s; }
+  .price-val { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:.06em; color:var(--white); transition:color .3s; }
+  .svc-card:hover .price-label { color:rgba(15,17,23,0.45); }
+  .svc-card:hover .price-val { color:var(--ink); }
+
+  /* addons */
+  .addons-label { font-family:'DM Mono',monospace; font-size:.58rem; letter-spacing:.3em; text-transform:uppercase; color:rgba(255,255,255,0.18); max-width:1100px; margin:0 auto 1.1rem; }
+  .addons-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.85rem; max-width:1100px; margin:0 auto; }
+  .addon { background:var(--ink-raised); border:.5px solid rgba(255,255,255,0.05); border-radius:14px; padding:1.35rem 1.25rem; display:flex; gap:.85rem; align-items:flex-start; box-shadow:var(--neo-up); transition:box-shadow .4s cubic-bezier(.23,1,.32,1),transform .4s cubic-bezier(.23,1,.32,1),border-color .3s; }
+  .addon:hover { border-color:rgba(255,255,255,0.12); transform:translateY(-5px); box-shadow:10px 10px 28px rgba(0,0,0,0.85), -3px -3px 10px rgba(255,255,255,0.05); }
+  .addon-icon { width:31px; height:31px; flex-shrink:0; border:.5px solid rgba(255,255,255,0.06); border-radius:8px; background:var(--ink); box-shadow:var(--neo-inset); display:flex; align-items:center; justify-content:center; margin-top:.1rem; }
+  .addon-icon svg { width:13px; height:13px; stroke:rgba(255,255,255,0.5); }
+  .addon-name { font-size:.81rem; font-weight:600; color:rgba(255,255,255,0.77); margin-bottom:.18rem; }
+  .addon-desc { font-size:.71rem; color:rgba(255,255,255,0.3); line-height:1.6; }
+
+  /* ── PROCESS ── */
+  #process { background:var(--ink); position:relative; }
+  #process::before { display:none; }
+  .process-header { max-width:1100px; margin:0 auto 4rem; position:relative; z-index:1; }
+  .process-steps { max-width:660px; margin:0 auto; position:relative; z-index:1; }
+  .pstep { display:grid; grid-template-columns:2.5rem 2px 1fr; gap:0 1.4rem; }
+  .pstep-num { font-family:'Bebas Neue',sans-serif; font-size:1.45rem; letter-spacing:.04em; color:rgba(255,255,255,0.18); line-height:1; padding-top:.2rem; text-align:right; }
+  .pstep-line { background:rgba(255,255,255,0.07); position:relative; width:2px; }
+  .pstep-dot { position:absolute; top:.3rem; left:50%; transform:translateX(-50%); width:10px; height:10px; border-radius:50%; background:var(--ink-raised); opacity:1; box-shadow:var(--neo-up), 0 0 0 2px rgba(255,255,255,0.12); }
+  .pstep-body { padding-bottom:3rem; padding-top:.05rem; }
+  .pstep:last-child .pstep-body { padding-bottom:0; }
+  .pstep:last-child .pstep-line { background:transparent; }
+  .pstep-title { font-size:.93rem; font-weight:600; color:var(--white); margin-bottom:.32rem; }
+  .pstep-desc { font-size:.79rem; color:rgba(255,255,255,0.36); line-height:1.75; max-width:400px; }
+
+  /* ── PRICING ── */
+  #pricing { background:var(--ink-mid); box-shadow:inset 0 4px 20px rgba(0,0,0,0.4); }
+  .pricing-header { max-width:1100px; margin:0 auto 4rem; }
+  .pricing-table { max-width:840px; margin:0 auto; background:var(--ink-raised); border-radius:16px; padding:0 2rem; box-shadow:var(--neo-card); }
+  .prow { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:2rem; padding:1.35rem 0; border-bottom:.5px solid rgba(255,255,255,0.05); transition:padding-left .28s; }
+  .prow:first-child { border-top:none; }
+  .prow:last-child { border-bottom:none; }
+  .prow:hover { padding-left:.7rem; }
+  .prow-name { font-size:.89rem; font-weight:500; color:rgba(255,255,255,0.72); }
+  .ptag { font-family:'DM Mono',monospace; font-size:.49rem; letter-spacing:.18em; text-transform:uppercase; padding:.2rem .58rem; border-radius:4px; white-space:nowrap; }
+  .ptag-clean  { color:rgba(180,255,200,0.75); border:.5px solid rgba(180,255,200,0.18); background:rgba(180,255,200,0.04); box-shadow:inset 1px 1px 4px rgba(0,0,0,0.4); }
+  .ptag-repair { color:rgba(255,255,255,0.55); border:.5px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.025); box-shadow:inset 1px 1px 4px rgba(0,0,0,0.4); }
+  .ptag-up     { color:rgba(184,169,138,0.85); border:.5px solid rgba(184,169,138,0.18); background:rgba(184,169,138,0.04); box-shadow:inset 1px 1px 4px rgba(0,0,0,0.4); }
+  .pprice { font-family:'Bebas Neue',sans-serif; font-size:1.22rem; letter-spacing:.05em; color:var(--white); white-space:nowrap; }
+  .pricing-note { font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.13em; color:rgba(255,255,255,0.18); max-width:840px; margin:1.3rem auto 0; }
+
+  /* ── FAQ ── */
+  #faq { background:var(--ink); }
+  .faq-header { max-width:1100px; margin:0 auto 3.5rem; }
+  .faq-list { max-width:740px; margin:0 auto; background:var(--ink-raised); border-radius:16px; padding:0 2rem; box-shadow:var(--neo-card); }
+  .faq-item { border-bottom:.5px solid rgba(255,255,255,0.06); }
+  .faq-item:first-child { border-top:none; }
+  .faq-q { display:flex; align-items:center; justify-content:space-between; padding:1.4rem 0; cursor:pointer; gap:1rem; user-select:none; }
+  .faq-q-text { font-size:.91rem; font-weight:500; color:rgba(255,255,255,0.72); line-height:1.5; }
+  .faq-ico { width:28px; height:28px; flex-shrink:0; border-radius:50%; border:.5px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; transition:all .3s; position:relative; background:var(--ink); box-shadow:var(--neo-inset); }
+  .faq-ico::before,.faq-ico::after { content:''; position:absolute; background:rgba(255,255,255,0.5); border-radius:1px; transition:all .3s; }
+  .faq-ico::before { width:9px; height:1.5px; }
+  .faq-ico::after { width:1.5px; height:9px; }
+  .faq-item.open .faq-ico { background:var(--white); border-color:var(--white); box-shadow:none; }
+  .faq-item.open .faq-ico::before,.faq-item.open .faq-ico::after { background:var(--ink); }
+  .faq-item.open .faq-ico::after { transform:scaleY(0); }
+  .faq-a { font-size:.82rem; color:rgba(255,255,255,0.36); line-height:1.82; max-height:0; overflow:hidden; padding-bottom:0; transition:max-height .42s cubic-bezier(.16,1,.3,1),padding-bottom .3s; }
+  .faq-item.open .faq-a { max-height:300px; padding-bottom:1.4rem; }
+
+  /* ── CUSTOM SELECT ── */
+  .custom-select { position:relative; user-select:none; }
+  .cs-trigger {
+    display:flex; align-items:center; justify-content:space-between;
+    width:100%; background:var(--ink); border:.5px solid rgba(255,255,255,0.06);
+    border-radius:8px; padding:.73rem 1rem; cursor:pointer;
+    box-shadow:var(--neo-inset);
+    transition:border-color .3s, box-shadow .3s;
+  }
+  .cs-trigger:hover { border-color:rgba(255,255,255,0.18); }
+  .custom-select.open .cs-trigger {
+    border-color:rgba(255,255,255,0.22);
+    box-shadow:var(--neo-inset), 0 0 0 2px rgba(255,255,255,0.05);
+  }
+  .cs-value { font-family:'Outfit',sans-serif; font-size:.85rem; font-weight:300; color:rgba(255,255,255,0.32); transition:color .2s; }
+  .cs-value.selected { color:var(--white); }
+  .cs-arrow { width:12px; height:8px; flex-shrink:0; transition:transform .35s cubic-bezier(.16,1,.3,1); }
+  .custom-select.open .cs-arrow { transform:rotate(180deg); }
+
+  .cs-dropdown {
+    position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:200;
+    background:var(--ink-raised);
+    border:.5px solid rgba(255,255,255,0.1);
+    border-radius:14px;
+    box-shadow:var(--neo-card), 0 0 0 1px rgba(255,255,255,0.04);
+    overflow:hidden;
+    max-height:0; opacity:0; pointer-events:none;
+    transition:max-height .45s cubic-bezier(.16,1,.3,1), opacity .3s cubic-bezier(.16,1,.3,1);
+  }
+  .custom-select.open .cs-dropdown {
+    max-height:420px; opacity:1; pointer-events:all;
+    overflow-y:auto;
+  }
+  .cs-dropdown::-webkit-scrollbar { width:3px; }
+  .cs-dropdown::-webkit-scrollbar-track { background:transparent; }
+  .cs-dropdown::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:2px; }
+
+  .cs-group-label {
+    font-family:'DM Mono',monospace; font-size:.5rem; letter-spacing:.28em;
+    text-transform:uppercase; color:rgba(255,255,255,0.2);
+    padding:.7rem 1rem .4rem; pointer-events:none;
+  }
+  .cs-option {
+    display:flex; align-items:center; gap:.75rem;
+    padding:.72rem 1rem; cursor:pointer;
+    transition:background .2s;
+    border-bottom:.5px solid rgba(255,255,255,0.04);
+  }
+  .cs-option:last-child { border-bottom:none; }
+  .cs-option:hover { background:rgba(255,255,255,0.055); }
+  .cs-option.active { background:rgba(255,255,255,0.08); }
+  .cs-opt-icon { font-size:.9rem; flex-shrink:0; width:1.4rem; text-align:center; }
+  .cs-option span:nth-child(2) { font-size:.84rem; color:rgba(255,255,255,0.75); flex:1; }
+  .cs-option:hover span:nth-child(2) { color:var(--white); }
+  .cs-opt-price {
+    font-family:'DM Mono',monospace; font-size:.58rem; letter-spacing:.1em;
+    color:var(--gold); opacity:.7; flex-shrink:0;
+  }
+  #contact { background:var(--ink-mid); position:relative; overflow:hidden; box-shadow:inset 0 4px 20px rgba(0,0,0,0.4); }
+  #contact::before { content:'AXIS'; position:absolute; bottom:-3rem; right:-1rem; font-family:'Bebas Neue',sans-serif; font-size:20vw; letter-spacing:.05em; color:rgba(255,255,255,0.016); user-select:none; pointer-events:none; }
+  .contact-inner { max-width:960px; margin:0 auto; display:grid; grid-template-columns:1fr 1.2fr; gap:6rem; align-items:start; position:relative; z-index:1; }
+  .contact-info { margin-top:1.8rem; display:flex; flex-direction:column; gap:1.25rem; }
+  .ci { display:flex; flex-direction:column; gap:.17rem; padding-bottom:1.25rem; border-bottom:.5px solid rgba(255,255,255,0.06); }
+  .ci:last-child { border-bottom:none; }
+  .ci-label { font-family:'DM Mono',monospace; font-size:.56rem; letter-spacing:.26em; text-transform:uppercase; color:rgba(255,255,255,0.26); }
+  .ci-val { font-size:.9rem; color:rgba(255,255,255,0.78); }
+  .ci-val a { color:inherit; text-decoration:none; transition:color .2s; }
+  .ci-val a:hover { color:var(--white); }
+  .wa-btn { display:inline-flex; align-items:center; gap:.62rem; margin-top:1.6rem; padding:.78rem 1.5rem; border:.5px solid rgba(255,255,255,0.12); border-radius:8px; text-decoration:none; color:rgba(255,255,255,0.5); font-family:'DM Mono',monospace; font-size:.6rem; letter-spacing:.2em; text-transform:uppercase; transition:all .28s; box-shadow:var(--neo-up); background:var(--ink-raised); }
+  .wa-btn:hover { background:var(--white); color:var(--ink); border-color:var(--white); box-shadow:none; }
+  .wa-btn svg { width:14px; height:14px; fill:currentColor; flex-shrink:0; }
+  .contact-form { background:var(--ink-raised); border:.5px solid rgba(255,255,255,0.07); border-radius:18px; padding:2.8rem; position:relative; box-shadow:var(--neo-card); }
+  .contact-form::before { content:''; position:absolute; top:0; left:2rem; right:2rem; height:1px; background:rgba(255,255,255,0.08); border-radius:0 0 2px 2px; }
+  .form-group { margin-bottom:1.05rem; }
+  .form-label { display:block; font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,0.28); margin-bottom:.42rem; }
+  .form-input { width:100%; background:var(--ink); border:.5px solid rgba(255,255,255,0.06); border-radius:8px; padding:.73rem 1rem; font-family:'Outfit',sans-serif; font-size:.85rem; font-weight:300; color:var(--white); outline:none; transition:border-color .3s,box-shadow .3s; resize:none; box-shadow:var(--neo-inset); }
+  .form-input::placeholder { color:rgba(255,255,255,0.13); }
+  .form-input:focus { border-color:rgba(255,255,255,0.2); box-shadow:var(--neo-inset), 0 0 0 2px rgba(255,255,255,0.05); }
+  .form-input option { background:#1a1e28; color:#fff; }
+  .form-btn { width:100%; padding:.86rem; background:var(--white); border:none; color:var(--ink); font-family:'DM Mono',monospace; font-size:.66rem; letter-spacing:.28em; text-transform:uppercase; cursor:pointer; border-radius:8px; transition:all .28s; margin-top:.35rem; box-shadow:4px 4px 12px rgba(0,0,0,0.5); }
+  .form-btn:hover { background:var(--linen); box-shadow:6px 6px 20px rgba(0,0,0,0.7); transform:translateY(-1px); }
+
+  /* ── FOOTER ── */
+  footer { background:var(--ink); border-top:.5px solid rgba(255,255,255,0.05); padding:2rem 3rem; display:flex; align-items:center; justify-content:space-between; }
+  .footer-logo { display:flex; align-items:center; gap:.45rem; text-decoration:none; }
+  .footer-logo-text { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:.14em; color:rgba(255,255,255,0.38); }
+  .footer-copy { font-family:'DM Mono',monospace; font-size:.56rem; letter-spacing:.13em; color:rgba(255,255,255,0.16); }
+  .footer-back { font-family:'DM Mono',monospace; font-size:.54rem; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,0.26); text-decoration:none; transition:color .25s; }
+  .footer-back:hover { color:var(--white); }
+
+  /* ── LOADER ── */
+  #loader {
+    position:fixed; inset:0; z-index:9999;
+    background:var(--ink);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transition:opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1);
+  }
+  #loader.done { opacity:0; transform:scale(1.04); pointer-events:none; }
+  /* noise overlay */
+  #loader::before {
+    content:''; position:absolute; inset:-50%;
+    width:200%; height:200%;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+    opacity:.55; pointer-events:none; animation:noiseShift 0.15s steps(2) infinite;
+  }
+  @keyframes noiseShift {
+    0%   { transform:translate(0,0); }
+    25%  { transform:translate(-2%,-1%); }
+    50%  { transform:translate(1%, 2%); }
+    75%  { transform:translate(-1%, 1%); }
+    100% { transform:translate(2%,-2%); }
+  }
+  /* gold shimmer line */
+  #loader::after {
+    content:''; position:absolute; bottom:0; left:0;
+    height:1.5px;
+    background:linear-gradient(90deg, transparent, var(--gold), rgba(255,255,255,0.6), var(--gold), transparent);
+    animation:loaderLine 1.8s cubic-bezier(.16,1,.3,1) forwards;
+    width:0;
+  }
+  @keyframes loaderLine { to { width:100%; } }
+
+  .loader-logo {
+    position:relative; z-index:1;
+    opacity:0; animation:loaderFadeIn .6s ease forwards .2s;
+  }
+  .loader-logo img { height:80px; filter:drop-shadow(0 0 30px rgba(184,169,138,0.3)); }
+  .loader-label {
+    position:relative; z-index:1;
+    font-family:'DM Mono',monospace; font-size:.55rem; letter-spacing:.45em;
+    text-transform:uppercase; color:rgba(255,255,255,0.25);
+    margin-top:1.2rem;
+    opacity:0; animation:loaderFadeIn .6s ease forwards .5s;
+  }
+  .loader-bar-wrap {
+    position:relative; z-index:1;
+    width:120px; height:1px; background:rgba(255,255,255,0.08);
+    margin-top:2rem; border-radius:1px; overflow:hidden;
+    opacity:0; animation:loaderFadeIn .4s ease forwards .7s;
+  }
+  .loader-bar {
+    height:100%; width:0; background:var(--gold);
+    animation:loaderBar 1.6s cubic-bezier(.16,1,.3,1) forwards .8s;
+    box-shadow:0 0 8px rgba(184,169,138,0.6);
+  }
+  @keyframes loaderBar    { to { width:100%; } }
+  @keyframes loaderFadeIn { to { opacity:1; } }
+
+  /* keep page hidden until loaded */
+  body.loading { overflow:hidden; }
+
+  /* ── REVEAL ── */
+  .reveal,.reveal-l,.reveal-r,.reveal-s {
+    opacity:0;
+    transition:opacity 1.1s cubic-bezier(.16,1,.3,1), transform 1.1s cubic-bezier(.16,1,.3,1), filter 1.1s cubic-bezier(.16,1,.3,1), clip-path 1.1s cubic-bezier(.16,1,.3,1);
+  }
+  .reveal   { transform:translateY(70px) scale(0.96); filter:blur(8px); clip-path:inset(0 0 20px 0); }
+  .reveal-l { transform:translateX(-80px) rotate(-2deg) scale(0.95); filter:blur(8px); }
+  .reveal-r { transform:translateX(80px) rotate(2deg) scale(0.95); filter:blur(8px); }
+  .reveal-s { transform:scale(0.82) translateY(30px); filter:blur(10px); }
+  .reveal.v,.reveal-l.v,.reveal-r.v,.reveal-s.v {
+    opacity:1; transform:none; filter:blur(0); clip-path:inset(0 0 0px 0);
+  }
+
+  /* pricing row animation */
+  .prow-anim {
+    opacity:0;
+    transform:translateX(-32px);
+    filter:blur(4px);
+    transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1), filter .7s cubic-bezier(.16,1,.3,1), padding-left .28s, background .3s;
+  }
+  .prow-anim.v { opacity:1; transform:none; filter:blur(0); }
+  .prow:hover { background:rgba(255,255,255,0.04); }
+  .pprice { transition:color .3s, transform .3s; }
+  .prow:hover .pprice { color:var(--gold); transform:scale(1.08); }
+  .prow:hover .prow-name { color:var(--white); }
+
+  /* ══════════════════════════════════════
+     MOBILE — BEAUTIFUL
+  ══════════════════════════════════════ */
+  @media(max-width:768px){
+
+    /* NAV */
+    nav { padding:.85rem 1.4rem; }
+    .nav-links { display:none; }
+    .hamburger { display:flex; }
+
+    /* MOBILE MENU — full-width slide-down drawer */
+    .mobile-menu {
+      top:0; left:0; right:0; width:100%;
+      border-radius:0 0 24px 24px;
+      padding:5.5rem 2rem 2rem;
+      border-top:none;
+      box-shadow:0 24px 60px rgba(0,0,0,0.7);
+    }
+    .mobile-menu a {
+      font-size:1.1rem; letter-spacing:.12em;
+      padding:1rem 0;
+    }
+    .mobile-menu a:last-child {
+      margin-top:.6rem; padding:1rem 1.4rem;
+      border:.5px solid rgba(255,255,255,0.3);
+      border-radius:8px; text-align:center;
+      border-bottom:.5px solid rgba(255,255,255,0.3);
+      background:var(--white); color:var(--ink) !important;
+      font-weight:600;
+    }
+
+    /* SECTIONS */
+    section { padding:5rem 1.4rem; }
+
+    /* HERO */
+    .hero-content { padding:0 1rem; position:relative; z-index:4; }
+    .hero-eyebrow { font-size:.55rem; }
+    .hero-title { font-size:clamp(3.2rem, 14vw, 5rem); line-height:.92; }
+    .hero-sub { font-size:.83rem; }
+    .hero-btns { flex-direction:column; align-items:stretch; gap:.8rem; }
+    .hero-btns a { text-align:center; padding:1rem 1.4rem; }
+    #ctrl-black { width:70vw; left:-14vw; top:12vh; }
+    #ctrl-gold  { width:62vw; right:-12vw; top:18vh; }
+    .why-visual { display:none; }
+
+    /* TRUST BAR */
+    #trust {
+      gap:0; padding:0; flex-direction:column;
+      box-shadow:inset 0 2px 12px rgba(0,0,0,0.5);
+    }
+    .t-item {
+      width:100%; flex-direction:row; justify-content:flex-start;
+      gap:1rem; border-radius:0; padding:1.1rem 1.6rem;
+      border-bottom:.5px solid rgba(255,255,255,0.05);
+      box-shadow:none; background:transparent;
+    }
+    .t-item:last-child { border-bottom:none; }
+    .t-div { display:none; }
+    .t-num { font-size:1.6rem; }
+    .t-label { font-size:.55rem; text-align:left; }
+
+    /* WHY AXIS */
+    .why-inner { grid-template-columns:1fr; gap:0; }
+    .why-visual { order:-1; margin-bottom:2rem; }
+    .why-visual-stack { height:300px; max-width:100%; }
+    .why-ps5  { width:85%; }
+    .why-ctrl { width:60%; }
+    .why-grid { gap:1rem; }
+    .why-item { gap:.75rem; }
+
+    /* SERVICES */
+    .svc-grid { grid-template-columns:1fr; gap:1.2rem; }
+    .svc-card { padding:2rem 1.8rem; border-radius:16px; }
+    .addons-grid { grid-template-columns:1fr 1fr; gap:.7rem; }
+    .addon { padding:1rem; border-radius:12px; }
+
+    /* PROCESS */
+    .process-inner { grid-template-columns:1fr; gap:2rem; }
+    .process-left { text-align:left; }
+    .process-steps { max-width:100%; }
+    .pstep { grid-template-columns:2rem 2px 1fr; gap:0 1rem; }
+    .pstep-num { font-size:1.1rem; }
+    .pstep-body { padding-bottom:2rem; }
+    .pstep-title { font-size:.88rem; }
+    .pstep-desc { font-size:.78rem; max-width:100%; }
+
+    /* PRICING */
+    #pricing { padding:5rem 1rem; }
+    .pricing-header { margin-bottom:2.5rem; }
+    .pricing-table { padding:0 1.2rem; border-radius:14px; }
+    .prow { grid-template-columns:1fr auto; gap:1rem; padding:1.1rem 0; }
+    .ptag { display:none; }
+    .prow-name { font-size:.82rem; }
+    .pprice { font-size:1.05rem; }
+    .pricing-note { font-size:.5rem; padding:0 .5rem; }
+
+    /* FAQ */
+    .faq-list { padding:0 1.2rem; border-radius:14px; }
+    .faq-q-text { font-size:.84rem; }
+
+    /* CONTACT */
+    .contact-inner { grid-template-columns:1fr; gap:2.5rem; }
+    .contact-form { padding:2rem 1.4rem; border-radius:16px; }
+    .contact-form::before { left:1rem; right:1rem; }
+    .ci-val { font-size:.84rem; }
+
+    /* FOOTER */
+    footer { flex-direction:column; gap:1rem; text-align:center; padding:2rem 1.4rem; }
+  }
+
+  @media(max-width:480px){
+    .hero-title { font-size:clamp(2.8rem, 15vw, 4rem); }
+    .addons-grid { grid-template-columns:1fr; }
+    .why-visual-stack { height:260px; }
+    .svc-card { padding:1.8rem 1.4rem; }
+    .contact-form { padding:1.6rem 1.2rem; }
+  }
+</style>
+</head>
+<body class="loading">
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo">
+    <img src="AXIS_Logo-removebg-preview.png" alt="AXIS">
+  </div>
+  <div class="loader-label">PS5 Services</div>
+  <div class="loader-bar-wrap">
+    <div class="loader-bar"></div>
+  </div>
+</div>
+
+<!-- CURSOR -->
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="../index.html">
+    <img src="AXIS_Logo-removebg-preview.png" alt="AXIS">
+  </a>
+  <ul class="nav-links">
+    <div class="nav-pill" id="navPill"></div>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Book Now</a>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#services"  class="mobile-link">Services</a>
+  <a href="#process"   class="mobile-link">Process</a>
+  <a href="#pricing"   class="mobile-link">Pricing</a>
+  <a href="#faq"       class="mobile-link">FAQ</a>
+  <a href="#contact"   class="mobile-link">Book Now</a>
+  <a href="../index.html" class="mobile-link">← Back to AXIS</a>
+</div>
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<!-- ══════════════════════════
+     PARALLAX STAGE
+══════════════════════════ -->
+<div id="parallax-stage">
+  <div id="hero-sticky">
+
+    <div class="hero-vignette"></div>
+    <div class="hero-fade"></div>
+
+    <!-- Hero text -->
+    <div class="hero-content">
+      <p class="hero-eyebrow">AXIS · PS5 Tech Services · Seychelles</p>
+      <h1 class="hero-title">PS5<br><em>Cleaned.</em><br>Fixed. Done.</h1>
+      <p class="hero-sub">Professional console care by Dearen Porice</p>
+      <div class="hero-divider"></div>
+      <div class="hero-btns">
+        <a href="#contact" class="btn btn-primary">Book a Service</a>
+        <a href="#services" class="btn btn-ghost">See What We Do</a>
+      </div>
+    </div>
+
+    <!-- Controllers — JS drives their Y position, sit behind text via z-index -->
+    <img id="ctrl-black" class="ctrl-img"
+         src="black_controller_removebg_.png"
+         alt="Black DualSense">
+
+    <img id="ctrl-gold" class="ctrl-img"
+         src="white_and_gold_controller_modded_removebg.png"
+         alt="Gold Modded DualSense">
+
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+
+  </div>
+</div><!-- /parallax-stage -->
+
+<!-- TRUST BAR -->
+<div id="trust">
+  <div class="t-item reveal"><div class="t-num">100%</div><div class="t-label">Safe Disassembly</div></div>
+  <div class="t-div"></div>
+  <div class="t-item reveal"><div class="t-num">48h</div><div class="t-label">Avg Turnaround</div></div>
+  <div class="t-div"></div>
+  <div class="t-item reveal"><div class="t-num">All</div><div class="t-label">PS5 Models</div></div>
+  <div class="t-div"></div>
+  <div class="t-item reveal"><div class="t-num">24/7</div><div class="t-label">WhatsApp Support</div></div>
+</div>
+
+<!-- WHY -->
+<section id="why">
+  <div class="why-inner">
+    <div>
+      <p class="sec-label reveal">Why AXIS</p>
+      <h2 class="sec-title reveal">Your Console<br>Deserves<br>Better</h2>
+      <p class="sec-desc reveal">Dust kills performance. Worn thumbsticks ruin games. We fix both — precision tools, quality parts, zero shortcuts.</p>
+      <ul class="why-list">
+        <li class="why-item reveal">
+          <div class="why-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div><div class="why-item-title">Anti-static Safe Process</div><div class="why-item-desc">ESD-safe tools and mats throughout. Your components stay protected.</div></div>
+        </li>
+        <li class="why-item reveal">
+          <div class="why-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
+          <div><div class="why-item-title">Premium Thermal Paste</div><div class="why-item-desc">Not cheap filler. Your temps drop noticeably after every clean.</div></div>
+        </li>
+        <li class="why-item reveal">
+          <div class="why-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          <div><div class="why-item-title">Tested Before Return</div><div class="why-item-desc">Gameplay, fans, buttons, connectivity — all verified before it leaves.</div></div>
+        </li>
+        <li class="why-item reveal">
+          <div class="why-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+          <div><div class="why-item-title">WhatsApp Updates Throughout</div><div class="why-item-desc">No guessing where your console is. You're updated at every stage.</div></div>
+        </li>
+      </ul>
+    </div>
+    <div class="why-visual reveal-r">
+      <div class="why-visual-stack">
+        <img class="why-ps5" src="Playstation5_removebg.png" alt="PlayStation 5">
+        <img class="why-ctrl" src="white_and_gold_controller_modded_removebg.png" alt="Gold Modded DualSense">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="services-header">
+    <p class="sec-label reveal">What We Offer</p>
+    <h2 class="sec-title reveal">Two Core<br>Services</h2>
+    <p class="sec-desc reveal">Everything your PS5 and DualSense need — cleaned, repaired, upgraded.</p>
+  </div>
+
+  <div class="svc-grid">
+    <div class="svc-card reveal-s">
+      <div class="card-num">01 — PS5 Console</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg></div>
+      <div class="card-title">PS5 Deep Clean</div>
+      <p class="card-desc">Full internal clean that restores airflow, drops temps, and gets your PS5 running silent again.</p>
+      <ul class="card-features">
+        <li class="card-feature">Full console disassembly</li>
+        <li class="card-feature">Compressed air & brush dust removal</li>
+        <li class="card-feature">Premium thermal paste replacement</li>
+        <li class="card-feature">Fan blades individually cleaned</li>
+        <li class="card-feature">Fan replacement / upgrade available</li>
+        <li class="card-feature">Exterior shell wiped & sanitised</li>
+        <li class="card-feature">Full reassembly & game test</li>
+      </ul>
+      <div class="card-price"><span class="price-label">From</span><span class="price-val">SCR 500</span></div>
+    </div>
+
+    <div class="svc-card reveal-s">
+      <div class="card-num">02 — DualSense Controller</div>
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="6"/><path d="M8 12h.01M6 10v4M16 12h2M19 10v4"/></svg></div>
+      <div class="card-title">Controller Repair & Upgrade</div>
+      <p class="card-desc">Stick drift, broken triggers, dead buttons — fixed. Plus custom upgrades to make your DualSense exactly how you want it.</p>
+      <ul class="card-features">
+        <li class="card-feature">Thumbstick drift repair / replacement</li>
+        <li class="card-feature">Trigger & bumper repair</li>
+        <li class="card-feature">Button replacement (all types)</li>
+        <li class="card-feature">Internal clean & contact restore</li>
+        <li class="card-feature">Custom shell & button upgrades</li>
+      </ul>
+      <div class="card-price"><span class="price-label">From</span><span class="price-val">SCR 200</span></div>
+    </div>
+  </div>
+
+  <div class="addons-label reveal" style="margin-top:2.5rem;">Add-on Services</div>
+  <div class="addons-grid">
+    <div class="addon reveal-s"><div class="addon-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div><div class="addon-name">SSD Storage Upgrade</div><div class="addon-desc">M.2 NVMe install — more space, faster loads.</div></div></div>
+    <div class="addon reveal-s"><div class="addon-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div><div class="addon-name">Battery Replacement</div><div class="addon-desc">Controller not holding charge? Fresh OEM-spec battery.</div></div></div>
+    <div class="addon reveal-s"><div class="addon-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><div><div class="addon-name">Custom Shell Swap</div><div class="addon-desc">Full faceplate swap — matte, frosted, translucent.</div></div></div>
+    <div class="addon reveal-s"><div class="addon-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2"/></svg></div><div><div class="addon-name">Thermal Pad Upgrade</div><div class="addon-desc">Copper or graphene pads for maximum heat transfer.</div></div></div>
+    <div class="addon reveal-s"><div class="addon-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div><div><div class="addon-name">Anti-Slip Grip Upgrade</div><div class="addon-desc">Rubberised grip tape or textured back panels.</div></div></div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="process-header">
+    <p class="sec-label reveal">How It Works</p>
+    <h2 class="sec-title reveal">Simple &<br>Transparent</h2>
+    <p class="sec-desc reveal">No hidden steps, no surprises. Here's exactly what happens from the moment you reach out.</p>
+  </div>
+  <div class="process-steps">
+    <div class="pstep reveal"><div class="pstep-num">01</div><div class="pstep-line"><div class="pstep-dot"></div></div><div class="pstep-body"><div class="pstep-title">WhatsApp or Book Online</div><p class="pstep-desc">Message us or fill the form. We confirm availability and pricing usually within a few hours.</p></div></div>
+    <div class="pstep reveal"><div class="pstep-num">02</div><div class="pstep-line"><div class="pstep-dot"></div></div><div class="pstep-body"><div class="pstep-title">Drop Off Your Device</div><p class="pstep-desc">Bring your PS5 or controller to us. We inspect it in person and confirm the quote before touching anything.</p></div></div>
+    <div class="pstep reveal"><div class="pstep-num">03</div><div class="pstep-line"><div class="pstep-dot"></div></div><div class="pstep-body"><div class="pstep-title">We Get to Work</div><p class="pstep-desc">Full disassembly, clean or repair, quality parts throughout. WhatsApp updates at every stage.</p></div></div>
+    <div class="pstep reveal"><div class="pstep-num">04</div><div class="pstep-line"><div class="pstep-dot"></div></div><div class="pstep-body"><div class="pstep-title">Test & Quality Check</div><p class="pstep-desc">Gameplay, fans, temps, buttons, charging — all verified before reassembly is complete.</p></div></div>
+    <div class="pstep reveal"><div class="pstep-num">05</div><div class="pstep-line"><div class="pstep-dot"></div></div><div class="pstep-body"><div class="pstep-title">Pick Up & Play</div><p class="pstep-desc">Ready in 24–48 hours. We message you the moment it's done.</p></div></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="pricing-header">
+    <p class="sec-label reveal">Clear Pricing</p>
+    <h2 class="sec-title reveal">No Hidden Costs</h2>
+    <p class="sec-desc reveal">All prices in Seychellois Rupees. Parts billed separately at cost — confirmed before we start.</p>
+  </div>
+  <div class="pricing-table">
+    <div class="prow prow-anim" data-delay="0"><div class="prow-name">PS5 Deep Clean (Full Internal)</div><div class="ptag ptag-clean">Clean</div><div class="pprice">SCR 500</div></div>
+    <div class="prow prow-anim" data-delay="80"><div class="prow-name">PS5 Fan Replacement / Upgrade</div><div class="ptag ptag-up">Upgrade</div><div class="pprice">Quote on Request</div></div>
+    <div class="prow prow-anim" data-delay="160"><div class="prow-name">PS5 SSD Installation (M.2 NVMe)</div><div class="ptag ptag-up">Upgrade</div><div class="pprice">Quote on Request</div></div>
+    <div class="prow prow-anim" data-delay="240"><div class="prow-name">DualSense Stick Drift Fix</div><div class="ptag ptag-repair">Repair</div><div class="pprice">SCR 300</div></div>
+    <div class="prow prow-anim" data-delay="320"><div class="prow-name">DualSense Trigger / Bumper Repair</div><div class="ptag ptag-repair">Repair</div><div class="pprice">SCR 300</div></div>
+    <div class="prow prow-anim" data-delay="400"><div class="prow-name">DualSense Battery Replacement</div><div class="ptag ptag-repair">Repair</div><div class="pprice">SCR 300 + Part</div></div>
+    <div class="prow prow-anim" data-delay="480"><div class="prow-name">Custom Controller Shell Swap</div><div class="ptag ptag-up">Upgrade</div><div class="pprice">Quote on Request</div></div>
+    <div class="prow prow-anim" data-delay="560"><div class="prow-name">Full Controller Deep Clean</div><div class="ptag ptag-clean">Clean</div><div class="pprice">SCR 300</div></div>
+  </div>
+  <p class="pricing-note reveal">* Labour pricing only. Parts billed at cost and confirmed before work begins — you are never charged without approval.</p>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="faq-header">
+    <p class="sec-label reveal">FAQ</p>
+    <h2 class="sec-title reveal">Common<br>Questions</h2>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item reveal"><div class="faq-q"><span class="faq-q-text">Will cleaning my PS5 void the warranty?</span><div class="faq-ico"></div></div><div class="faq-a">Sony's warranty covers manufacturing defects — not dust build-up or fan issues. Most PS5s in Seychelles are already outside the standard warranty period. We'll let you know upfront if this applies to your device.</div></div>
+    <div class="faq-item reveal"><div class="faq-q"><span class="faq-q-text">How do I know if my PS5 needs a clean?</span><div class="faq-ico"></div></div><div class="faq-a">Key signs: fan louder than usual, console gets very hot, throttling performance, or it's been 12–18+ months since the last clean. In Seychelles' climate we recommend every 6–12 months.</div></div>
+    <div class="faq-item reveal"><div class="faq-q"><span class="faq-q-text">What causes controller stick drift?</span><div class="faq-ico"></div></div><div class="faq-a">Worn potentiometers inside the thumbstick module — they degrade over time and send false signals. We replace the entire thumbstick module with a quality replacement, which fully resolves it.</div></div>
+    <div class="faq-item reveal"><div class="faq-q"><span class="faq-q-text">How long does a PS5 deep clean take?</span><div class="faq-ico"></div></div><div class="faq-a">Usually same-day or next-day. A standard deep clean takes around 2–3 hours. We'll give you an estimated pick-up time at drop-off and WhatsApp you the moment it's ready.</div></div>
+    <div class="faq-item reveal"><div class="faq-q"><span class="faq-q-text">Are my games and saves safe?</span><div class="faq-ico"></div></div><div class="faq-a">Absolutely. Cleaning and repairs are purely physical — we never touch your SSD, account data, or software. We do recommend backing up saves to PS Plus cloud before any service.</div></div>
+    <div class="faq-item reveal"><div class="faq-q"><span class="faq-q-text">Do you offer a warranty on repairs?</span><div class="faq-ico"></div></div><div class="faq-a">Yes. All repairs carry a 30-day service warranty on the specific work done. Same issue returns within 30 days? We fix it again at no extra labour cost.</div></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-inner">
+    <div>
+      <p class="sec-label reveal">Book a Service</p>
+      <h2 class="sec-title reveal">Get In<br>Touch</h2>
+      <p class="sec-desc reveal" style="margin-top:.8rem;">Message us on WhatsApp or fill the form. No commitment until we've confirmed the quote.</p>
+      <div class="contact-info">
+        <div class="ci reveal"><span class="ci-label">WhatsApp / Phone</span><span class="ci-val"><a href="https://wa.me/2482603277" target="_blank">+248 260 3277</a></span></div>
+        <div class="ci reveal"><span class="ci-label">Email</span><span class="ci-val"><a href="mailto:dearenporis2@gmail.com">dearenporis2@gmail.com</a></span></div>
+        <div class="ci reveal"><span class="ci-label">Location</span><span class="ci-val">Seychelles</span></div>
+        <div class="ci reveal"><span class="ci-label">Turnaround</span><span class="ci-val">24–48 hrs most repairs</span></div>
+      </div>
+      <a class="wa-btn reveal" href="https://wa.me/2482603277?text=Hi%20AXIS!%20I'd%20like%20to%20book%20a%20PS5%20service." target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Message on WhatsApp
+      </a>
+    </div>
+    <div class="contact-form reveal">
+      <div class="form-group"><label class="form-label">Your Name</label><input id="ps-name" class="form-input" type="text" placeholder="Your name"></div>
+      <div class="form-group"><label class="form-label">Phone / WhatsApp</label><input id="ps-phone" class="form-input" type="tel" placeholder="+248 ..."></div>
+      <div class="form-group">
+        <label class="form-label">Service Needed</label>
+        <div class="custom-select" id="customSelect">
+          <div class="cs-trigger" id="csTrigger">
+            <span class="cs-value" id="csValue">Select a service…</span>
+            <svg class="cs-arrow" viewBox="0 0 12 8" fill="none"><path d="M1 1l5 5 5-5" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="cs-dropdown" id="csDropdown">
+            <div class="cs-group-label">PS5 Console</div>
+            <div class="cs-option" data-value="PS5 Deep Clean">
+              <span class="cs-opt-icon">🧹</span><span>PS5 Deep Clean</span><span class="cs-opt-price">SCR 500</span>
+            </div>
+            <div class="cs-option" data-value="PS5 Fan Replacement / Upgrade">
+              <span class="cs-opt-icon">🌀</span><span>PS5 Fan Replacement / Upgrade</span><span class="cs-opt-price">Quote</span>
+            </div>
+            <div class="cs-option" data-value="PS5 SSD Installation">
+              <span class="cs-opt-icon">💾</span><span>PS5 SSD Installation</span><span class="cs-opt-price">Quote</span>
+            </div>
+            <div class="cs-option" data-value="PS5 Won't Turn On — Diagnostic">
+              <span class="cs-opt-icon">⚡</span><span>PS5 Won't Turn On — Diagnostic</span><span class="cs-opt-price">Quote</span>
+            </div>
+            <div class="cs-group-label">DualSense Controller</div>
+            <div class="cs-option" data-value="DualSense Stick Drift Fix">
+              <span class="cs-opt-icon">🕹️</span><span>Stick Drift Fix</span><span class="cs-opt-price">SCR 300</span>
+            </div>
+            <div class="cs-option" data-value="DualSense Trigger / Bumper Repair">
+              <span class="cs-opt-icon">🔧</span><span>Trigger / Bumper Repair</span><span class="cs-opt-price">SCR 300</span>
+            </div>
+            <div class="cs-option" data-value="DualSense Battery Replacement">
+              <span class="cs-opt-icon">🔋</span><span>Battery Replacement</span><span class="cs-opt-price">SCR 300</span>
+            </div>
+            <div class="cs-option" data-value="Custom Controller Shell Swap">
+              <span class="cs-opt-icon">🎨</span><span>Custom Shell Swap</span><span class="cs-opt-price">Quote</span>
+            </div>
+            <div class="cs-option" data-value="Full Controller Deep Clean">
+              <span class="cs-opt-icon">✨</span><span>Full Controller Deep Clean</span><span class="cs-opt-price">SCR 300</span>
+            </div>
+            <div class="cs-group-label">Other</div>
+            <div class="cs-option" data-value="Other / Not Sure">
+              <span class="cs-opt-icon">💬</span><span>Other / Not Sure</span><span class="cs-opt-price">—</span>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="ps-service" value="">
+      </div>
+      <div class="form-group"><label class="form-label">Describe the Issue</label><textarea id="ps-message" class="form-input" rows="4" placeholder="Tell us what's wrong…"></textarea></div>
+      <button class="form-btn" onclick="sendWA()">Send via WhatsApp →</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a class="footer-logo" href="index.html">
+    <svg width="20" height="20" viewBox="0 0 60 60" fill="none"><polygon points="30,4 56,54 4,54" fill="none" stroke="rgba(255,255,255,0.32)" stroke-width="4" stroke-linejoin="round"/><line x1="18" y1="40" x2="42" y2="40" stroke="rgba(255,255,255,0.32)" stroke-width="4" stroke-linecap="round"/></svg>
+    <span class="footer-logo-text">AXIS</span>
+  </a>
+  <span class="footer-copy">© 2026 AXIS Digital Engineering — Dearen Porice</span>
+  <a href="index.html" class="footer-back">← Main Site</a>
+</footer>
+
+<script>
+/* ════════ LOADER ════════ */
+(function(){
+  const loader = document.getElementById('loader');
+  function dismiss(){
+    document.body.classList.remove('loading');
+    loader.classList.add('done');
+    setTimeout(() => loader.remove(), 1000);
+  }
+  // minimum 2.2s for the animation to feel luxurious, then dismiss on load
+  const minTime = new Promise(r => setTimeout(r, 2200));
+  const loaded  = new Promise(r => {
+    if(document.readyState === 'complete') r();
+    else window.addEventListener('load', r);
+  });
+  Promise.all([minTime, loaded]).then(dismiss);
+})();
+
+/* ════════════════════════════════════
+   PARALLAX — controllers glide down
+   at different speeds as you scroll
+   through the 220vh stage
+════════════════════════════════════ */
+(function(){
+  const black = document.getElementById('ctrl-black');
+  const gold  = document.getElementById('ctrl-gold');
+
+  // Base rotations
+  const ROT_B = -8, ROT_G = 7;
+
+  // Parallax speeds (fraction of scrollY)
+  // Black = slower (feels further away / behind)
+  // Gold  = faster (feels closer / in front)
+  const SPD_B = 0.35, SPD_G = 0.52;
+
+  // Fade images in once loaded
+  const isMobile = () => window.innerWidth <= 768;
+  function showImgs(){
+    black.style.opacity = isMobile() ? '0.38' : '1';
+    gold.style.opacity  = isMobile() ? '0.38' : '1';
+  }
+  let loaded = 0;
+  function onLoad(){ if(++loaded >= 2) showImgs(); }
+  if(black.complete) onLoad(); else black.addEventListener('load', onLoad);
+  if(gold.complete)  onLoad(); else gold.addEventListener('load', onLoad);
+  // fallback
+  setTimeout(showImgs, 1200);
+
+  let ticking = false;
+
+  function update(){
+    const sy = window.scrollY;
+
+    // Drift down
+    const yB = sy * SPD_B;
+    const yG = sy * SPD_G;
+
+    // Slight extra rotation as you scroll
+    const extraRotB =  (sy / window.innerHeight) * 5;
+    const extraRotG = -(sy / window.innerHeight) * 4;
+
+    // Fade out as you scroll past hero
+    const fadeStart = window.innerHeight * 0.4;
+    const fadeEnd   = window.innerHeight * 1.1;
+    const maxOp = isMobile() ? 0.38 : 1;
+    const op = Math.max(0, Math.min(maxOp, maxOp - (sy - fadeStart) / (fadeEnd - fadeStart) * maxOp));
+
+    black.style.transform = `translateY(${yB}px) rotate(${ROT_B + extraRotB}deg)`;
+    gold.style.transform  = `translateY(${yG}px) rotate(${ROT_G + extraRotG}deg)`;
+    black.style.opacity   = op;
+    gold.style.opacity    = op;
+
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', ()=>{
+    if(!ticking){ requestAnimationFrame(update); ticking=true; }
+  }, { passive:true });
+
+  update();
+})();
+
+/* ════════ NAV — INTERACTIVE ════════ */
+(function(){
+  const nav    = document.querySelector('nav');
+  const links  = document.querySelectorAll('.nav-links a');
+  const ctaBtn = document.querySelector('.nav-cta');
+  const pill   = document.getElementById('navPill');
+  const sections = ['services','process','pricing','faq','contact'].map(id => document.getElementById(id));
+
+  /* ── move pill to active link ── */
+  function movePill(el){
+    if(!el || !pill) return;
+    const navRect  = document.querySelector('.nav-links').getBoundingClientRect();
+    const linkRect = el.getBoundingClientRect();
+    pill.style.left  = (linkRect.left - navRect.left) + 'px';
+    pill.style.width = linkRect.width + 'px';
+  }
+
+  /* ── scroll: shrink nav + active section + progress bar ── */
+  function onScroll(){
+    const sy = window.scrollY;
+    const maxScroll = document.body.scrollHeight - window.innerHeight;
+    const pct = Math.min(100, (sy / maxScroll) * 100);
+    nav.style.setProperty('--scroll-pct', pct + '%');
+    nav.classList.toggle('scrolled', sy > 60);
+
+    let current = '';
+    sections.forEach(sec => {
+      if(sec && sy >= sec.offsetTop - 140) current = sec.id;
+    });
+    let activeLink = null;
+    links.forEach(a => {
+      const isActive = a.getAttribute('href') === '#' + current;
+      a.classList.toggle('active', isActive);
+      if(isActive) activeLink = a;
+    });
+    if(activeLink) movePill(activeLink);
+    else { pill.style.width = '0'; }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive:true });
+  onScroll();
+
+  /* ── hover pill preview ── */
+  links.forEach(a => {
+    a.addEventListener('mouseenter', () => movePill(a));
+    a.addEventListener('mouseleave', () => {
+      const active = document.querySelector('.nav-links a.active');
+      if(active) movePill(active); else pill.style.width = '0';
+    });
+  });
+
+  /* ── magnetic nav links ── */
+  links.forEach(a => {
+    a.addEventListener('mousemove', e => {
+      const r = a.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width  / 2;
+      const y = e.clientY - r.top  - r.height / 2;
+      a.style.transform = `translate(${x * 0.22}px, ${y * 0.4}px)`;
+    });
+    a.addEventListener('mouseleave', () => a.style.transform = '');
+  });
+
+  /* ── nav spotlight ── */
+  nav.addEventListener('mousemove', e => {
+    const r = nav.getBoundingClientRect();
+    nav.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+    nav.style.setProperty('--my', (e.clientY - r.top)  + 'px');
+    nav.classList.add('lit');
+  });
+  nav.addEventListener('mouseleave', () => nav.classList.remove('lit'));
+
+  /* ── CTA magnetic ── */
+  if(ctaBtn){
+    ctaBtn.addEventListener('mousemove', e => {
+      const r = ctaBtn.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width  / 2;
+      const y = e.clientY - r.top  - r.height / 2;
+      ctaBtn.style.transform = `translate(${x * 0.38}px, ${y * 0.55}px) scale(1.06)`;
+    });
+    ctaBtn.addEventListener('mouseleave', () => ctaBtn.style.transform = '');
+  }
+})();
+const rEls = document.querySelectorAll('.reveal,.reveal-l,.reveal-r,.reveal-s');
+const rObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(!e.isIntersecting) return;
+    const el = e.target;
+    const siblings = Array.from(el.parentElement.children)
+      .filter(c => /\breveal/.test(c.className));
+    const idx = siblings.indexOf(el);
+    const delay = idx * 120;
+    el.style.transitionDelay = delay + 'ms';
+    setTimeout(()=> {
+      el.classList.add('v');
+      setTimeout(()=> el.style.transitionDelay = '', 1200 + delay);
+    }, 40);
+    rObs.unobserve(el);
+  });
+}, { threshold:0.08, rootMargin:'0px 0px -30px 0px' });
+rEls.forEach(el => rObs.observe(el));
+
+/* ════════ PRICING ROW ANIMATIONS ════════ */
+(function(){
+  const table = document.querySelector('.pricing-table');
+  if(!table) return;
+  const rows = table.querySelectorAll('.prow-anim');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if(!e.isIntersecting) return;
+      rows.forEach(row => {
+        const delay = parseInt(row.dataset.delay) || 0;
+        setTimeout(() => row.classList.add('v'), delay);
+      });
+      obs.disconnect();
+    });
+  }, { threshold:0.05 });
+  obs.observe(table);
+})();
+
+/* ════════ CUSTOM SELECT ════════ */
+(function(){
+  const wrap    = document.getElementById('customSelect');
+  const trigger = document.getElementById('csTrigger');
+  const dropdown= document.getElementById('csDropdown');
+  const valEl   = document.getElementById('csValue');
+  const hidden  = document.getElementById('ps-service');
+  const options = dropdown.querySelectorAll('.cs-option');
+
+  trigger.addEventListener('click', e => {
+    e.stopPropagation();
+    wrap.classList.toggle('open');
+  });
+
+  options.forEach(opt => {
+    opt.addEventListener('click', () => {
+      const val = opt.dataset.value;
+      valEl.textContent = val;
+      valEl.classList.add('selected');
+      hidden.value = val;
+      options.forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      wrap.classList.remove('open');
+    });
+  });
+
+  document.addEventListener('click', e => {
+    if(!wrap.contains(e.target)) wrap.classList.remove('open');
+  });
+})();
+
+/* ════════ FAQ ════════ */
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', ()=>{
+    const item = q.closest('.faq-item');
+    const open = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+    if(!open) item.classList.add('open');
+  });
+});
+
+/* ════════ MOBILE MENU ════════ */
+const hbg = document.getElementById('hamburger');
+const mob = document.getElementById('mobileMenu');
+const overlay = document.getElementById('menuOverlay');
+
+function closeMenu(){
+  hbg.classList.remove('open');
+  mob.classList.remove('open');
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+hbg.addEventListener('click', ()=>{
+  const o = hbg.classList.toggle('open');
+  mob.classList.toggle('open', o);
+  overlay.classList.toggle('open', o);
+  document.body.style.overflow = o ? 'hidden' : '';
+});
+overlay.addEventListener('click', closeMenu);
+document.querySelectorAll('.mobile-link').forEach(a => a.addEventListener('click', closeMenu));
+
+/* ════════ WHATSAPP FORM ════════ */
+function sendWA(){
+  const name    = document.getElementById('ps-name').value.trim();
+  const phone   = document.getElementById('ps-phone').value.trim();
+  const service = document.getElementById('ps-service').value;
+  const msg     = document.getElementById('ps-message').value.trim();
+  if(!name || !service || !msg){ alert('Please fill in your name, select a service, and describe the issue.'); return; }
+  const text = `Hi AXIS! 👾\n\n*Name:* ${name}\n*Phone:* ${phone||'Not provided'}\n*Service:* ${service}\n\n*Issue:*\n${msg}`;
+  window.open(`https://wa.me/2482603277?text=${encodeURIComponent(text)}`, '_blank');
+}
+
+/* ════════ CURSOR ════════ */
+if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
+  const dot  = document.getElementById('cursorDot');
+  const ring = document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove', e=>{
+    mx=e.clientX; my=e.clientY;
+    dot.style.left=mx+'px'; dot.style.top=my+'px';
+  });
+  (function loop(){ rx+=(mx-rx)*.09; ry+=(my-ry)*.09; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(loop); })();
+  document.querySelectorAll('a,button,.svc-card,.addon,.faq-q').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{ ring.classList.add('big'); dot.classList.add('small'); });
+    el.addEventListener('mouseleave',()=>{ ring.classList.remove('big'); dot.classList.remove('small'); });
+  });
+}
+
+/* ════════ MAGNETIC BUTTONS ════════ */
+document.querySelectorAll('.btn,.form-btn,.nav-cta').forEach(b=>{
+  b.addEventListener('mousemove', e=>{
+    const r=b.getBoundingClientRect();
+    b.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.14}px,${(e.clientY-r.top-r.height/2)*.14}px)`;
+  });
+  b.addEventListener('mouseleave',()=>{ b.style.transform=''; });
+});
+</script>
+</body>
+</html>
