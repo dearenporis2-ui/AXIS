@@ -1835,6 +1835,59 @@
   .nav-logo-text { color: var(--white) !important; }
   .section-label { color: var(--gold) !important; }
 
+  /* ══════════════════════════════════════════
+     MOBILE-ONLY: kill all hover / cursor / fx
+     (hover:none) = touch device only, PC untouched
+     ══════════════════════════════════════════ */
+  @media (hover: none) {
+    /* Nav sweep underlines & pill dot */
+    .nav-links a:not(.nav-cta)::before { display: none !important; }
+    .nav-pill { display: none !important; }
+    .nav-cta::after { display: none !important; }
+    .nav-logo:hover { opacity: 1 !important; transform: none !important; }
+
+    /* Service cards */
+    .service-card:hover { box-shadow: var(--neu-raised) !important; }
+    .service-card:hover::before,
+    .service-card:hover::after { opacity: 0 !important; transform: translate(-4px,-4px) !important; }
+    .service-card:hover .card-shimmer { left: -100% !important; }
+    .service-card:hover .service-name { letter-spacing: inherit !important; }
+    .service-card:hover .service-num { color: rgba(255,255,255,0.3) !important; }
+    .service-card:hover .service-icon-wrap { box-shadow: var(--neu-inset) !important; }
+    .service-card:hover .service-icon-wrap svg { stroke: rgba(255,255,255,0.75) !important; }
+
+    /* Project cards */
+    .project-card:hover { box-shadow: var(--neu-raised) !important; }
+    .project-card:hover::before,
+    .project-card:hover::after { width: 0 !important; height: 0 !important; }
+    .project-card:hover .project-img { height: 220px !important; }
+    .project-card:hover .project-img-overlay { opacity: 0 !important; }
+    .project-card:hover .project-title { letter-spacing: inherit !important; }
+
+    /* Project rows */
+    .project-row:hover { padding-left: 0 !important; }
+    .project-row:hover::before { width: 0 !important; }
+    .project-row:hover .project-row-name { letter-spacing: inherit !important; }
+    .project-row-link:hover { background: transparent !important; color: rgba(255,255,255,0.8) !important; border-color: rgba(255,255,255,0.2) !important; }
+    .project-link:hover { gap: 0.4rem !important; }
+    .project-link:hover::after { transform: scaleX(0.3) !important; }
+
+    /* Testimonial cards */
+    .testimonial-card:hover { transform: none !important; box-shadow: var(--neu-raised) !important; }
+    .testimonial-card:hover::before { transform: scaleX(0) !important; }
+
+    /* Buttons */
+    .filter-btn:hover { border-color: rgba(255,255,255,0.15) !important; color: rgba(255,255,255,0.5) !important; }
+    .filter-btn.active:hover { background: rgba(255,255,255,0.1) !important; color: var(--white) !important; border-color: rgba(255,255,255,0.35) !important; }
+    .form-btn:hover { box-shadow: var(--neu-raised) !important; transform: none !important; }
+    .mobile-menu a:hover { color: rgba(255,255,255,0.82) !important; padding-left: 0 !important; }
+
+    /* Tap feedback instead of hover */
+    .service-card:active { transform: scale(0.97) !important; }
+    .form-btn:active { box-shadow: var(--neu-inset) !important; }
+    .filter-btn:active { background: rgba(255,255,255,0.08) !important; }
+  }
+
 </style>
 </head>
 <body>
@@ -2280,109 +2333,77 @@
   const isMobile = window.matchMedia('(hover:none)').matches;
 
   // Collect all scroll-animated elements with their config
-  const scrollItems = [];
 
-  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  // ── REVEAL SYSTEM: IntersectionObserver-based (fires once on entry) ──
 
-  function registerScrollItem(el, cfg) {
-    // cfg: { fromY, fromX, fromScale, fromBlur, staggerDelay }
-    scrollItems.push({ el, cfg, done: false });
+  // Set initial hidden state on all reveal elements
+  function initHidden(el, cfg) {
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.55s cubic-bezier(0.16,1,0.3,1), transform 0.55s cubic-bezier(0.16,1,0.3,1), filter 0.55s cubic-bezier(0.16,1,0.3,1)';
+    const transforms = [];
+    if (cfg.fromY)  transforms.push(`translateY(${cfg.fromY}px)`);
+    if (cfg.fromX)  transforms.push(`translateX(${cfg.fromX}px)`);
+    if (cfg.fromScale !== undefined && cfg.fromScale !== 1) transforms.push(`scale(${cfg.fromScale})`);
+    el.style.transform = transforms.join(' ') || '';
+    if (cfg.fromBlur) el.style.filter = `blur(${cfg.fromBlur}px)`;
   }
 
-  // Register .reveal elements
-  document.querySelectorAll('.reveal').forEach((el, i) => {
-    const siblings = Array.from(el.parentElement.children).filter(c => c.classList.contains('reveal'));
-    const idx = siblings.indexOf(el);
-    registerScrollItem(el, { fromY: 70, fromScale: 0.95, fromBlur: 6, staggerOffset: idx * 60 });
-  });
-  document.querySelectorAll('.reveal-scale').forEach(el => {
-    registerScrollItem(el, { fromY: 80, fromScale: 0.92, fromBlur: 8, staggerOffset: 0 });
-  });
-  document.querySelectorAll('.reveal-left').forEach(el => {
-    registerScrollItem(el, { fromX: -70, fromScale: 0.97, fromBlur: 5, staggerOffset: 0 });
-  });
-  document.querySelectorAll('.reveal-right').forEach(el => {
-    registerScrollItem(el, { fromX: 70, fromScale: 0.97, fromBlur: 5, staggerOffset: 0 });
-  });
-
-  // Cards with stagger per grid group
-  function registerCardGroup(selector, cfg) {
-    const groups = new Map();
-    document.querySelectorAll(selector).forEach(el => {
-      const p = el.parentElement;
-      if (!groups.has(p)) groups.set(p, []);
-      groups.get(p).push(el);
-    });
-    groups.forEach(cards => {
-      cards.forEach((el, i) => {
-        registerScrollItem(el, { ...cfg, staggerOffset: i * 80 });
-      });
-    });
+  function revealEl(el, delay) {
+    setTimeout(() => {
+      el.style.opacity = '1';
+      el.style.transform = '';
+      el.style.filter = '';
+      el.classList.add('card-revealed');
+    }, delay || 0);
   }
 
-  registerCardGroup('.service-card',     { fromY: 90, fromScale: 0.93, fromBlur: 5 });
-  registerCardGroup('.project-card',     { fromY: 100, fromScale: 0.92, fromBlur: 6 });
-  registerCardGroup('.testimonial-card', { fromY: 80, fromScale: 0.94, fromBlur: 5 });
-  registerCardGroup('.process-step',     { fromX: -60, fromBlur: 3 });
-
-  // The scroll loop — runs on every rAF, reads scroll position, sets styles directly
-  function updateScrollItems() {
-    const vh = window.innerHeight;
-
-    scrollItems.forEach(item => {
-      if (item.done) return;
-      const { el, cfg } = item;
-      const rect = el.getBoundingClientRect();
-
-      // Animation window: starts 1.5vh below viewport, completes at 0.2vh from top
-      // This gives a long travel so elements are already animating as they enter view
-      const stagger   = cfg.staggerOffset || 0;
-      const entryLine = vh * 1.5;   // element starts animating when its top is here
-      const exitLine  = vh * 0.2;   // element is fully visible when its top reaches here
-      const travel    = entryLine - exitLine;
-      const pos       = rect.top + stagger;
-
-      const raw = 1 - ((pos - exitLine) / travel);
-      const p   = Math.min(Math.max(raw, 0), 1);
-      const e   = easeOutCubic(p);
-
-      const fromY     = cfg.fromY     || 0;
-      const fromX     = cfg.fromX     || 0;
-      const fromScale = cfg.fromScale !== undefined ? cfg.fromScale : 1;
-      const fromBlur  = cfg.fromBlur  || 0;
-
-      const y     = fromY     * (1 - e);
-      const x     = fromX     * (1 - e);
-      const scale = fromScale + (1 - fromScale) * e;
-      const blur  = fromBlur  * (1 - e);
-      const opacity = Math.min(e * 1.4, 1); // opacity leads transform slightly
-
-      if (isMobile) {
-        el.style.opacity = '1';
-        el.style.transform = '';
-        el.style.filter = '';
-        item.done = true;
-        return;
-      }
-
-      el.style.opacity = opacity;
-      el.style.filter  = blur > 0.1 ? `blur(${blur.toFixed(2)}px)` : '';
-      el.style.transform = `translateY(${y.toFixed(2)}px) translateX(${x.toFixed(2)}px) scale(${scale.toFixed(4)})`;
-
-      // Once fully revealed, lock it and free the transform for hover tilt
-      if (p >= 1) {
-        el.style.opacity   = '1';
-        el.style.filter    = '';
-        el.style.transform = '';
-        el.classList.add('card-revealed');
-        item.done = true;
-      }
+  // Simple elements: reveal one by one with small stagger among siblings
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const siblings = Array.from(el.parentElement.children).filter(c => c._revealRegistered);
+      const idx = siblings.indexOf(el);
+      revealEl(el, idx * 60);
+      revealObs.unobserve(el);
     });
+  }, { threshold: 0.1 });
 
-    requestAnimationFrame(updateScrollItems);
-  }
+  document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+    const cfg =
+      el.classList.contains('reveal-left')  ? { fromX: -50, fromScale: 0.97, fromBlur: 4 } :
+      el.classList.contains('reveal-right') ? { fromX:  50, fromScale: 0.97, fromBlur: 4 } :
+      el.classList.contains('reveal-scale') ? { fromY:  40, fromScale: 0.93, fromBlur: 6 } :
+                                              { fromY:  40, fromScale: 0.96, fromBlur: 5 };
+    el._revealRegistered = true;
+    initHidden(el, cfg);
+    revealObs.observe(el);
+  });
 
-  requestAnimationFrame(updateScrollItems);
+  // Cards: group by parent, stagger within each group
+  const cardObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const siblings = Array.from(el.parentElement.children).filter(c => c._cardRegistered);
+      const idx = siblings.indexOf(el);
+      revealEl(el, idx * 70);
+      cardObs.unobserve(el);
+    });
+  }, { threshold: 0.08 });
+
+  [
+    { sel: '.service-card',     cfg: { fromY: 50, fromScale: 0.93, fromBlur: 5 } },
+    { sel: '.project-card',     cfg: { fromY: 50, fromScale: 0.92, fromBlur: 6 } },
+    { sel: '.testimonial-card', cfg: { fromY: 40, fromScale: 0.94, fromBlur: 5 } },
+    { sel: '.process-step',     cfg: { fromX: -40, fromBlur: 3 } },
+  ].forEach(({ sel, cfg }) => {
+    document.querySelectorAll(sel).forEach(el => {
+      el._cardRegistered = true;
+      initHidden(el, cfg);
+      cardObs.observe(el);
+    });
+  });
 
   // Char reveal observer (kept as intersection — chars are too small for scroll math)
   const charObserver = new IntersectionObserver((entries) => {
@@ -2501,36 +2522,43 @@
   /* ── PROCESS STEPS handled by scroll-driven system above ── */
 
   /* ── IMMERSIVE: mouse light + particles + tilt ── */
+  const _isTouch = window.matchMedia('(hover: none)').matches;
 
-  // Grain overlay
-  const grain = document.createElement('div');
-  grain.style.cssText = 'position:fixed;inset:0;z-index:9990;pointer-events:none;opacity:0.028;background-image:url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E");background-size:160px 160px;';
-  document.body.appendChild(grain);
+  // Grain overlay — PC only
+  if (!_isTouch) {
+    const grain = document.createElement('div');
+    grain.style.cssText = 'position:fixed;inset:0;z-index:9990;pointer-events:none;opacity:0.028;background-image:url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E");background-size:160px 160px;';
+    document.body.appendChild(grain);
+  }
 
-  // Mouse spotlight
-  const ml = document.createElement('div');
-  ml.style.cssText = 'position:fixed;width:560px;height:560px;border-radius:50%;pointer-events:none;z-index:9;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(184,169,138,0.042) 0%,transparent 65%);will-change:left,top;';
-  document.body.appendChild(ml);
-  let mlTX = innerWidth/2, mlTY = innerHeight/2, mlCX = mlTX, mlCY = mlTY;
-  document.addEventListener('mousemove', e => { mlTX = e.clientX; mlTY = e.clientY; });
-  (function raf(){ mlCX+=(mlTX-mlCX)*0.07; mlCY+=(mlTY-mlCY)*0.07; ml.style.left=mlCX+'px'; ml.style.top=mlCY+'px'; requestAnimationFrame(raf); })();
+  // Mouse spotlight — PC only
+  if (!_isTouch) {
+    const ml = document.createElement('div');
+    ml.style.cssText = 'position:fixed;width:560px;height:560px;border-radius:50%;pointer-events:none;z-index:9;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(184,169,138,0.042) 0%,transparent 65%);will-change:left,top;';
+    document.body.appendChild(ml);
+    let mlTX = innerWidth/2, mlTY = innerHeight/2, mlCX = mlTX, mlCY = mlTY;
+    document.addEventListener('mousemove', e => { mlTX = e.clientX; mlTY = e.clientY; });
+    (function raf(){ mlCX+=(mlTX-mlCX)*0.07; mlCY+=(mlTY-mlCY)*0.07; ml.style.left=mlCX+'px'; ml.style.top=mlCY+'px'; requestAnimationFrame(raf); })();
+  }
 
-  // Particle canvas
-  const ac = document.createElement('canvas');
-  ac.style.cssText = 'position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.45;';
-  document.body.appendChild(ac);
-  const ctx = ac.getContext('2d');
-  let W, H;
-  function resize(){ W=ac.width=innerWidth; H=ac.height=innerHeight; }
-  resize(); addEventListener('resize', resize);
-  const pts = Array.from({length:48},()=>({ x:Math.random()*innerWidth, y:Math.random()*innerHeight, vx:(Math.random()-.5)*.2, vy:(Math.random()-.5)*.2, r:Math.random()*1.1+.3, a:Math.random()*.28+.06 }));
-  const MD = 130;
-  (function draw(){
-    ctx.clearRect(0,0,W,H);
-    pts.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle=`rgba(184,169,138,${p.a})`; ctx.fill(); });
-    for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){ const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy); if(d<MD){ ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y); ctx.strokeStyle=`rgba(184,169,138,${(1-d/MD)*.055})`; ctx.lineWidth=.5; ctx.stroke(); } }
-    requestAnimationFrame(draw);
-  })();
+  // Particle canvas — PC only (too GPU-heavy for mobile)
+  if (!_isTouch) {
+    const ac = document.createElement('canvas');
+    ac.style.cssText = 'position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.45;';
+    document.body.appendChild(ac);
+    const ctx = ac.getContext('2d');
+    let W, H;
+    function resize(){ W=ac.width=innerWidth; H=ac.height=innerHeight; }
+    resize(); addEventListener('resize', resize);
+    const pts = Array.from({length:48},()=>({ x:Math.random()*innerWidth, y:Math.random()*innerHeight, vx:(Math.random()-.5)*.2, vy:(Math.random()-.5)*.2, r:Math.random()*1.1+.3, a:Math.random()*.28+.06 }));
+    const MD = 130;
+    (function draw(){
+      ctx.clearRect(0,0,W,H);
+      pts.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle=`rgba(184,169,138,${p.a})`; ctx.fill(); });
+      for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){ const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy); if(d<MD){ ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y); ctx.strokeStyle=`rgba(184,169,138,${(1-d/MD)*.055})`; ctx.lineWidth=.5; ctx.stroke(); } }
+      requestAnimationFrame(draw);
+    })();
+  }
 
   // Ambient orbs — appended to sections, position:absolute so they don't affect layout
   const orbDefs = [
@@ -2558,7 +2586,7 @@
   document.head.appendChild(ks);
 
   /* ── IMMERSIVE 3D CARD SYSTEM ── */
-  if (!window.matchMedia('(hover:none)').matches) {
+  if (!_isTouch) {
 
     // Inject dynamic shine element styles
     const shineStyle = document.createElement('style');
