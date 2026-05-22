@@ -2797,15 +2797,14 @@
     }
   }
 
-  // Lenis drives all scroll updates — called every frame regardless of display Hz
-  lenis.on('scroll', () => {
+  // Lenis fires native scroll events each frame — this hooks in cleanly
+  window.addEventListener('scroll', () => {
     if (!scrollRAF) scrollRAF = requestAnimationFrame(onScrollFrame);
-  });
-
+  }, { passive: true });
 
 </script>
 
-<!-- Lenis smooth scroll — frame-synced, works correctly on 60/120/144 Hz displays -->
+<!-- Lenis smooth scroll — must load AFTER main script so it wraps native scroll -->
 <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
 <script>
 const lenis = new Lenis({
@@ -2822,4 +2821,5 @@ function lenisRaf(time) {
 }
 requestAnimationFrame(lenisRaf);
 </script>
-</body></html>
+</body>
+</html>
