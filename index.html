@@ -2726,7 +2726,7 @@
   }, { threshold: 0.6 });
   document.querySelectorAll('.section-label').forEach(el => lwObs.observe(el));
 
-  /* ── UNIFIED SCROLL HANDLER ── */
+  /* ── UNIFIED SCROLL HANDLER (RAF-throttled for smooth 60/120/144 Hz) ── */
   const scrollSections = document.querySelectorAll('section[id]');
   const isMobileDevice = window.matchMedia('(hover:none)').matches;
   const heroVideo = document.getElementById('hero-video');
@@ -2739,7 +2739,12 @@
     if (header) parallaxTargets.push({ el: header, speed: 0.18 });
   });
 
-  window.addEventListener('scroll', () => {
+  const aboutCard = !isMobileDevice ? document.querySelector('.about-card') : null;
+
+  let scrollRAF = null;
+
+  function onScrollFrame() {
+    scrollRAF = null;
     const scrollY = window.scrollY;
     const docH = document.documentElement.scrollHeight - window.innerHeight;
 
@@ -2757,7 +2762,6 @@
     navLinks.forEach(a => {
       const isActive = a.getAttribute('href') === '#' + current;
       a.classList.toggle('active', isActive);
-      // show/hide the pill sibling
       const pill = a.parentElement && a.parentElement.querySelector('.nav-pill');
       if (pill) pill.style.opacity = isActive ? '1' : '0';
     });
@@ -2784,19 +2788,18 @@
         }
       });
     }
-  }, { passive: true });
 
-  /* ── ABOUT CARD FLOAT PARALLAX ── */
-  if (!isMobileDevice) {
-    const aboutCard = document.querySelector('.about-card');
+    // About card float parallax
     if (aboutCard) {
-      window.addEventListener('scroll', () => {
-        const r = aboutCard.getBoundingClientRect();
-        const p = (window.innerHeight - r.top) / (window.innerHeight + r.height);
-        aboutCard.style.transform = `translateY(${(p - 0.5) * -20}px)`;
-      }, { passive: true });
+      const r = aboutCard.getBoundingClientRect();
+      const p = (window.innerHeight - r.top) / (window.innerHeight + r.height);
+      aboutCard.style.transform = `translateY(${(p - 0.5) * -20}px)`;
     }
   }
+
+  window.addEventListener('scroll', () => {
+    if (!scrollRAF) scrollRAF = requestAnimationFrame(onScrollFrame);
+  }, { passive: true });
 
 
 </script></body></html>
