@@ -45,6 +45,8 @@
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
+  /* Promote scroll container to its own layer — reduces paint cost */
+  body { will-change: scroll-position; }
 
   body {
     font-family: 'Outfit', sans-serif;
@@ -2797,29 +2799,12 @@
     }
   }
 
-  // Lenis fires native scroll events each frame — this hooks in cleanly
   window.addEventListener('scroll', () => {
     if (!scrollRAF) scrollRAF = requestAnimationFrame(onScrollFrame);
   }, { passive: true });
 
 </script>
 
-<!-- Lenis smooth scroll — must load AFTER main script so it wraps native scroll -->
-<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
-<script>
-const lenis = new Lenis({
-  duration: 1.2,
-  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-  smoothWheel: true,
-  wheelMultiplier: 0.9,
-  touchMultiplier: 1.5,
-  infinite: false,
-});
-function lenisRaf(time) {
-  lenis.raf(time);
-  requestAnimationFrame(lenisRaf);
-}
-requestAnimationFrame(lenisRaf);
-</script>
+<!-- Native scroll — Lenis removed (caused jank on monitors/high-refresh displays) -->
 </body>
 </html>
