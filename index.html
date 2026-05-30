@@ -1834,6 +1834,178 @@
     /* (video is kept but GPU rendering hints added) */
   }
 
+  /* Reviews toggle button */
+  #reviews-toggle-row {
+    text-align: center;
+    margin-top: 2rem;
+  }
+  .reviews-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    background: var(--neu-bg);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 100px;
+    padding: 0.65rem 1.8rem;
+    color: rgba(255,255,255,0.65);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: var(--neu-raised);
+    transition: color 0.25s ease, box-shadow 0.3s ease, border-color 0.25s ease;
+  }
+  .reviews-toggle-btn:hover {
+    color: var(--white);
+    border-color: rgba(184,169,138,0.4);
+    box-shadow: var(--neu-hover);
+  }
+
+  /* Hidden extra cards */
+  .review-card-hidden {
+    display: none;
+  }
+  .review-card-hidden.visible {
+    display: block;
+    animation: fadeUp 0.4s ease forwards;
+  }
+
+  /* ── REVIEW FORM ── */
+  .review-form-wrap {
+    max-width: 680px;
+    margin: 4rem auto 0;
+    padding: 0 1rem;
+  }
+  .review-form-inner {
+    background: var(--neu-bg);
+    border-radius: 20px;
+    padding: 2.8rem;
+    box-shadow: var(--neu-raised);
+    position: relative;
+    overflow: hidden;
+  }
+  .review-form-inner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  }
+  .review-form-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.06em;
+    color: var(--white);
+    margin-bottom: 1.4rem;
+    line-height: 1;
+  }
+
+  /* Stars */
+  .star-picker {
+    display: flex;
+    gap: 0.3rem;
+    margin-bottom: 0.4rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .star {
+    font-size: 2rem;
+    color: rgba(255,255,255,0.18);
+    transition: color 0.15s ease, transform 0.15s cubic-bezier(0.23,1,0.32,1);
+    line-height: 1;
+  }
+  .star.hovered,
+  .star.selected { color: var(--gold); }
+  .star:hover { transform: scale(1.2); }
+  .star-hint {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    margin-bottom: 1.6rem;
+  }
+
+  /* Fields */
+  .review-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-bottom: 1.2rem;
+  }
+  .review-input {
+    width: 100%;
+  }
+  .review-textarea {
+    resize: vertical;
+    min-height: 110px;
+    font-family: 'Outfit', sans-serif;
+    line-height: 1.7;
+  }
+
+  /* Submit row */
+  .review-submit-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .review-char-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.08em;
+  }
+  .review-btn {
+    padding: 0.75rem 2rem;
+    font-size: 0.74rem;
+  }
+  .review-status {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    color: rgba(184,169,138,0.85);
+    margin-top: 0.85rem;
+    min-height: 1em;
+    transition: opacity 0.3s ease;
+  }
+  .review-status.error { color: rgba(255,120,100,0.85); }
+
+  /* Live review cards — star row */
+  .testimonial-stars {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 0.85rem;
+  }
+  .testimonial-stars span {
+    font-size: 0.9rem;
+    color: var(--gold);
+    opacity: 0.85;
+  }
+  .testimonial-stars span.empty { color: rgba(255,255,255,0.15); }
+
+  /* Loading skeleton pulse */
+  .review-skeleton {
+    background: var(--neu-bg);
+    border-radius: 20px;
+    padding: 2.4rem;
+    box-shadow: var(--neu-raised);
+    animation: skeletonPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes skeletonPulse {
+    0%,100% { opacity: 0.5; }
+    50% { opacity: 0.8; }
+  }
+
+  @media (max-width: 768px) {
+    .review-form-inner { padding: 1.8rem 1.4rem; }
+    .star { font-size: 1.7rem; }
+    .review-submit-row { flex-direction: column; align-items: flex-start; }
+    .review-btn { width: 100%; text-align: center; justify-content: center; }
+  }
+
   /* ── FINAL OVERRIDES ── */
   .nav-logo-text { color: var(--white) !important; }
   .section-label { color: var(--gold) !important; }
@@ -2210,6 +2382,51 @@
           <div class="testimonial-role">Head of Product, Orion Labs</div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ── LIVE REVIEWS FROM FIREBASE ── -->
+  <div id="live-reviews-wrap" style="max-width:1200px;margin:2rem auto 0;">
+    <div id="live-reviews-grid" class="testimonials-grid"></div>
+    <div id="reviews-toggle-row" style="display:none;">
+      <button id="reviewsToggleBtn" class="reviews-toggle-btn" type="button">
+        <span id="reviewsToggleLabel">View All Reviews</span>
+        <svg id="reviewsToggleIcon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="transition:transform 0.4s cubic-bezier(0.23,1,0.32,1);">
+          <path d="M2 5L7 10L12 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── WRITE A REVIEW ── -->
+  <div class="review-form-wrap reveal">
+    <div class="review-form-inner">
+      <p class="section-label" style="margin-bottom:0.4rem;">Share Your Experience</p>
+      <h3 class="review-form-title">Leave a Review</h3>
+
+      <!-- Star picker -->
+      <div class="star-picker" id="starPicker" role="group" aria-label="Star rating">
+        <span class="star" data-val="1">★</span>
+        <span class="star" data-val="2">★</span>
+        <span class="star" data-val="3">★</span>
+        <span class="star" data-val="4">★</span>
+        <span class="star" data-val="5">★</span>
+      </div>
+      <p class="star-hint" id="starHint">Select a rating</p>
+
+      <div class="review-fields">
+        <input class="form-input review-input" id="reviewName" type="text" placeholder="Your Name" maxlength="60" autocomplete="name">
+        <input class="form-input review-input" id="reviewRole" type="text" placeholder="Your Role / Company (optional)" maxlength="80">
+        <textarea class="form-input review-input review-textarea" id="reviewText" placeholder="Write your review…" maxlength="600" rows="4"></textarea>
+      </div>
+
+      <div class="review-submit-row">
+        <span class="review-char-count" id="reviewCharCount">0 / 600</span>
+        <button class="form-btn review-btn" id="reviewSubmitBtn" type="button">
+          <span id="reviewBtnLabel">Submit Review</span>
+        </button>
+      </div>
+      <p class="review-status" id="reviewStatus"></p>
     </div>
   </div>
 </section>
@@ -2804,6 +3021,223 @@
     if (!scrollRAF) scrollRAF = requestAnimationFrame(onScrollFrame);
   }, { passive: true });
 
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     FIREBASE REVIEW SYSTEM
+     ══════════════════════════════════════════════════════
+     SETUP (one-time, ~5 min):
+     1. Go to https://console.firebase.google.com
+     2. Create a project (free Spark plan is fine)
+     3. Add a Web App → copy your firebaseConfig values below
+     4. In Firebase console → Firestore Database → Create database
+        → Start in TEST mode (or add security rules later)
+     5. Replace the placeholder values in firebaseConfig below
+     ══════════════════════════════════════════════════════ -->
+
+<script type="module">
+  // ── PASTE YOUR FIREBASE CONFIG HERE ──────────────────
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBTXkBzRTlQkH6ViiS55SBau5wlQznkXlc",
+    authDomain:        "review-system-for-axis.firebaseapp.com",
+    projectId:         "review-system-for-axis",
+    storageBucket:     "review-system-for-axis.firebasestorage.app",
+    messagingSenderId: "414159652522",
+    appId:             "1:414159652522:web:a4e8a64b9e1705967b32d3"
+  };
+  // ─────────────────────────────────────────────────────
+
+  const FIREBASE_CONFIGURED = firebaseConfig.apiKey !== "YOUR_API_KEY";
+
+  /* ── Imports ── */
+  let db, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp;
+
+  if (FIREBASE_CONFIGURED) {
+    const { initializeApp }   = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const firestoreModule     = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+    ({ collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } = firestoreModule);
+    const { getFirestore }    = firestoreModule;
+    const app                 = initializeApp(firebaseConfig);
+    db                        = getFirestore(app);
+  }
+
+  /* ── DOM refs ── */
+  const starEls       = document.querySelectorAll('.star');
+  const starHint      = document.getElementById('starHint');
+  const reviewName    = document.getElementById('reviewName');
+  const reviewRole    = document.getElementById('reviewRole');
+  const reviewText    = document.getElementById('reviewText');
+  const charCount     = document.getElementById('reviewCharCount');
+  const submitBtn     = document.getElementById('reviewSubmitBtn');
+  const btnLabel      = document.getElementById('reviewBtnLabel');
+  const statusEl      = document.getElementById('reviewStatus');
+  const liveGrid      = document.getElementById('live-reviews-grid');
+
+  /* ── Star picker state ── */
+  let selectedStars = 0;
+  const starLabels  = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
+
+  function paintStars(upTo) {
+    starEls.forEach((s, i) => {
+      s.classList.toggle('hovered', i < upTo);
+    });
+  }
+
+  starEls.forEach(star => {
+    star.addEventListener('mouseenter', () => paintStars(+star.dataset.val));
+    star.addEventListener('mouseleave', () => paintStars(selectedStars));
+    star.addEventListener('click', () => {
+      selectedStars = +star.dataset.val;
+      starEls.forEach((s, i) => s.classList.toggle('selected', i < selectedStars));
+      starHint.textContent = starLabels[selectedStars];
+    });
+  });
+
+  /* ── Char counter ── */
+  reviewText.addEventListener('input', () => {
+    const len = reviewText.value.length;
+    charCount.textContent = `${len} / 600`;
+    charCount.style.color = len > 550 ? 'rgba(255,140,100,0.85)' : 'rgba(255,255,255,0.3)';
+  });
+
+  /* ── Submit ── */
+  submitBtn.addEventListener('click', async () => {
+    statusEl.className = 'review-status';
+    const name = reviewName.value.trim();
+    const text = reviewText.value.trim();
+
+    if (!selectedStars) { setStatus('Please select a star rating.', true); return; }
+    if (!name)          { setStatus('Please enter your name.', true); return; }
+    if (text.length < 10) { setStatus('Review must be at least 10 characters.', true); return; }
+
+    if (!FIREBASE_CONFIGURED) {
+      setStatus('Firebase not configured yet — see the code comments for setup instructions.', true);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    btnLabel.textContent = 'Submitting…';
+
+    try {
+      await addDoc(collection(db, 'reviews'), {
+        name,
+        role:      reviewRole.value.trim() || null,
+        text,
+        stars:     selectedStars,
+        createdAt: serverTimestamp()
+      });
+
+      // Reset form
+      reviewName.value = '';
+      reviewRole.value = '';
+      reviewText.value = '';
+      charCount.textContent = '0 / 600';
+      selectedStars = 0;
+      starEls.forEach(s => { s.classList.remove('selected', 'hovered'); });
+      starHint.textContent = 'Select a rating';
+      btnLabel.textContent = 'Submit Review';
+      setStatus('Thank you — your review has been published!');
+    } catch (err) {
+      console.error(err);
+      setStatus('Something went wrong. Please try again.', true);
+    } finally {
+      submitBtn.disabled = false;
+      btnLabel.textContent = 'Submit Review';
+    }
+  });
+
+  function setStatus(msg, isError = false) {
+    statusEl.textContent = msg;
+    statusEl.className = 'review-status' + (isError ? ' error' : '');
+  }
+
+  /* ── Render live reviews ── */
+  function starsHTML(n) {
+    return Array.from({ length: 5 }, (_, i) =>
+      `<span class="${i < n ? '' : 'empty'}">★</span>`
+    ).join('');
+  }
+
+  function initials(name) {
+    return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  }
+
+  function renderCard(doc) {
+    const d = doc.data();
+    const card = document.createElement('div');
+    card.className = 'testimonial-card';
+    card.dataset.id = doc.id;
+    card.innerHTML = `
+      <div class="testimonial-stars">${starsHTML(d.stars)}</div>
+      <div class="testimonial-quote">"</div>
+      <p class="testimonial-text">${escapeHTML(d.text)}</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">${initials(d.name)}</div>
+        <div>
+          <div class="testimonial-name">${escapeHTML(d.name)}</div>
+          ${d.role ? `<div class="testimonial-role">${escapeHTML(d.role)}</div>` : ''}
+        </div>
+      </div>`;
+    return card;
+  }
+
+  function escapeHTML(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  const VISIBLE_BY_DEFAULT = 3;
+  const toggleRow           = document.getElementById('reviews-toggle-row');
+  const toggleBtn           = document.getElementById('reviewsToggleBtn');
+  const toggleLabel         = document.getElementById('reviewsToggleLabel');
+  const toggleIcon          = document.getElementById('reviewsToggleIcon');
+  let   expanded            = false;
+
+  function applyToggleState() {
+    const hidden = liveGrid.querySelectorAll('.review-card-hidden');
+    hidden.forEach(card => card.classList.toggle('visible', expanded));
+    toggleLabel.textContent = expanded ? 'Show Less' : `View All Reviews`;
+    toggleIcon.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)';
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    expanded = !expanded;
+    applyToggleState();
+    // Scroll back up to the grid when collapsing
+    if (!expanded) {
+      liveGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  if (FIREBASE_CONFIGURED) {
+    // Show skeleton while loading
+    liveGrid.innerHTML = `
+      <div class="review-skeleton" style="height:180px;"></div>
+      <div class="review-skeleton" style="height:180px;opacity:0.6;"></div>`;
+
+    const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
+    onSnapshot(q, snapshot => {
+      liveGrid.innerHTML = '';
+      if (snapshot.empty) { toggleRow.style.display = 'none'; return; }
+
+      snapshot.docs.forEach((doc, i) => {
+        const card = renderCard(doc);
+        if (i >= VISIBLE_BY_DEFAULT) card.classList.add('review-card-hidden');
+        liveGrid.appendChild(card);
+      });
+
+      // Only show the button if there are more than 3
+      if (snapshot.size > VISIBLE_BY_DEFAULT) {
+        const extra = snapshot.size - VISIBLE_BY_DEFAULT;
+        toggleLabel.textContent = `View All Reviews (${extra} more)`;
+        toggleRow.style.display = 'block';
+      } else {
+        toggleRow.style.display = 'none';
+      }
+    });
+  } else {
+    liveGrid.parentElement.style.display = 'none';
+    console.info('[AXIS Reviews] Firebase not configured — live reviews hidden until you add your config.');
+  }
 </script>
 
 <!-- Native scroll — Lenis removed (caused jank on monitors/high-refresh displays) -->
