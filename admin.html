@@ -195,7 +195,10 @@
         <div class="eyebrow">Work section</div>
         <h1>Manage projects</h1>
       </div>
-      <button class="btn btn-primary" id="addBtn" onclick="openForm()">+ Add project</button>
+      <div style="display:flex;gap:.7rem;flex-wrap:wrap;">
+        <button class="btn btn-ghost" id="restoreBtn" onclick="restoreDefaults()" style="width:auto;padding:.8rem 1.3rem;">Restore original 3 projects</button>
+        <button class="btn btn-primary" id="addBtn" onclick="openForm()">+ Add project</button>
+      </div>
     </div>
     <div class="project-list" id="projectList"></div>
   </div>
@@ -426,6 +429,54 @@ function saveProject(){
 function deleteProject(id){
   if(!confirm('Delete this project? This cannot be undone.')) return;
   projectsRef.doc(id).delete();
+}
+
+/* ══ ONE-CLICK RESTORE — pushes the 3 original showcase projects into
+   Firestore alongside whatever's already there. Skips any title that
+   already exists so clicking it twice won't create duplicates. ══ */
+const DEFAULT_PROJECTS = [
+  {
+    cat: "Hospitality",
+    title: "La Grande Maison — Catering",
+    desc: "Six-page marketing site for a luxury private dining & catering brand, with a scroll-triggered gallery and lightbox.",
+    img: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?q=80&w=900&auto=format&fit=crop",
+    link: "#"
+  },
+  {
+    cat: "Hospitality",
+    title: "La Grande Maison — Rentals",
+    desc: "Live tableware rental platform with Firestore-backed product catalog, category browsing and Cloudinary uploads.",
+    img: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?q=80&w=900&auto=format&fit=crop",
+    link: "https://dearenporis2-ui.github.io/la-grande-maison/"
+  },
+  {
+    cat: "Food & Hospitality",
+    title: "Butchers Grill",
+    desc: "Brand site and ordering presence for a grill restaurant — menu, story and contact built to convert foot traffic online.",
+    img: "https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=900&auto=format&fit=crop",
+    link: "#"
+  }
+];
+
+async function restoreDefaults(){
+  const btn = document.getElementById('restoreBtn');
+  btn.disabled = true;
+  btn.textContent = 'Restoring...';
+  try{
+    const existing = await projectsRef.get();
+    const existingTitles = new Set(existing.docs.map(d => d.data().title));
+    let added = 0;
+    for(const p of DEFAULT_PROJECTS){
+      if(existingTitles.has(p.title)) continue;
+      await projectsRef.add({...p, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+      added++;
+    }
+    btn.textContent = added > 0 ? `Added ${added} project${added>1?'s':''}` : 'Already up to date';
+  } catch(e){
+    btn.textContent = 'Restore failed';
+    console.warn(e);
+  }
+  setTimeout(() => { btn.disabled = false; btn.textContent = 'Restore original 3 projects'; }, 2200);
 }
 </script>
 
