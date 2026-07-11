@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — AXIS Digital Engineering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:        #07080c;
+    --void-raised: #0d0f16;
+    --void-panel:  #11141d;
+    --glass-fill:      rgba(255,255,255,0.045);
+    --glass-fill-hi:   rgba(255,255,255,0.09);
+    --glass-border:    rgba(255,255,255,0.14);
+    --glass-border-hi: rgba(255,255,255,0.26);
+    --glass-shadow:    0 8px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08);
+    --gold:      #b8a98a;
+    --gold-hi:   #ddc99e;
+    --white:     #f5f6f8;
+    --dim:       rgba(245,246,248,0.6);
+    --dimmer:    rgba(245,246,248,0.38);
+    --danger:    #d97a7a;
+    --r-md: 18px; --r-sm: 12px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--void); color:var(--white); font-family:'Outfit',sans-serif;
+    min-height:100vh;
+  }
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;font-weight:600;letter-spacing:-.01em;}
+  .mono{font-family:'DM Mono',monospace;}
+
+  #bg-grid{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(ellipse 80% 60% at 50% 10%, black 0%, transparent 75%);
+  }
+
+  .glass{
+    background:var(--glass-fill); border:1px solid var(--glass-border);
+    border-radius:var(--r-md); backdrop-filter:blur(22px) saturate(1.4);
+    -webkit-backdrop-filter:blur(22px) saturate(1.4);
+    box-shadow:var(--glass-shadow);
+  }
+
+  nav{
+    position:relative; z-index:2;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1.3rem 3rem; border-bottom:1px solid rgba(255,255,255,0.07);
+  }
+  .nav-logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--white);}
+  .nav-logo img{width:30px;height:30px;object-fit:contain;}
+  .nav-logo-text{font-family:'Space Grotesk',sans-serif;font-size:.98rem;font-weight:600;line-height:1.05;}
+  .nav-logo-text span{display:block;font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.16em;color:var(--dimmer);font-weight:400;margin-top:1px;}
+  .back-link{font-size:.78rem;color:var(--dim);text-decoration:none;display:flex;align-items:center;gap:.4rem;}
+  .back-link:hover{color:var(--gold);}
+  #logoutBtn{
+    display:none;
+    font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--dim); background:transparent; border:1px solid var(--glass-border);
+    padding:.55rem 1.1rem; border-radius:100px; cursor:pointer; transition:.25s;
+  }
+  #logoutBtn:hover{border-color:var(--glass-border-hi); color:var(--white);}
+
+  main{position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:3.5rem 2rem 6rem;}
+
+  /* ── LOGIN ── */
+  #loginView{
+    max-width:400px; margin:8vh auto 0; padding:2.6rem 2.4rem; text-align:center;
+  }
+  #loginView h2{font-size:1.5rem; margin-bottom:.5rem;}
+  #loginView p{color:var(--dim); font-size:.88rem; margin-bottom:1.8rem;}
+  .field{text-align:left; margin-bottom:1rem;}
+  .field label{
+    font-family:'DM Mono',monospace; font-size:.62rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--dimmer); display:block; margin-bottom:.5rem;
+  }
+  .field input, .field textarea{
+    width:100%; padding:.8rem 1rem; border-radius:var(--r-sm);
+    background:rgba(255,255,255,0.035); border:1px solid var(--glass-border);
+    color:var(--white); font-family:'Outfit',sans-serif; font-size:.9rem; outline:none;
+    transition:border-color .3s, background .3s;
+  }
+  .field input:focus, .field textarea:focus{border-color:var(--gold); background:rgba(255,255,255,0.06);}
+  .btn{
+    font-family:'Outfit',sans-serif; font-size:.85rem; font-weight:600;
+    padding:.85rem 1.6rem; border-radius:100px; border:none; cursor:pointer;
+    transition:transform .3s, box-shadow .3s, background .25s; width:100%;
+  }
+  .btn-primary{background:var(--gold); color:#181410; box-shadow:0 6px 26px rgba(184,169,138,0.25);}
+  .btn-primary:hover{background:var(--gold-hi); transform:translateY(-2px);}
+  #loginError{color:var(--danger); font-size:.8rem; margin-top:1rem; display:none;}
+
+  /* ── DASHBOARD ── */
+  #dashView{display:none;}
+  .dash-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:2.2rem; flex-wrap:wrap; gap:1rem;}
+  .dash-head .eyebrow{
+    font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);
+    display:flex; align-items:center; gap:.5rem;
+  }
+  .dash-head .eyebrow::before{content:'';width:16px;height:1px;background:var(--gold);}
+  .dash-head h1{font-size:1.7rem; margin-top:.4rem;}
+
+  #addBtn{width:auto; padding:.8rem 1.5rem;}
+
+  .project-list{display:flex; flex-direction:column; gap:.9rem; margin-top:1.6rem;}
+  .p-row{
+    padding:1.1rem 1.3rem; display:flex; align-items:center; gap:1.1rem;
+  }
+  .p-thumb{width:64px;height:48px;border-radius:8px;object-fit:cover;background:var(--void-panel);flex-shrink:0;}
+  .p-info{flex:1; min-width:0;}
+  .p-info h3{font-size:.98rem; margin-bottom:.2rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .p-cat{font-family:'DM Mono',monospace; font-size:.64rem; color:var(--gold); letter-spacing:.05em;}
+  .p-actions{display:flex; gap:.5rem; flex-shrink:0;}
+  .icon-btn{
+    width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,0.04); border:1px solid var(--glass-border); cursor:pointer; transition:.25s;
+    color:var(--dim);
+  }
+  .icon-btn:hover{border-color:var(--glass-border-hi); color:var(--white);}
+  .icon-btn.danger:hover{border-color:var(--danger); color:var(--danger);}
+  .icon-btn svg{width:15px;height:15px;}
+
+  .empty-state{padding:3rem 2rem; text-align:center; color:var(--dim); font-size:.9rem;}
+
+  /* ── MODAL / FORM PANEL ── */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px);
+    z-index:50; display:none; align-items:center; justify-content:center; padding:2rem;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    width:min(560px,100%); max-height:88vh; overflow-y:auto;
+    padding:2.2rem 2.2rem 2.4rem;
+  }
+  .modal h2{font-size:1.3rem; margin-bottom:1.4rem;}
+  .modal-actions{display:flex; gap:.8rem; margin-top:.5rem;}
+  .btn-ghost{
+    background:var(--glass-fill); color:var(--white); border:1px solid var(--glass-border);
+  }
+  .btn-ghost:hover{background:var(--glass-fill-hi); border-color:var(--glass-border-hi);}
+  #formError{color:var(--danger); font-size:.8rem; margin-top:.8rem; display:none;}
+
+  ::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);}
+
+  @media(max-width:640px){
+    nav{padding:1.1rem 1.4rem;} main{padding:2.4rem 1.2rem 4rem;}
+    #loginView{margin-top:4vh; padding:2rem 1.6rem;}
+  }
+</style>
+</head>
+<body>
+
+<div id="bg-grid"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="AXIS_Logo-removebg-preview.png" alt="AXIS">
+    <div class="nav-logo-text">AXIS<span>ADMIN PANEL</span></div>
+  </a>
+  <div style="display:flex;align-items:center;gap:1.2rem;">
+    <a href="index.html" class="back-link">← Back to site</a>
+    <button id="logoutBtn">Log out</button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ═══ LOGIN ═══ -->
+  <div id="loginView" class="glass">
+    <div class="mono" style="font-size:.68rem;letter-spacing:.2em;color:var(--gold);margin-bottom:1rem;">RESTRICTED ACCESS</div>
+    <h2>Admin Login</h2>
+    <p>Sign in to manage the Work section.</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="you@axis.com">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">Sign in</button>
+    <div id="loginError"></div>
+  </div>
+
+  <!-- ═══ DASHBOARD ═══ -->
+  <div id="dashView">
+    <div class="dash-head">
+      <div>
+        <div class="eyebrow">Work section</div>
+        <h1>Manage projects</h1>
+      </div>
+      <button class="btn btn-primary" id="addBtn" onclick="openForm()">+ Add project</button>
+    </div>
+    <div class="project-list" id="projectList"></div>
+  </div>
+
+</main>
+
+<!-- ═══ ADD / EDIT MODAL ═══ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal glass">
+    <h2 id="modalTitle">Add project</h2>
+    <input type="hidden" id="editId">
+    <div class="field">
+      <label>Category</label>
+      <input type="text" id="fCat" placeholder="e.g. Hospitality">
+    </div>
+    <div class="field">
+      <label>Title</label>
+      <input type="text" id="fTitle" placeholder="Project name">
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <textarea id="fDesc" rows="3" placeholder="One or two sentences about the project"></textarea>
+    </div>
+    <div class="field">
+      <label>Cover image</label>
+      <div id="imgPreviewWrap">
+        <img id="imgPreview" src="" alt="" style="display:none;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:var(--r-sm);margin-bottom:.7rem;border:1px solid var(--glass-border);">
+      </div>
+      <button type="button" class="btn btn-ghost" id="uploadBtn" onclick="openUploadWidget()" style="margin-bottom:.6rem;">
+        Upload cover image
+      </button>
+      <input type="text" id="fImg" placeholder="Or paste an image URL directly" oninput="updatePreview()">
+    </div>
+    <div class="field">
+      <label>Link URL</label>
+      <input type="text" id="fLink" placeholder="https:// or # if none yet">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeForm()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProject()">Save</button>
+    </div>
+    <div id="formError"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://upload-widget.cloudinary.com/latest/global/all.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyB7lM3W-FiqodVkjfi1NNvONssQv8TDLQE",
+  authDomain: "axis-ca437.firebaseapp.com",
+  projectId: "axis-ca437",
+  storageBucket: "axis-ca437.firebasestorage.app",
+  messagingSenderId: "710573602155",
+  appId: "1:710573602155:web:2c24a22bad7d474197482e"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const projectsRef = db.collection('projects');
+
+/* ══ CLOUDINARY — fill these in once the account/preset exist ══ */
+const CLOUDINARY_CLOUD_NAME = "gezjmsa7";
+const CLOUDINARY_UPLOAD_PRESET = "AXIS_Digital_Engineering";
+
+function openUploadWidget(){
+  if(CLOUDINARY_CLOUD_NAME.startsWith('REPLACE')){
+    alert('Cloudinary isn\'t connected yet — paste an image URL for now, or ask AXIS to finish wiring the upload account.');
+    return;
+  }
+  cloudinary.createUploadWidget({
+    cloudName: CLOUDINARY_CLOUD_NAME,
+    uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+    sources: ['local','url','camera'],
+    multiple: false,
+    maxFiles: 1,
+    folder: 'axis-portfolio',
+    styles: {
+      palette: {
+        window: '#0d0f16', windowBorder: '#b8a98a', tabIcon: '#b8a98a',
+        menuIcons: '#f5f6f8', textDark: '#07080c', textLight: '#f5f6f8',
+        link: '#b8a98a', action: '#b8a98a', inactiveTabIcon: '#8a8d95',
+        error: '#d97a7a', inProgress: '#b8a98a', complete: '#8ac98a', sourceBg: '#11141d'
+      }
+    }
+  }, (error, result) => {
+    if(error){ console.warn('Upload widget error:', error); return; }
+    if(result && result.event === 'success'){
+      document.getElementById('fImg').value = result.info.secure_url;
+      updatePreview();
+    }
+  }).open();
+}
+
+function updatePreview(){
+  const url = document.getElementById('fImg').value.trim();
+  const img = document.getElementById('imgPreview');
+  if(url){ img.src = url; img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+}
+
+/* ══ AUTH ══ */
+function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  if(!email || !pass){ errEl.textContent = 'Enter your email and password.'; errEl.style.display='block'; return; }
+  auth.signInWithEmailAndPassword(email, pass).catch(e => {
+    errEl.textContent = 'Login failed — check your email and password.';
+    errEl.style.display = 'block';
+  });
+}
+
+function doLogout(){ auth.signOut(); }
+document.getElementById('logoutBtn').addEventListener('click', doLogout);
+
+auth.onAuthStateChanged(user => {
+  const loginView = document.getElementById('loginView');
+  const dashView = document.getElementById('dashView');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if(user){
+    loginView.style.display = 'none';
+    dashView.style.display = 'block';
+    logoutBtn.style.display = 'inline-block';
+    listenProjects();
+  } else {
+    loginView.style.display = 'block';
+    dashView.style.display = 'none';
+    logoutBtn.style.display = 'none';
+  }
+});
+
+/* ══ LIVE PROJECT LIST ══ */
+let unsub = null;
+function listenProjects(){
+  if(unsub) return; // already listening
+  unsub = projectsRef.orderBy('createdAt', 'desc').onSnapshot(snap => {
+    const list = document.getElementById('projectList');
+    if(snap.empty){
+      list.innerHTML = '<div class="empty-state glass">No projects yet — click "Add project" to add your first one. Until then, the main site shows its built-in fallback projects.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    snap.forEach(doc => {
+      const p = doc.data();
+      const row = document.createElement('div');
+      row.className = 'p-row glass';
+      row.innerHTML = `
+        <img class="p-thumb" src="${p.img || ''}" alt="" onerror="this.style.opacity=0">
+        <div class="p-info">
+          <h3>${escapeHtml(p.title || 'Untitled')}</h3>
+          <div class="p-cat mono">${escapeHtml(p.cat || '')}</div>
+        </div>
+        <div class="p-actions">
+          <div class="icon-btn" title="Edit" onclick='openForm(${JSON.stringify(JSON.stringify({id:doc.id, ...p}))})'>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </div>
+          <div class="icon-btn danger" title="Delete" onclick="deleteProject('${doc.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </div>
+        </div>`;
+      list.appendChild(row);
+    });
+  }, err => {
+    document.getElementById('projectList').innerHTML = '<div class="empty-state glass">Could not load projects: '+escapeHtml(err.message)+'</div>';
+  });
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ══ ADD / EDIT MODAL ══ */
+function openForm(jsonStr){
+  document.getElementById('formError').style.display = 'none';
+  const overlay = document.getElementById('modalOverlay');
+  const title = document.getElementById('modalTitle');
+  if(jsonStr){
+    const p = JSON.parse(jsonStr);
+    title.textContent = 'Edit project';
+    document.getElementById('editId').value = p.id;
+    document.getElementById('fCat').value = p.cat || '';
+    document.getElementById('fTitle').value = p.title || '';
+    document.getElementById('fDesc').value = p.desc || '';
+    document.getElementById('fImg').value = p.img || '';
+    document.getElementById('fLink').value = p.link || '';
+  } else {
+    title.textContent = 'Add project';
+    document.getElementById('editId').value = '';
+    ['fCat','fTitle','fDesc','fImg','fLink'].forEach(id => document.getElementById(id).value = '');
+  }
+  updatePreview();
+  overlay.classList.add('open');
+}
+function closeForm(){ document.getElementById('modalOverlay').classList.remove('open'); }
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if(e.target.id === 'modalOverlay') closeForm();
+});
+
+function saveProject(){
+  const id = document.getElementById('editId').value;
+  const errEl = document.getElementById('formError');
+  const data = {
+    cat: document.getElementById('fCat').value.trim(),
+    title: document.getElementById('fTitle').value.trim(),
+    desc: document.getElementById('fDesc').value.trim(),
+    img: document.getElementById('fImg').value.trim(),
+    link: document.getElementById('fLink').value.trim() || '#'
+  };
+  if(!data.title || !data.img){
+    errEl.textContent = 'Title and image URL are required.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const promise = id
+    ? projectsRef.doc(id).update(data)
+    : projectsRef.add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+  promise.then(() => closeForm()).catch(e => {
+    errEl.textContent = 'Save failed: ' + e.message;
+    errEl.style.display = 'block';
+  });
+}
+
+function deleteProject(id){
+  if(!confirm('Delete this project? This cannot be undone.')) return;
+  projectsRef.doc(id).delete();
+}
+</script>
+
+</body>
+</html>
