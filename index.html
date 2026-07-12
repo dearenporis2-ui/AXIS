@@ -4,6 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AXIS Digital Engineering — Web Development, Seychelles</title>
+
+<meta name="description" content="AXIS Digital Engineering builds custom websites, booking platforms and business documentation for hospitality, food service and service brands across Seychelles. No templates, no monthly platform fees.">
+
+<link rel="icon" type="image/png" href="AXIS_Logo-removebg-preview.png">
+<link rel="apple-touch-icon" href="AXIS_Logo-removebg-preview.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AXIS Digital Engineering">
+<meta property="og:title" content="AXIS Digital Engineering — Web Development, Seychelles">
+<meta property="og:description" content="Custom-built sites, booking platforms and business documentation for hospitality, food service and service brands across Seychelles — designed once, built to last.">
+<meta property="og:image" content="Logo_Name-removebg-preview.png">
+<meta property="og:url" content="https://axisagency.co/">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AXIS Digital Engineering — Web Development, Seychelles">
+<meta name="twitter:description" content="Custom-built sites, booking platforms and business documentation for hospitality, food service and service brands across Seychelles.">
+<meta name="twitter:image" content="Logo_Name-removebg-preview.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
@@ -229,6 +246,12 @@
     position:sticky; top:0; height:100vh;
     display:flex; align-items:center; justify-content:center;
     overflow:hidden;
+    /* fallback look when the video is skipped (mobile / data-saver) — mirrors
+       the video's own color feel so there's no jarring flash once/if it loads */
+    background:
+      radial-gradient(ellipse 70% 60% at 30% 20%, rgba(184,169,138,0.10), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 75% 70%, rgba(169,214,255,0.06), transparent 65%),
+      var(--void);
   }
 
   #heroVideo{
@@ -594,7 +617,7 @@
 <!-- ═══════════ HERO ═══════════ -->
 <div id="parallax-stage">
   <div id="hero-sticky">
-    <video id="heroVideo" autoplay muted loop playsinline>
+    <video id="heroVideo" muted loop playsinline preload="none">
       <source src="vecteezy_circuit-background-big-data-technology-and-data-science_42719760.mp4" type="video/mp4">
     </video>
     <div class="hero-video-tint"></div>
@@ -924,6 +947,26 @@ hbg.addEventListener('click', () => {
 });
 overlay.addEventListener('click', closeMenu);
 document.querySelectorAll('.mobile-link').forEach(a => a.addEventListener('click', closeMenu));
+
+/* ════════ HERO VIDEO — only load/play it where it's worth the data ════════
+   Skips the video entirely on small screens, when the OS/browser has
+   Data Saver on, or on a detected slow connection. The gradient fallback
+   in CSS covers the hero visually either way, so nothing looks broken. */
+(function(){
+  const video = document.getElementById('heroVideo');
+  const conn = navigator.connection || navigator.webkitConnection || navigator.mozConnection;
+  const isSmallScreen = window.innerWidth < 820;
+  const isSaveData = conn && conn.saveData;
+  const isSlowConn = conn && /2g/.test(conn.effectiveType || '');
+
+  if(isSmallScreen || isSaveData || isSlowConn){
+    video.remove(); // don't even leave it in the DOM to fetch later
+  } else {
+    video.preload = 'auto';
+    video.load();
+    video.play().catch(() => { /* autoplay blocked — gradient fallback still looks fine */ });
+  }
+})();
 
 /* ════════ PARALLAX HERO — glass panel drifts + orbs shift ════════ */
 (function(){
