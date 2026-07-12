@@ -415,7 +415,6 @@
   }
   .circular-gallery:active{cursor:grabbing;}
   .circular-gallery canvas{display:block; width:100%; height:100%; touch-action:pan-y;}
-  @media(max-width:700px){ .circular-gallery{height:340px;} }
 
   .gallery-caption{
     max-width:640px; margin:1.6rem auto 0;
@@ -434,6 +433,38 @@
   .work-link:hover{color:var(--gold-hi);}
   .work-link svg{width:12px;height:12px; transition:transform .3s;}
   .work-link:hover svg{transform:translate(2px,-2px);}
+
+  /* ── MOBILE FALLBACK — the curved WebGL gallery is a desktop-scale effect;
+     below 760px it swaps for a flat, simple swipeable card row instead ── */
+  .mobile-work-carousel{display:none;}
+  @media(max-width:760px){
+    .circular-gallery, .gallery-caption, .gallery-hint{display:none;}
+    .mobile-work-carousel{
+      display:flex; gap:1.1rem;
+      overflow-x:auto; scroll-snap-type:x proximity;
+      padding:.2rem 2px 1rem;
+      touch-action:pan-x;
+      scrollbar-width:none; -ms-overflow-style:none;
+    }
+    .mobile-work-carousel::-webkit-scrollbar{display:none;}
+    .mwc-card{
+      flex:0 0 auto; width:min(320px,80vw);
+      scroll-snap-align:start;
+      overflow:hidden; text-decoration:none; color:inherit; display:block;
+    }
+    .mwc-media{aspect-ratio:16/10.5; position:relative; overflow:hidden; background:var(--void-panel);}
+    .mwc-media img{width:100%; height:100%; object-fit:cover;}
+    .mwc-media::after{content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(7,8,12,0.8) 0%, rgba(7,8,12,0.05) 55%);}
+    .mwc-cat{
+      position:absolute; top:.8rem; left:.8rem; z-index:2;
+      font-family:'DM Mono',monospace; font-size:.6rem; letter-spacing:.1em; text-transform:uppercase;
+      color:var(--white); background:rgba(7,8,12,0.55); border:1px solid var(--glass-border);
+      padding:.3rem .65rem; border-radius:100px;
+    }
+    .mwc-body{padding:1.2rem 1.3rem 1.4rem;}
+    .mwc-body h3{font-size:1.05rem; margin-bottom:.35rem;}
+    .mwc-body p{font-size:.83rem; color:var(--dim); line-height:1.5; margin-bottom:.8rem;}
+  }
 
   /* ═══════════════════════════════════
      PROCESS — real sequence, numbered
@@ -730,7 +761,7 @@
       <div class="eyebrow">Selected work</div>
       <h2>Recent builds, live and in production.</h2>
       <p>A few of the platforms and sites currently running for clients — from hospitality brands to service businesses across Seychelles.</p>
-      <div class="mono" style="font-size:.66rem;letter-spacing:.1em;color:var(--dimmer);margin-top:1.1rem;">← DRAG TO EXPLORE →</div>
+      <div class="mono gallery-hint" style="font-size:.66rem;letter-spacing:.1em;color:var(--dimmer);margin-top:1.1rem;">← DRAG TO EXPLORE →</div>
     </div>
     <div id="circularGallery" class="circular-gallery" tabindex="0" role="region" aria-label="Circular project gallery. Drag or use arrow keys to browse."></div>
     <div class="gallery-caption glass reveal" id="galleryCaption">
@@ -743,6 +774,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
       </a>
     </div>
+    <div id="mobileWorkCarousel" class="mobile-work-carousel"></div>
   </div>
 </section>
 
@@ -1176,7 +1208,48 @@ function sendWA(){
      rather than raytracing clicks on the curved 3D planes, which is
      far more reliable on real devices than in-canvas hit-testing. ═══════════ -->
 <script type="module">
-import { Camera, Mesh, Plane, Program, Renderer, Texture, Transform } from 'https://unpkg.com/ogl@1.0.6?module';
+const isMobileGallery = window.matchMedia('(max-width:760px)').matches;
+
+/* ══ mobile fallback — flat, simple, zero WebGL dependency.
+   Wired up first and independently, so it works even if the OGL CDN
+   import below is ever slow, blocked, or unreachable for a visitor. ══ */
+const mobileCarousel = document.getElementById('mobileWorkCarousel');
+function renderMobileCarousel(projects){
+  mobileCarousel.innerHTML = '';
+  projects.forEach(p => {
+    const card = document.createElement('a');
+    card.className = 'mwc-card glass';
+    card.href = p.link || '#';
+    card.target = '_blank';
+    card.rel = 'noopener';
+    card.innerHTML = `
+      <div class="mwc-media">
+        <span class="mwc-cat">${p.cat || ''}</span>
+        <img src="${p.img}" alt="${p.title || ''}" loading="lazy">
+      </div>
+      <div class="mwc-body">
+        <h3>${p.title || ''}</h3>
+        <p>${p.desc || ''}</p>
+        <span class="work-link">View project
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+        </span>
+      </div>`;
+    mobileCarousel.appendChild(card);
+  });
+}
+
+if(isMobileGallery){
+  if(window.__latestProjects){ renderMobileCarousel(window.__latestProjects); }
+  document.addEventListener('projects-updated', e => renderMobileCarousel(e.detail));
+}
+
+/* ══ desktop — WebGL circular gallery.
+   Ported from the React Bits "CircularGallery" component to plain JS.
+   OGL (the underlying WebGL lib it's built on) is framework-agnostic,
+   so this runs as-is with no build step — just an ES module import,
+   loaded dynamically so mobile visitors never fetch it at all. ══ */
+if(!isMobileGallery){
+const { Camera, Mesh, Plane, Program, Renderer, Texture, Transform } = await import('https://unpkg.com/ogl@1.0.6?module');
 
 function lerp(p1, p2, t){ return p1 + (p2 - p1) * t; }
 
@@ -1471,6 +1544,7 @@ async function buildGallery(projects){
 
 if(window.__latestProjects){ buildGallery(window.__latestProjects); }
 document.addEventListener('projects-updated', e => buildGallery(e.detail));
+} // end desktop-only block
 </script>
 
 </body>
