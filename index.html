@@ -501,48 +501,9 @@
   a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible{
     outline:2px solid var(--gold); outline-offset:2px;
   }
-
-  /* ═══════════════════════════════════
-     CROSSHAIR CURSOR — desktop (precise pointer) only.
-     Two guide lines follow the raw cursor position; a small
-     reticle box lerps smoothly and snaps around interactive
-     elements when hovering them.
-  ═══════════════════════════════════ */
-  #crosshair{display:none;}
-  @media(hover:hover) and (pointer:fine){
-    #crosshair{
-      position:fixed; inset:0; z-index:9999; pointer-events:none; display:block;
-    }
-    body, a, button, input, textarea, .work-grid{ cursor:none !important; }
-
-    .ch-line{position:fixed; background:rgba(245,246,248,0.22); pointer-events:none;}
-    .ch-h{left:0; right:0; height:1px; top:0;}
-    .ch-v{top:0; bottom:0; width:1px; left:0;}
-
-    .ch-box{
-      position:fixed; left:0; top:0;
-      width:14px; height:14px;
-      border:1px solid var(--gold);
-      border-radius:4px;
-      transform:translate(-50%,-50%);
-      box-shadow:0 0 14px rgba(184,169,138,0.3);
-      pointer-events:none;
-    }
-    .ch-box.targeted{
-      border-color:var(--gold-hi);
-      border-radius:10px;
-      box-shadow:0 0 22px rgba(184,169,138,0.45);
-    }
-  }
 </style>
 </head>
 <body>
-
-<div id="crosshair" aria-hidden="true">
-  <div class="ch-line ch-h" id="chH"></div>
-  <div class="ch-line ch-v" id="chV"></div>
-  <div class="ch-box" id="chBox"></div>
-</div>
 
 <svg class="svg-defs" aria-hidden="true">
   <filter id="liquid-distort">
@@ -954,64 +915,6 @@ if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
       g.style.setProperty('--my', (e.clientY - r.top) + 'px');
     });
   });
-}
-
-/* ════════ CROSSHAIR CURSOR — desktop only ════════ */
-if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
-  const chH = document.getElementById('chH');
-  const chV = document.getElementById('chV');
-  const chBox = document.getElementById('chBox');
-
-  let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
-  let boxX = mouseX, boxY = mouseY, boxW = 14, boxH = 14, boxR = 4;
-  let targetEl = null;
-
-  window.addEventListener('mousemove', e => {
-    mouseX = e.clientX; mouseY = e.clientY;
-  });
-
-  // any interactive element becomes a "target" the reticle snaps around
-  const CH_SELECTOR = 'a, button, input, textarea, .work-card';
-  document.querySelectorAll(CH_SELECTOR).forEach(el => {
-    el.addEventListener('mouseenter', () => { targetEl = el; });
-    el.addEventListener('mouseleave', () => { if(targetEl === el) targetEl = null; });
-  });
-
-  function chLoop(){
-    // crosshair guide lines track the raw cursor directly — instant, precise
-    chH.style.top = mouseY + 'px';
-    chV.style.left = mouseX + 'px';
-
-    let goalX, goalY, goalW, goalH, goalR;
-    if(targetEl && document.body.contains(targetEl)){
-      const r = targetEl.getBoundingClientRect();
-      goalX = r.left + r.width / 2;
-      goalY = r.top + r.height / 2;
-      goalW = r.width + 14;
-      goalH = r.height + 14;
-      goalR = 12;
-      chBox.classList.add('targeted');
-    } else {
-      goalX = mouseX; goalY = mouseY; goalW = 14; goalH = 14; goalR = 4;
-      chBox.classList.remove('targeted');
-    }
-
-    // smooth lerp toward the goal so the box glides rather than jumps
-    boxX += (goalX - boxX) * 0.22;
-    boxY += (goalY - boxY) * 0.22;
-    boxW += (goalW - boxW) * 0.22;
-    boxH += (goalH - boxH) * 0.22;
-    boxR += (goalR - boxR) * 0.22;
-
-    chBox.style.left = boxX + 'px';
-    chBox.style.top = boxY + 'px';
-    chBox.style.width = boxW + 'px';
-    chBox.style.height = boxH + 'px';
-    chBox.style.borderRadius = boxR + 'px';
-
-    requestAnimationFrame(chLoop);
-  }
-  chLoop();
 }
 
 /* ════════ MAGNETIC BUTTONS ════════ */
