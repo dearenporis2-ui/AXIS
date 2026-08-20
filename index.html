@@ -395,6 +395,36 @@
   .svc-num{font-family:'DM Mono',monospace; font-size:.7rem; color:var(--gold); letter-spacing:.1em;}
   .svc-card h3{font-size:1.2rem; font-weight:600;}
   .svc-card p{font-size:.9rem; color:var(--dim); line-height:1.6;}
+
+  /* ── the one card that actually navigates elsewhere needs to look
+     different from the other purely-informational cards, or people
+     have no reason to expect a click does anything ── */
+  .svc-card--link{
+    border-color:rgba(184,169,138,0.35);
+    background:rgba(184,169,138,0.045);
+  }
+  .svc-card--link:hover{
+    border-color:var(--gold);
+    background:rgba(184,169,138,0.09);
+    transform:translateY(-8px);
+  }
+  .svc-card-external{
+    position:absolute; top:1.3rem; right:1.3rem;
+    width:30px; height:30px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(184,169,138,0.14); border:1px solid rgba(184,169,138,0.4);
+    color:var(--gold);
+    transition:transform .3s, background .3s;
+  }
+  .svc-card-external svg{width:14px; height:14px;}
+  .svc-card--link:hover .svc-card-external{transform:translate(2px,-2px); background:rgba(184,169,138,0.24);}
+  .svc-visit-link{
+    margin-top:auto; padding-top:.2rem;
+    display:inline-flex; align-items:center; gap:.4rem;
+    font-family:'DM Mono',monospace; font-size:.74rem; letter-spacing:.05em; color:var(--gold);
+  }
+  .svc-visit-link svg{width:12px; height:12px; transition:transform .3s;}
+  .svc-card--link:hover .svc-visit-link svg{transform:translate(2px,-2px);}
   .svc-tags{display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.3rem;}
   .svc-tag{
     font-family:'DM Mono',monospace; font-size:.62rem; letter-spacing:.05em;
@@ -854,16 +884,21 @@
           <span class="svc-tag">No lock-in</span>
         </div>
       </div>
-      <a href="PS5-controller-page/index.html" class="svc-card glass reveal" style="text-decoration:none;color:inherit;">
+      <a href="PS5-controller-page/index.html" class="svc-card svc-card--link glass reveal" style="text-decoration:none;color:inherit; position:relative;">
         <div class="glass-sheen"></div>
+        <div class="svc-card-external" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+        </div>
         <div class="svc-num mono">SVC / 05</div>
         <h3>PS5 Console Repair &amp; Mods</h3>
         <p>A dedicated service page for console repair and modding — full 3D parallax hero, live booking form and pricing table.</p>
         <div class="svc-tags">
           <span class="svc-tag">Repairs</span>
           <span class="svc-tag">Modding</span>
-          <span class="svc-tag">View page →</span>
         </div>
+        <span class="svc-visit-link">Visit page
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+        </span>
       </a>
     </div>
   </div>
