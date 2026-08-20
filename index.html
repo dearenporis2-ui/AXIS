@@ -483,7 +483,11 @@
   .depth-carousel__arrow:hover{background:var(--glass-fill-hi); border-color:var(--glass-border-hi); transform:translateY(-50%) scale(1.06);}
   .depth-carousel__arrow--prev{left:0;}
   .depth-carousel__arrow--next{right:0;}
-  @media(max-width:700px){ .depth-carousel__arrow{display:none;} }
+  @media(max-width:700px){
+    .depth-carousel__arrow{width:38px; height:38px;}
+    .depth-carousel__arrow--prev{left:2px;}
+    .depth-carousel__arrow--next{right:2px;}
+  }
 
   .depth-carousel__dots{
     display:flex; gap:.5rem; justify-content:center; margin-top:1.6rem;
@@ -1927,10 +1931,13 @@ function sendWA(){
   // wheel
   root.addEventListener('wheel', e => {
     if(data.length < 2) return;
+    // only take over for a genuinely horizontal gesture (trackpad shift-scroll,
+    // horizontal wheel) — a normal vertical mouse wheel has deltaX at or near 0,
+    // and should just keep scrolling the page like anywhere else on the site
+    if(Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
     e.preventDefault();
     if(tween) tween.kill();
-    const raw = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    const delta = e.deltaMode === 1 ? raw*24 : raw;
+    const delta = e.deltaMode === 1 ? e.deltaX*24 : e.deltaX;
     const step = Math.min(Math.max(delta / (cardWidth*0.9), -0.6), 0.6);
     posRef += step;
     layout(posRef);
