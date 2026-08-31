@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Terms & Policies — AXIS Digital Engineering</title>
+<meta name="description" content="Client terms and policies for AXIS Digital Engineering — domain hosting, revisions, payment structure, post-launch warranty, and data ownership.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:        #07080c;
+    --void-raised: #0d0f16;
+    --glass-fill:      rgba(255,255,255,0.045);
+    --glass-fill-hi:   rgba(255,255,255,0.09);
+    --glass-border:    rgba(255,255,255,0.14);
+    --glass-border-hi: rgba(255,255,255,0.26);
+    --glass-shadow:    0 8px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08);
+    --gold:      #b8a98a;
+    --gold-hi:   #ddc99e;
+    --white:     #f5f6f8;
+    --dim:       rgba(245,246,248,0.6);
+    --dimmer:    rgba(245,246,248,0.38);
+    --r-md: 18px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{max-width:100%;overflow-x:hidden;}
+  body{
+    background:var(--void); color:var(--white); font-family:'Outfit',sans-serif;
+    min-height:100vh;
+  }
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;font-weight:600;letter-spacing:-.01em;}
+  .mono{font-family:'DM Mono',monospace;}
+
+  #bg-grid{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(ellipse 80% 60% at 50% 10%, black 0%, transparent 75%);
+  }
+
+  .glass{
+    background:var(--glass-fill); border:1px solid var(--glass-border);
+    border-radius:var(--r-md); backdrop-filter:blur(16px) saturate(1.3);
+    -webkit-backdrop-filter:blur(16px) saturate(1.3);
+    box-shadow:var(--glass-shadow);
+  }
+
+  nav{
+    position:relative; z-index:2;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1.3rem 3rem; border-bottom:1px solid rgba(255,255,255,0.07);
+  }
+  .nav-logo{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--white);}
+  .nav-logo img{width:30px;height:30px;object-fit:contain;}
+  .nav-logo-text{font-family:'Space Grotesk',sans-serif;font-size:.98rem;font-weight:600;line-height:1.05;}
+  .nav-logo-text span{display:block;font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.16em;color:var(--dimmer);font-weight:400;margin-top:1px;}
+  .back-link{font-size:.8rem;color:var(--dim);text-decoration:none;display:flex;align-items:center;gap:.4rem;transition:color .25s;}
+  .back-link:hover{color:var(--gold);}
+
+  main{position:relative; z-index:1; max-width:840px; margin:0 auto; padding:4rem 2rem 6rem;}
+
+  .page-head{margin-bottom:3.5rem;}
+  .eyebrow{
+    font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--gold); margin-bottom:1.2rem; display:flex; align-items:center; gap:.6rem;
+  }
+  .eyebrow::before{content:'';width:22px;height:1px;background:var(--gold);}
+  .page-head h1{font-size:clamp(2rem,4vw,2.7rem); line-height:1.12; margin-bottom:1.2rem;}
+  .page-head p{color:var(--dim); font-size:1rem; line-height:1.7; max-width:620px;}
+  .effective-date{
+    font-family:'DM Mono',monospace; font-size:.7rem; letter-spacing:.05em; color:var(--dimmer);
+    margin-top:1.4rem;
+  }
+
+  .policy-list{display:flex; flex-direction:column;}
+  .policy-row{
+    display:grid; grid-template-columns:64px 1fr; gap:1.6rem;
+    padding:2.1rem 0; border-top:1px solid rgba(255,255,255,0.08);
+    align-items:start;
+  }
+  .policy-list .policy-row:last-child{border-bottom:1px solid rgba(255,255,255,0.08);}
+  .policy-num{font-family:'DM Mono',monospace; font-size:.85rem; color:var(--gold); letter-spacing:.05em; padding-top:.15rem;}
+  .policy-row h2{font-size:1.15rem; margin-bottom:.65rem; font-weight:600;}
+  .policy-row p{color:var(--dim); font-size:.92rem; line-height:1.75; max-width:640px;}
+
+  .contact-note{
+    margin-top:3.5rem; padding:2rem 2.2rem;
+    text-align:center;
+  }
+  .contact-note p{color:var(--dim); font-size:.92rem; line-height:1.6; margin-bottom:1rem;}
+  .contact-note a{
+    font-family:'DM Mono',monospace; font-size:.78rem; color:var(--gold); text-decoration:none;
+  }
+  .contact-note a:hover{color:var(--gold-hi);}
+
+  footer{position:relative; z-index:1; padding:2.6rem 3rem; border-top:1px solid rgba(255,255,255,0.07);
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;}
+  .footer-mono{font-family:'DM Mono',monospace; font-size:.7rem; color:var(--dimmer); letter-spacing:.05em;}
+  .footer-links{display:flex; gap:1.6rem;}
+  .footer-links a{color:var(--dim); text-decoration:none; font-size:.8rem; transition:color .3s;}
+  .footer-links a:hover{color:var(--gold);}
+
+  @media(max-width:640px){
+    nav{padding:1.1rem 1.4rem;}
+    main{padding:2.6rem 1.3rem 4rem;}
+    .policy-row{grid-template-columns:40px 1fr; gap:1rem;}
+    footer{padding:2rem 1.4rem;}
+  }
+</style>
+</head>
+<body>
+
+<div id="bg-grid"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="AXIS_Logo-removebg-preview.png" alt="AXIS">
+    <div class="nav-logo-text">AXIS<span>DIGITAL ENGINEERING</span></div>
+  </a>
+  <a href="index.html" class="back-link">← Back to site</a>
+</nav>
+
+<main>
+  <div class="page-head">
+    <div class="eyebrow">Legal</div>
+    <h1>Client Terms & Policies</h1>
+    <p>These are the terms AXIS Digital Engineering operates under for every client project — domain handling, revisions, payment structure, post-launch support, and data ownership. If anything here is unclear, ask before signing off on a project.</p>
+    <div class="effective-date">EFFECTIVE 2026 — SUBJECT TO UPDATE PER PROJECT AGREEMENT</div>
+  </div>
+
+  <div class="policy-list">
+    <div class="policy-row">
+      <div class="policy-num">01</div>
+      <div>
+        <h2>Exclusive Domain Policy</h2>
+        <p>We exclusively manage and host domains registered through Namecheap. Any client-supplied domain hosted on alternative external registrars (such as Bluehost, GoDaddy, or Hostinger) incurs an additional external domain integration fee.</p>
+      </div>
+    </div>
+
+    <div class="policy-row">
+      <div class="policy-num">02</div>
+      <div>
+        <h2>Third-Party Platform Liability</h2>
+        <p>AXIS Digital Engineering takes zero responsibility for outages, propagation delays, billing lapses, or security locks originating from third-party registrars. If an external platform experiences technical failures or expired registry status, hosting deployment is paused immediately, requiring the client to manage the infrastructure independently.</p>
+      </div>
+    </div>
+
+    <div class="policy-row">
+      <div class="policy-num">03</div>
+      <div>
+        <h2>Included Revision Rounds</h2>
+        <p>Every project package includes a defined set of revision rounds (e.g., 2 major rounds) during the active development phase. Feedback must be consolidated within a set timeframe to ensure smooth project momentum and prevent indefinite scope creep.</p>
+      </div>
+    </div>
+
+    <div class="policy-row">
+      <div class="policy-num">04</div>
+      <div>
+        <h2>Post-Launch Warranty Window</h2>
+        <p>All projects include a 14-day bug-fixing warranty post-launch. This covers functional bugs, broken styling, or deployment errors directly related to our initial code, giving clients complete peace of mind after going live.</p>
+      </div>
+    </div>
+
+    <div class="policy-row">
+      <div class="policy-num">05</div>
+      <div>
+        <h2>Transparent Milestone Payments</h2>
+        <p>Billing is structured into predictable phases (typically a 50% upfront deposit to secure the build slot and the remaining 50% upon final client approval prior to live deployment), ensuring financial clarity for both parties.</p>
+      </div>
+    </div>
+
+    <div class="policy-row">
+      <div class="policy-num">06</div>
+      <div>
+        <h2>Dedicated Handoff & Training</h2>
+        <p>Projects conclude with a clean documentation guide or a short recorded walkthrough video demonstrating how to manage the platform, use the invoice system, or update content independently.</p>
+      </div>
+    </div>
+
+    <div class="policy-row">
+      <div class="policy-num">07</div>
+      <div>
+        <h2>Custom Software Data Ownership</h2>
+        <p>For web apps and internal invoice systems, all generated business data, customer databases, and application logic belong exclusively to the client, secured behind isolated database rules and secure authentication architectures.</p>
+      </div>
+    </div>
+
+    <div class="policy-row">
+      <div class="policy-num">08</div>
+      <div>
+        <h2>System Integration Boundaries</h2>
+        <p>For tools requiring third-party APIs (such as payment gateways, email services, or external software), API changes, rate limits, or service outages enforced by those external providers fall outside our direct liability and maintenance scope.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="contact-note glass">
+    <p>Questions about any of these terms? Reach out before starting a project and we'll walk through it together.</p>
+    <a href="https://wa.me/2482603277">wa.me/2482603277</a>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-mono">© 2026 AXIS DIGITAL ENGINEERING</div>
+  <div class="footer-links">
+    <a href="index.html#services">Services</a>
+    <a href="index.html#contact">Contact</a>
+  </div>
+</footer>
+
+</body>
+</html>
