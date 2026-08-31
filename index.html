@@ -711,6 +711,16 @@
 </head>
 <body>
 
+<script>
+// shared once, read by the Threads and Beams background modules further
+// down — lets them scale quality down further on weaker desktop hardware
+// specifically, without touching anything else about the effects
+window.__isLowEndHardware = (
+  (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+  (navigator.deviceMemory && navigator.deviceMemory <= 4)
+);
+</script>
+
 <div id="splash">
   <img src="Logo_Name-removebg-preview.png" alt="AXIS" class="splash-logo">
   <div class="splash-bar"><div class="splash-bar-fill"></div></div>
@@ -1017,6 +1027,7 @@
     <a href="#services">Services</a>
     <a href="#work">Work</a>
     <a href="#contact">Contact</a>
+    <a href="terms.html">Terms</a>
     <a href="admin.html" style="opacity:.35;">Admin</a>
   </div>
 </footer>
@@ -1216,8 +1227,14 @@ if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
   let targetCornerPositions = null;
   const activeStrength = { current: 0 };
 
+  // quickTo sets up the tween once and just updates the target value on
+  // each call — gsap.to() was creating a brand new tween object on every
+  // single mousemove event, which adds up fast on a high-poll-rate mouse
+  const setCursorX = gsap.quickTo(cursor, 'x', { duration: 0.1, ease: 'power3.out' });
+  const setCursorY = gsap.quickTo(cursor, 'y', { duration: 0.1, ease: 'power3.out' });
   function moveCursor(x, y){
-    gsap.to(cursor, { x, y, duration: 0.1, ease: 'power3.out' });
+    setCursorX(x);
+    setCursorY(y);
   }
   window.addEventListener('mousemove', e => moveCursor(e.clientX, e.clientY));
 
@@ -1367,16 +1384,18 @@ function sendWA(){
 
   const isMobile = window.innerWidth < 900 || navigator.maxTouchPoints > 0;
   if(isMobile) return; // gradient fallback in CSS covers this
+  const isLowEnd = !!window.__isLowEndHardware;
 
   const { Renderer, Program, Mesh, Triangle, Color } = await import('https://unpkg.com/ogl@1.0.6?module');
 
-  // ── tuned for the AXIS theme, and tuned down for performance ──
+  // ── tuned for the AXIS theme, and tuned down for performance —
+  //    further reduced again on detected weaker desktop hardware ──
   const lineColor = [0.82, 0.75, 0.62]; // warm gold-white, matches --gold
   const amplitude = 1.1;
   const distance = 0.15;
-  const LINE_COUNT = 20; // was 40 — halved
-  const MAX_RENDER_DIM = 1100; // was 1920 — meaningfully fewer pixels shaded
-  const frameInterval = 1000/30; // throttle to ~30fps
+  const LINE_COUNT = isLowEnd ? 12 : 20;
+  const MAX_RENDER_DIM = isLowEnd ? 800 : 1100;
+  const frameInterval = isLowEnd ? 1000/24 : 1000/30;
 
   const vertexShader = `
     attribute vec2 position;
@@ -1538,15 +1557,19 @@ function sendWA(){
 
   const isMobile = window.innerWidth < 900 || navigator.maxTouchPoints > 0;
   if(isMobile) return;
+  const isLowEnd = !!window.__isLowEndHardware;
 
   const THREE = await import('https://unpkg.com/three@0.160.0/build/three.module.js');
 
-  // ── tuned conservatively for performance from the outset ──
-  const beamWidth = 2, beamHeight = 15, beamNumber = 8, heightSegments = 40;
+  // ── tuned conservatively for performance from the outset —
+  //    further reduced again on detected weaker desktop hardware ──
+  const beamWidth = 2, beamHeight = 15;
+  const beamNumber = isLowEnd ? 5 : 8;
+  const heightSegments = isLowEnd ? 22 : 40;
   const lightColorHex = 0xddc99e; // var(--gold-hi)
   const speed = 1.6, noiseIntensity = 1.6, scaleVal = 0.2, rotationDeg = 0;
-  const dprCap = 1.4;
-  const frameInterval = 1000/30;
+  const dprCap = isLowEnd ? 1.1 : 1.4;
+  const frameInterval = isLowEnd ? 1000/24 : 1000/30;
 
   const noiseGLSL = `
     float random (in vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123); }
