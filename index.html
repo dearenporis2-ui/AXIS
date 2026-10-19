@@ -958,6 +958,7 @@
     0%{transform:translateX(-100%);}
     100%{transform:translateX(350%);}
   }
+  .splash-bar-fill.det{animation:none; transform:none; transition:width .7s cubic-bezier(.16,1,.3,1);}
   @media(prefers-reduced-motion:reduce){
     .splash-logo{animation:none;}
     .splash-bar-fill{animation:none; width:100%;}
@@ -981,14 +982,29 @@ window.__isLowEndHardware = (
   <div class="splash-bar"><div class="splash-bar-fill"></div></div>
 </div>
 <script>
+// Splash coordinator — the splash lifts only when everything above the fold is really ready:
+//   page    window 'load' (images, scripts)
+//   fonts   web fonts
+//   bg      Lightfall background compiled + first frame drawn
+//   logo    ElectricLogo image traced, shader compiled, first frame primed
+//   data    first Firestore answer for the templates section (capped, see DATA_WAIT_MS)
+// Modules report in through window.__axisBoot.done('name'). A module that can't run
+// (no WebGL2, file://, error) reports done too, so nothing ever blocks on a dead feature.
 (function(){
   const splash = document.getElementById('splash');
-  const MIN_DISPLAY_MS = 500; // avoid a flash-of-splash on fast connections
+  const fill = splash.querySelector('.splash-bar-fill');
+  const MIN_DISPLAY_MS = 600;     // avoid a flash-of-splash on fast connections
+  const DATA_WAIT_MS = 3000;      // don't hold the splash for a slow/blocked database
+  const MAX_WAIT_MS = 12000;      // safety net — never hold the splash forever
   const shownAt = performance.now();
+  const parts = { page:false, fonts:false, bg:false, logo:false, data:false };
+  const names = Object.keys(parts);
+  let lifted = false;
 
-  function hideSplash(){
-    const elapsed = performance.now() - shownAt;
-    const wait = Math.max(0, MIN_DISPLAY_MS - elapsed);
+  function lift(){
+    if(lifted) return;
+    lifted = true;
+    const wait = Math.max(0, MIN_DISPLAY_MS - (performance.now() - shownAt));
     setTimeout(() => {
       splash.classList.add('hidden');
       document.documentElement.classList.add('nav-ready');
@@ -997,16 +1013,27 @@ window.__isLowEndHardware = (
     }, wait);
   }
 
-  const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-  const pageLoaded = new Promise(resolve => {
-    if(document.readyState === 'complete') resolve();
-    else window.addEventListener('load', resolve, { once: true });
-  });
+  function update(){
+    const n = names.filter(k => parts[k]).length;
+    fill.classList.add('det');
+    fill.style.width = Math.min(100, Math.round(((n + 0.3) / names.length) * 100)) + '%';
+    if(n === names.length) lift();
+  }
 
-  Promise.all([fontsReady, pageLoaded]).then(hideSplash);
+  window.__axisBoot = {
+    done(name){ if(name in parts && !parts[name]){ parts[name] = true; update(); } },
+    status(){ return Object.assign({}, parts); }
+  };
+  const done = n => window.__axisBoot.done(n);
 
-  // safety net — never hold the splash forever if something stalls
-  setTimeout(hideSplash, 4000);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => done('fonts'), () => done('fonts'));
+  else done('fonts');
+  if(document.readyState === 'complete') done('page');
+  else window.addEventListener('load', () => done('page'), { once:true });
+
+  setTimeout(() => done('data'), DATA_WAIT_MS);
+  setTimeout(lift, MAX_WAIT_MS);
+  update();
 })();
 </script>
 
@@ -2117,6 +2144,9 @@ void main() {
     };
     const minGap = lite ? 1000 / 30 : 0;
     let raf = 0, last = 0, visible = true, sampleN = 0, sampleSum = 0;
+    // draw one (blank) frame so the shaders compile behind the splash, then hold the intro until it lifts
+    let released = document.documentElement.classList.contains('nav-ready');
+    if(!released) window.addEventListener('axis:ready', () => { released = true; last = 0; wake(); }, { once:true });
 
     const render = () => {
       const width = canvas.width;
@@ -2217,12 +2247,16 @@ void main() {
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       for(let unit = BLOOM_LEVELS; unit >= 0; unit--) bind(unit, null);
 
-      if(!container.classList.contains('ready')) container.classList.add('ready');
+      if(!container.classList.contains('ready')){
+        container.classList.add('ready');
+        if(window.__axisBoot) window.__axisBoot.done('bg');
+      }
     };
 
     const frame = now => {
       raf = 0;
       if(!visible || document.hidden) return;
+      if(!released && container.classList.contains('ready')){ last = 0; return; }
       if(minGap && last && now - last < minGap - 1){ raf = requestAnimationFrame(frame); return; }
       const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
       // if the average frame is slower than ~20fps, drop internal resolution a step (max twice)
@@ -2346,13 +2380,15 @@ void main() {
   });
 
   teardown = init();
+  if(!teardown && window.__axisBoot) window.__axisBoot.done('bg');   // no WebGL2 → nothing to wait for
 })();
 </script>
 
 <!-- ═══════════ TEMPLATES (live from Firestore `templates`) ═══════════ -->
 <script>
 (function(){
-  if(typeof db === 'undefined') return;
+  const bootDone = () => { if(window.__axisBoot) window.__axisBoot.done('data'); };
+  if(typeof db === 'undefined'){ bootDone(); return; }
   const section = document.getElementById('templates');
   const grid = document.getElementById('tplGrid');
   const filters = document.getElementById('tplFilters');
@@ -2361,7 +2397,7 @@ void main() {
   const closeBtn = document.getElementById('tplClose');
   const picked = document.getElementById('tplPicked');
   const pickedName = document.getElementById('tplPickedName');
-  if(!section || !grid || !modal) return;
+  if(!section || !grid || !modal){ bootDone(); return; }
 
   let all = [], activeCat = 'All', current = null, lastFocus = null, seen = false;
   window.__axisTemplate = null;
@@ -2379,7 +2415,8 @@ void main() {
       .filter(t => t.visible !== false && t.title && t.img)
       .sort((a, b) => (a.order == null ? 1e15 : a.order) - (b.order == null ? 1e15 : b.order));
     apply();
-  }, err => console.warn('Templates fetch failed:', err.message));
+    bootDone();
+  }, err => { console.warn('Templates fetch failed:', err.message); bootDone(); });
 
   function apply(){
     const has = all.length > 0;
@@ -2534,16 +2571,18 @@ void main() {
      ═══════════ -->
 <script>
 (function(){
+  const bootDone = () => { if(window.__axisBoot) window.__axisBoot.done('logo'); };
   const panel = document.getElementById('heroPanel');
   const hero = document.getElementById('hero-sticky');
   const imgEl = panel && panel.querySelector('.hero-wordmark');
-  if(!panel || !hero || !imgEl) return;
+  if(!panel || !hero || !imgEl){ bootDone(); return; }
 
   const lite = window.innerWidth < 900 || navigator.maxTouchPoints > 0;
 
   // Opened by double-clicking the file (file://)? Browsers block reading image pixels there,
   // so the outline can't be traced. Keep the plain logo quietly instead of throwing CORS errors.
   if(location.protocol === 'file:'){
+    bootDone();
     console.info('ElectricLogo: skipped on file:// (the browser blocks reading the logo image). Open the site through a local server or the live URL to see it.');
     return;
   }
@@ -3071,7 +3110,7 @@ void main() {
   panel.appendChild(fx);
 
   const gl = canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false });
-  const bail = () => { fx.remove(); panel.classList.remove('electric-on'); };
+  const bail = () => { fx.remove(); panel.classList.remove('electric-on'); bootDone(); };
   if(!gl){ bail(); return; }
 
   const compile = (type, src) => {
@@ -3147,7 +3186,7 @@ void main() {
   const hues = [[1, 1, 1], [1, 1, 1]];
   let target = 0, pending = null, morph = 1, burst = null, progress = 0, ink = 0, settled = false;
   let time = 0, width = 1, height = 1, raf = 0, last = performance.now();
-  let visible = true, started = false, alive = true, traced = null, shown = false;
+  let visible = true, started = false, alive = true, traced = null, shown = false, primed = false;
   let quality = 1, sampleN = 0, sampleSum = 0;
   const minGap = lite ? 1000 / 30 : 0;
 
@@ -3172,6 +3211,7 @@ void main() {
   const frame = now => {
     raf = 0;
     if(!alive || !visible || document.hidden) return;
+    if(primed && !started) return;           // ready and waiting for the splash — go() restarts the loop
     if(minGap && now - last < minGap - 1){ raf = requestAnimationFrame(frame); return; }
     const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
     // slower than ~20fps on average → drop internal resolution a notch (max twice)
@@ -3199,7 +3239,7 @@ void main() {
     if(to && started) progress = Math.min(1, progress + dt / 1.4);
     const presence = progress * progress * (3 - 2 * progress);
 
-    if(to && started){
+    if(to && (started || !primed)){          // !primed: one blank warm-up frame behind the splash
       const near = place(to);
       const far = from ? place(from) : near;
       const blend = morph * morph * (3 - 2 * morph);
@@ -3316,11 +3356,16 @@ void main() {
       gl.uniform4fv(U.uArcShape, arcShape);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
 
+      if(!primed){
+        primed = true;
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));   // force the GPU to really finish (first draw compiles the shader)
+        bootDone();
+      }
       // first real frame → crossfade the plain <img> out and the lightning in
-      if(!shown){ shown = true; panel.classList.add('electric-on'); }
+      if(started && !shown){ shown = true; panel.classList.add('electric-on'); }
     }
 
-    raf = requestAnimationFrame(frame);
+    if(started || !primed) raf = requestAnimationFrame(frame);
   };
 
   const start = () => {
