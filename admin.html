@@ -146,6 +146,50 @@
   .btn-ghost:hover{background:var(--glass-fill-hi); border-color:var(--glass-border-hi);}
   #formError{color:var(--danger); font-size:.8rem; margin-top:.8rem; display:none;}
 
+  /* ── TABS ── */
+  .tabs{display:flex; gap:.4rem; margin-bottom:2rem; padding:.35rem; width:fit-content; max-width:100%; border-radius:100px;
+    background:var(--glass-fill); border:1px solid var(--glass-border);}
+  .tab{font-family:'DM Mono',monospace; font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+    padding:.6rem 1.2rem; border-radius:100px; border:none; background:transparent; color:var(--dim);
+    cursor:pointer; transition:.25s; display:flex; align-items:center; gap:.5rem;}
+  .tab:hover{color:var(--white);}
+  .tab.on{background:var(--gold); color:#181410;}
+  .tab .count{font-size:.6rem; opacity:.75;}
+  .panel{display:none;} .panel.on{display:block;}
+
+  /* ── TEMPLATE ROWS / FORM EXTRAS ── */
+  .tag{font-family:'DM Mono',monospace; font-size:.58rem; letter-spacing:.08em; text-transform:uppercase;
+    padding:.2rem .5rem; border-radius:100px; border:1px solid var(--glass-border); color:var(--dim); white-space:nowrap;}
+  .tag.gold{color:var(--gold-hi); border-color:rgba(184,169,138,.5);}
+  .tag.off{color:var(--danger); border-color:rgba(217,122,122,.45);}
+  .p-meta{display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;}
+  .p-row.is-hidden .p-thumb, .p-row.is-hidden .p-info{opacity:.5;}
+  .icon-btn.disabled{opacity:.25; pointer-events:none;}
+  .field textarea{resize:vertical;}
+  .field .hint{font-size:.74rem; color:var(--dimmer); margin-top:.45rem; line-height:1.45;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:.8rem;}
+  @media(max-width:520px){ .row2{grid-template-columns:1fr;} }
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.8rem 1rem;
+    border:1px solid var(--glass-border); border-radius:var(--r-sm); background:rgba(255,255,255,0.035); margin-bottom:1rem;}
+  .toggle-row b{font-weight:500; font-size:.88rem; display:block;}
+  .toggle-row small{color:var(--dimmer); font-size:.74rem;}
+  .switch{position:relative; width:44px; height:24px; flex:none;}
+  .switch input{position:absolute; opacity:0; width:0; height:0;}
+  .switch span{position:absolute; inset:0; border-radius:100px; background:rgba(255,255,255,.12); border:1px solid var(--glass-border); transition:.25s; cursor:pointer;}
+  .switch span::after{content:''; position:absolute; left:2px; top:2px; width:18px; height:18px; border-radius:50%; background:var(--white); transition:.25s;}
+  .switch input:checked + span{background:var(--gold); border-color:var(--gold);}
+  .switch input:checked + span::after{transform:translateX(20px); background:#181410;}
+  .switch input:focus-visible + span{outline:2px solid var(--gold-hi); outline-offset:2px;}
+  .gal-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:.6rem; margin-bottom:.7rem;}
+  .gal-grid:empty{display:none;}
+  .gal-item{position:relative; aspect-ratio:16/10; border-radius:8px; overflow:hidden; border:1px solid var(--glass-border); background:var(--void-panel);}
+  .gal-item img{width:100%; height:100%; object-fit:cover; display:block;}
+  .gal-item button{position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; border:none;
+    background:rgba(7,8,12,.85); color:var(--white); cursor:pointer; font-size:11px; line-height:1;}
+  .gal-item button:hover{background:var(--danger);}
+  .rules-box{margin-top:1rem; padding:1rem 1.2rem; border-radius:var(--r-sm); border:1px solid var(--glass-border);
+    background:rgba(255,255,255,.03); font-family:'DM Mono',monospace; font-size:.7rem; line-height:1.7; color:var(--dim); text-align:left; white-space:pre-wrap;}
+
   ::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);}
 
   @media(max-width:640px){
@@ -175,7 +219,7 @@
   <div id="loginView" class="glass">
     <div class="mono" style="font-size:.68rem;letter-spacing:.2em;color:var(--gold);margin-bottom:1rem;">RESTRICTED ACCESS</div>
     <h2>Admin Login</h2>
-    <p>Sign in to manage the Work section.</p>
+    <p>Sign in to manage projects and templates.</p>
     <div class="field">
       <label>Email</label>
       <input type="email" id="loginEmail" placeholder="you@axis.com">
@@ -190,17 +234,42 @@
 
   <!-- ═══ DASHBOARD ═══ -->
   <div id="dashView">
-    <div class="dash-head">
-      <div>
-        <div class="eyebrow">Work section</div>
-        <h1>Manage projects</h1>
-      </div>
-      <div style="display:flex;gap:.7rem;flex-wrap:wrap;">
-        <button class="btn btn-ghost" id="restoreBtn" onclick="restoreDefaults()" style="width:auto;padding:.8rem 1.3rem;">Restore original 3 projects</button>
-        <button class="btn btn-primary" id="addBtn" onclick="openForm()">+ Add project</button>
-      </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-tab="projects" role="tab" type="button">Projects</button>
+      <button class="tab" data-tab="templates" role="tab" type="button">Templates <span class="count" id="tplCount"></span></button>
     </div>
-    <div class="project-list" id="projectList"></div>
+
+    <!-- ── PROJECTS (Work section) ── -->
+    <div class="panel on" id="panelProjects">
+      <div class="dash-head">
+        <div>
+          <div class="eyebrow">Work section</div>
+          <h1>Manage projects</h1>
+        </div>
+        <div style="display:flex;gap:.7rem;flex-wrap:wrap;">
+          <button class="btn btn-ghost" id="restoreBtn" onclick="restoreDefaults()" style="width:auto;padding:.8rem 1.3rem;">Restore original 3 projects</button>
+          <button class="btn btn-primary" id="addBtn" onclick="openForm()">+ Add project</button>
+        </div>
+      </div>
+      <div class="project-list" id="projectList"></div>
+    </div>
+
+    <!-- ── TEMPLATES ── -->
+    <div class="panel" id="panelTemplates">
+      <div class="dash-head">
+        <div>
+          <div class="eyebrow">Templates section</div>
+          <h1>Manage templates</h1>
+        </div>
+        <div style="display:flex;gap:.7rem;flex-wrap:wrap;">
+          <a class="btn btn-ghost" href="index.html#templates" target="_blank" rel="noopener" style="width:auto;padding:.8rem 1.3rem;text-decoration:none;display:inline-block;text-align:center;">View on site ↗</a>
+          <button class="btn btn-primary" id="addTplBtn" onclick="openTplForm()" style="width:auto;padding:.8rem 1.5rem;">+ Add template</button>
+        </div>
+      </div>
+      <div class="project-list" id="tplList"></div>
+    </div>
+
   </div>
 
 </main>
@@ -227,7 +296,7 @@
       <div id="imgPreviewWrap">
         <img id="imgPreview" src="" alt="" style="display:none;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:var(--r-sm);margin-bottom:.7rem;border:1px solid var(--glass-border);">
       </div>
-      <button type="button" class="btn btn-ghost" id="uploadBtn" onclick="openUploadWidget()" style="margin-bottom:.6rem;">
+      <button type="button" class="btn btn-ghost" id="uploadBtn" onclick="openUploadWidget(setProjectImg)" style="margin-bottom:.6rem;">
         Upload cover image
       </button>
       <input type="text" id="fImg" placeholder="Or paste an image URL directly" oninput="updatePreview()">
@@ -241,6 +310,79 @@
       <button class="btn btn-primary" onclick="saveProject()">Save</button>
     </div>
     <div id="formError"></div>
+  </div>
+</div>
+
+<!-- ═══ ADD / EDIT TEMPLATE MODAL ═══ -->
+<div class="modal-overlay" id="tplOverlay">
+  <div class="modal glass" style="width:min(620px,100%);">
+    <h2 id="tplModalTitle">Add template</h2>
+    <input type="hidden" id="tEditId">
+
+    <div class="toggle-row">
+      <div><b>Show on the site</b><small>Turn off to hide it without deleting.</small></div>
+      <label class="switch"><input type="checkbox" id="tVisible" checked><span></span></label>
+    </div>
+
+    <div class="field">
+      <label>Category</label>
+      <input type="text" id="tCat" list="catList" placeholder="e.g. Restaurant">
+      <datalist id="catList"></datalist>
+      <div class="hint">Categories become the filter buttons on the site. Reuse the same spelling to group templates together.</div>
+    </div>
+    <div class="field">
+      <label>Template name</label>
+      <input type="text" id="tTitle" placeholder="e.g. Tropical Table">
+    </div>
+    <div class="field">
+      <label>Short description</label>
+      <textarea id="tDesc" rows="3" placeholder="Who it's for and what it does — one or two sentences"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Cover image</label>
+      <img id="tImgPreview" src="" alt="" style="display:none;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:var(--r-sm);margin-bottom:.7rem;border:1px solid var(--glass-border);">
+      <button type="button" class="btn btn-ghost" onclick="openUploadWidget(setTplCover, {folder:'axis-templates'})" style="margin-bottom:.6rem;">Upload cover image</button>
+      <input type="text" id="tImg" placeholder="Or paste an image URL directly" oninput="updateTplPreview()">
+      <div class="hint">Landscape works best (around 16:10). The card crops to fit.</div>
+    </div>
+
+    <div class="field">
+      <label>More screenshots (optional)</label>
+      <div class="gal-grid" id="tGalGrid"></div>
+      <button type="button" class="btn btn-ghost" onclick="openUploadWidget(addTplGallery, {folder:'axis-templates', multiple:true})" style="margin-bottom:.6rem;">Upload screenshots</button>
+      <div style="display:flex;gap:.5rem;">
+        <input type="text" id="tGalUrl" placeholder="Or paste an image URL" onkeydown="if(event.key==='Enter'){event.preventDefault();addTplGalleryUrl();}">
+        <button type="button" class="btn btn-ghost" style="width:auto;padding:.8rem 1.2rem;" onclick="addTplGalleryUrl()">Add</button>
+      </div>
+      <div class="hint">Shown as thumbnails in the template's detail view — good for a mobile screenshot or inner pages.</div>
+    </div>
+
+    <div class="field">
+      <label>What's included (one per line)</label>
+      <textarea id="tFeatures" rows="4" placeholder="Menu page with categories&#10;Photo gallery&#10;WhatsApp booking button"></textarea>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Price (optional)</label>
+        <input type="text" id="tPrice" placeholder="e.g. From SCR 4,500">
+      </div>
+      <div class="field">
+        <label>Badge (optional)</label>
+        <input type="text" id="tBadge" placeholder="e.g. New, Popular">
+      </div>
+    </div>
+    <div class="field">
+      <label>Live demo link (optional)</label>
+      <input type="text" id="tDemo" placeholder="https://...">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeTplForm()">Cancel</button>
+      <button class="btn btn-primary" id="tSaveBtn" onclick="saveTemplate()">Save</button>
+    </div>
+    <div id="tFormError" style="color:var(--danger);font-size:.8rem;margin-top:.8rem;display:none;"></div>
   </div>
 </div>
 
@@ -267,7 +409,10 @@ const projectsRef = db.collection('projects');
 const CLOUDINARY_CLOUD_NAME = "gezjmsa7";
 const CLOUDINARY_UPLOAD_PRESET = "AXIS_Digital_Engineering";
 
-function openUploadWidget(){
+// Opens the Cloudinary widget and calls onUrl(secureUrl) for every uploaded file.
+// opts: { folder: 'axis-portfolio', multiple: false }
+function openUploadWidget(onUrl, opts){
+  opts = opts || {};
   if(CLOUDINARY_CLOUD_NAME.startsWith('REPLACE')){
     alert('Cloudinary isn\'t connected yet — paste an image URL for now, or ask AXIS to finish wiring the upload account.');
     return;
@@ -276,9 +421,9 @@ function openUploadWidget(){
     cloudName: CLOUDINARY_CLOUD_NAME,
     uploadPreset: CLOUDINARY_UPLOAD_PRESET,
     sources: ['local','url','camera'],
-    multiple: false,
-    maxFiles: 1,
-    folder: 'axis-portfolio',
+    multiple: !!opts.multiple,
+    maxFiles: opts.multiple ? 8 : 1,
+    folder: opts.folder || 'axis-portfolio',
     styles: {
       palette: {
         window: '#0d0f16', windowBorder: '#b8a98a', tabIcon: '#b8a98a',
@@ -289,11 +434,12 @@ function openUploadWidget(){
     }
   }, (error, result) => {
     if(error){ console.warn('Upload widget error:', error); return; }
-    if(result && result.event === 'success'){
-      document.getElementById('fImg').value = result.info.secure_url;
-      updatePreview();
-    }
+    if(result && result.event === 'success' && typeof onUrl === 'function') onUrl(result.info.secure_url);
   }).open();
+}
+function setProjectImg(url){
+  document.getElementById('fImg').value = url;
+  updatePreview();
 }
 
 function updatePreview(){
@@ -328,6 +474,7 @@ auth.onAuthStateChanged(user => {
     dashView.style.display = 'block';
     logoutBtn.style.display = 'inline-block';
     listenProjects();
+    listenTemplates();
   } else {
     loginView.style.display = 'block';
     dashView.style.display = 'none';
@@ -477,6 +624,231 @@ async function restoreDefaults(){
     console.warn(e);
   }
   setTimeout(() => { btn.disabled = false; btn.textContent = 'Restore original 3 projects'; }, 2200);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TABS
+   ══════════════════════════════════════════════════════════════ */
+function showTab(name){
+  document.querySelectorAll('.tab').forEach(t => {
+    const on = t.dataset.tab === name;
+    t.classList.toggle('on', on);
+    t.setAttribute('aria-selected', on);
+  });
+  document.getElementById('panelProjects').classList.toggle('on', name === 'projects');
+  document.getElementById('panelTemplates').classList.toggle('on', name === 'templates');
+  try{ history.replaceState(null, '', name === 'templates' ? '#templates' : location.pathname + location.search); }catch(e){}
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+showTab(location.hash === '#templates' ? 'templates' : 'projects');
+
+/* ══════════════════════════════════════════════════════════════
+   TEMPLATES — Firestore collection `templates`
+   fields: title, cat, desc, img, gallery[], features[], demo, price,
+           badge, visible, order, createdAt, updatedAt
+   The public site reads this live; nothing needs redeploying.
+   ══════════════════════════════════════════════════════════════ */
+const templatesRef = db.collection('templates');
+let tplUnsub = null;
+let tplCache = [];          // sorted by `order`
+let tGallery = [];          // gallery URLs for the modal that's open
+
+const RULES_HELP = "Firestore rules don't allow the 'templates' collection yet. In Firebase Console → Firestore → Rules, add:\n\nmatch /templates/{id} {\n  allow read: if true;\n  allow write: if request.auth != null;\n}";
+
+function sortTemplates(list){
+  return list.slice().sort((a, b) => (a.order == null ? 1e15 : a.order) - (b.order == null ? 1e15 : b.order));
+}
+
+function listenTemplates(){
+  if(tplUnsub) return;
+  // no orderBy(): it would silently skip any doc missing `order` — sort locally instead
+  tplUnsub = templatesRef.onSnapshot(snap => {
+    tplCache = sortTemplates(snap.docs.map(d => ({ id:d.id, ...d.data() })));
+    renderTemplates();
+  }, err => {
+    const msg = err.code === 'permission-denied' ? RULES_HELP : err.message;
+    document.getElementById('tplList').innerHTML =
+      '<div class="empty-state glass">Could not load templates.<div class="rules-box">' + escapeHtml(msg) + '</div></div>';
+  });
+}
+
+const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+const ICON_DEL  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+const ICON_UP   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 15l6-6 6 6"/></svg>';
+const ICON_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
+const ICON_EYE  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+const ICON_EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-7 0-11-7-11-7a19.8 19.8 0 0 1 5.06-5.94"/><path d="M9.9 4.24A10.9 10.9 0 0 1 12 5c7 0 11 7 11 7a19.8 19.8 0 0 1-3.17 4.19"/><path d="M1 1l22 22"/></svg>';
+
+function renderTemplates(){
+  const list = document.getElementById('tplList');
+  document.getElementById('tplCount').textContent = tplCache.length ? '(' + tplCache.length + ')' : '';
+  // category suggestions for the form
+  const cats = [...new Set(['Restaurant','Hotel & Guesthouse','Shop','Portfolio','Services'].concat(tplCache.map(t => t.cat).filter(Boolean)))];
+  document.getElementById('catList').innerHTML = cats.map(c => '<option value="' + escapeHtml(c) + '">').join('');
+
+  if(!tplCache.length){
+    list.innerHTML = '<div class="empty-state glass">No templates yet — click "Add template" to publish your first one. The Templates section (and its menu link) stays hidden on the site until there is at least one visible template.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  tplCache.forEach((t, i) => {
+    const shown = t.visible !== false;
+    const row = document.createElement('div');
+    row.className = 'p-row glass' + (shown ? '' : ' is-hidden');
+    row.dataset.id = t.id;
+    row.innerHTML = `
+      <img class="p-thumb" src="${escapeHtml(t.img || '')}" alt="" onerror="this.style.opacity=0">
+      <div class="p-info">
+        <h3>${escapeHtml(t.title || 'Untitled')}</h3>
+        <div class="p-meta">
+          <span class="p-cat mono">${escapeHtml(t.cat || 'No category')}</span>
+          ${t.badge ? '<span class="tag gold">' + escapeHtml(t.badge) + '</span>' : ''}
+          ${t.price ? '<span class="tag">' + escapeHtml(t.price) + '</span>' : ''}
+          ${shown ? '' : '<span class="tag off">Hidden</span>'}
+        </div>
+      </div>
+      <div class="p-actions">
+        <div class="icon-btn ${i === 0 ? 'disabled' : ''}" title="Move up" data-act="up">${ICON_UP}</div>
+        <div class="icon-btn ${i === tplCache.length - 1 ? 'disabled' : ''}" title="Move down" data-act="down">${ICON_DOWN}</div>
+        <div class="icon-btn" title="${shown ? 'Hide from site' : 'Show on site'}" data-act="toggle">${shown ? ICON_EYE : ICON_EYE_OFF}</div>
+        <div class="icon-btn" title="Edit" data-act="edit">${ICON_EDIT}</div>
+        <div class="icon-btn danger" title="Delete" data-act="delete">${ICON_DEL}</div>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+document.getElementById('tplList').addEventListener('click', e => {
+  const btn = e.target.closest('[data-act]');
+  if(!btn) return;
+  const id = btn.closest('.p-row').dataset.id;
+  const act = btn.dataset.act;
+  if(act === 'edit') openTplForm(id);
+  else if(act === 'delete') deleteTemplate(id);
+  else if(act === 'toggle') toggleTemplate(id);
+  else if(act === 'up') moveTemplate(id, -1);
+  else if(act === 'down') moveTemplate(id, 1);
+});
+
+function toggleTemplate(id){
+  const t = tplCache.find(x => x.id === id); if(!t) return;
+  templatesRef.doc(id).update({ visible: t.visible === false }).catch(e => alert('Could not update: ' + e.message));
+}
+
+function deleteTemplate(id){
+  const t = tplCache.find(x => x.id === id);
+  if(!confirm('Delete "' + (t ? t.title : 'this template') + '"? This cannot be undone.')) return;
+  templatesRef.doc(id).delete().catch(e => alert('Could not delete: ' + e.message));
+}
+
+// swap positions, then renumber everything 10,20,30… so order is always clean and unique
+function moveTemplate(id, dir){
+  const i = tplCache.findIndex(x => x.id === id);
+  const j = i + dir;
+  if(i < 0 || j < 0 || j >= tplCache.length) return;
+  const next = tplCache.slice();
+  [next[i], next[j]] = [next[j], next[i]];
+  const batch = db.batch();
+  next.forEach((t, idx) => {
+    const want = (idx + 1) * 10;
+    if(t.order !== want) batch.update(templatesRef.doc(t.id), { order: want });
+  });
+  batch.commit().catch(e => alert('Could not reorder: ' + e.message));
+}
+
+/* ── modal ── */
+function setTplCover(url){ document.getElementById('tImg').value = url; updateTplPreview(); }
+function updateTplPreview(){
+  const url = document.getElementById('tImg').value.trim();
+  const img = document.getElementById('tImgPreview');
+  if(url){ img.src = url; img.style.display = 'block'; } else { img.style.display = 'none'; }
+}
+function renderTplGallery(){
+  const grid = document.getElementById('tGalGrid');
+  grid.innerHTML = '';
+  tGallery.forEach((u, i) => {
+    const d = document.createElement('div');
+    d.className = 'gal-item';
+    d.innerHTML = '<img src="' + escapeHtml(u) + '" alt=""><button type="button" title="Remove" aria-label="Remove image">✕</button>';
+    d.querySelector('button').addEventListener('click', () => { tGallery.splice(i, 1); renderTplGallery(); });
+    grid.appendChild(d);
+  });
+}
+function addTplGallery(url){
+  if(url && !tGallery.includes(url)){ tGallery.push(url); renderTplGallery(); }
+}
+function addTplGalleryUrl(){
+  const inp = document.getElementById('tGalUrl');
+  const u = inp.value.trim();
+  if(u){ addTplGallery(u); inp.value = ''; }
+}
+
+function openTplForm(id){
+  document.getElementById('tFormError').style.display = 'none';
+  const t = id ? tplCache.find(x => x.id === id) : null;
+  document.getElementById('tplModalTitle').textContent = t ? 'Edit template' : 'Add template';
+  document.getElementById('tEditId').value = t ? t.id : '';
+  document.getElementById('tVisible').checked = t ? t.visible !== false : true;
+  document.getElementById('tCat').value = t ? (t.cat || '') : '';
+  document.getElementById('tTitle').value = t ? (t.title || '') : '';
+  document.getElementById('tDesc').value = t ? (t.desc || '') : '';
+  document.getElementById('tImg').value = t ? (t.img || '') : '';
+  document.getElementById('tFeatures').value = t && Array.isArray(t.features) ? t.features.join('\n') : '';
+  document.getElementById('tPrice').value = t ? (t.price || '') : '';
+  document.getElementById('tBadge').value = t ? (t.badge || '') : '';
+  document.getElementById('tDemo').value = t ? (t.demo || '') : '';
+  document.getElementById('tGalUrl').value = '';
+  tGallery = t && Array.isArray(t.gallery) ? t.gallery.slice() : [];
+  renderTplGallery();
+  updateTplPreview();
+  document.getElementById('tplOverlay').classList.add('open');
+}
+function closeTplForm(){ document.getElementById('tplOverlay').classList.remove('open'); }
+document.getElementById('tplOverlay').addEventListener('click', e => { if(e.target.id === 'tplOverlay') closeTplForm(); });
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  closeTplForm(); closeForm();
+});
+
+function saveTemplate(){
+  const id = document.getElementById('tEditId').value;
+  const errEl = document.getElementById('tFormError');
+  const saveBtn = document.getElementById('tSaveBtn');
+  const fail = msg => { errEl.textContent = msg; errEl.style.display = 'block'; };
+  errEl.style.display = 'none';
+
+  const data = {
+    visible: document.getElementById('tVisible').checked,
+    cat: document.getElementById('tCat').value.trim(),
+    title: document.getElementById('tTitle').value.trim(),
+    desc: document.getElementById('tDesc').value.trim(),
+    img: document.getElementById('tImg').value.trim(),
+    gallery: tGallery.slice(),
+    features: document.getElementById('tFeatures').value.split('\n').map(x => x.trim()).filter(Boolean),
+    price: document.getElementById('tPrice').value.trim(),
+    badge: document.getElementById('tBadge').value.trim(),
+    demo: document.getElementById('tDemo').value.trim()
+  };
+  if(!data.title) return fail('Give the template a name.');
+  if(!data.img) return fail('Add a cover image (upload one or paste a URL).');
+  if(data.demo && !/^https?:\/\//i.test(data.demo)) return fail('The live demo link must start with https://');
+
+  saveBtn.disabled = true;
+  let promise;
+  if(id){
+    promise = templatesRef.doc(id).update({ ...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  } else {
+    const maxOrder = tplCache.reduce((m, t) => Math.max(m, t.order == null ? 0 : t.order), 0);
+    promise = templatesRef.add({
+      ...data,
+      order: maxOrder + 10,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }
+  promise.then(() => closeTplForm()).catch(e => {
+    fail(e.code === 'permission-denied' ? RULES_HELP : 'Save failed: ' + e.message);
+  }).finally(() => { saveBtn.disabled = false; });
 }
 </script>
 
