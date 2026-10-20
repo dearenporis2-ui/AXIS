@@ -1757,6 +1757,7 @@ function sendWA(){
     dpr: 1.5
   };
 
+  const dbg = (k, v) => { (window.__axisDebug = window.__axisDebug || {})[k] = v; };
   const MAX_COLORS = 8;
   const BLOOM_LEVELS = 4;
   const INTRO_SECONDS = 2.6;
@@ -1771,6 +1772,7 @@ void main() {
 
   const STREAKS = `#version 300 es
 precision highp float;
+precision highp int;   // GLSL ES defaults ints to mediump (16-bit on many phone GPUs) → breaks the hash
 uniform vec2 uView;
 uniform float uZoom;
 uniform float uPhase;
@@ -1916,6 +1918,7 @@ void main() {
 
   const DOWNSAMPLE = `#version 300 es
 precision highp float;
+precision highp int;   // GLSL ES defaults ints to mediump (16-bit on many phone GPUs) → breaks the hash
 uniform sampler2D uSource;
 uniform vec2 uTarget;
 uniform vec2 uTexel;
@@ -1933,6 +1936,7 @@ void main() {
 
   const BLUR = `#version 300 es
 precision highp float;
+precision highp int;   // GLSL ES defaults ints to mediump (16-bit on many phone GPUs) → breaks the hash
 uniform sampler2D uSource;
 uniform vec2 uTarget;
 uniform vec2 uStep;
@@ -1949,6 +1953,7 @@ void main() {
 
   const COMPOSITE = `#version 300 es
 precision highp float;
+precision highp int;   // GLSL ES defaults ints to mediump (16-bit on many phone GPUs) → breaks the hash
 uniform sampler2D uScene;
 uniform sampler2D uBloom0;
 uniform sampler2D uBloom1;
@@ -2067,6 +2072,14 @@ void main() {
     if(!gl) return null;
 
     const floatTargets = !!gl.getExtension('EXT_color_buffer_float');
+    try{
+      const info = gl.getExtension('WEBGL_debug_renderer_info');
+      const mi = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_INT);
+      const hi = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_INT);
+      dbg('gpu', info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : 'hidden');
+      dbg('floatTargets', floatTargets);
+      dbg('fragIntBits', 'medium=' + (mi ? mi.rangeMax : '?') + ' high=' + (hi ? hi.rangeMax : '?'));
+    }catch(e){}
     const streakProgram = link(gl, STREAKS);
     const downProgram = link(gl, DOWNSAMPLE);
     const blurProgram = link(gl, BLUR);
@@ -2143,7 +2156,7 @@ void main() {
       touch: 0, warp: 0
     };
     const minGap = lite ? 1000 / 30 : 0;
-    let raf = 0, last = 0, visible = true, sampleN = 0, sampleSum = 0;
+    let raf = 0, last = 0, visible = true, sampleN = 0, sampleSum = 0, level = 0, frameMs = 0;
     // draw one (blank) frame so the shaders compile behind the splash, then hold the intro until it lifts
     let released = document.documentElement.classList.contains('nav-ready');
     if(!released) window.addEventListener('axis:ready', () => { released = true; last = 0; wake(); }, { once:true });
@@ -2249,6 +2262,7 @@ void main() {
 
       if(!container.classList.contains('ready')){
         container.classList.add('ready');
+        dbg('bgCanvas', canvas.width + 'x' + canvas.height);
         if(window.__axisBoot) window.__axisBoot.done('bg');
       }
     };
@@ -2260,11 +2274,21 @@ void main() {
       if(minGap && last && now - last < minGap - 1){ raf = requestAnimationFrame(frame); return; }
       const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
       // if the average frame is slower than ~20fps, drop internal resolution a step (max twice)
-      if(last && quality > 0.66){
+      if(last){ frameMs += ((now - last) - frameMs) * 0.05; dbg('bgFrameMs', Math.round(frameMs)); }
+      if(last && level < 3){
         sampleN++;
         if(sampleN > 12) sampleSum += now - last;
         if(sampleN === 52){
-          if(sampleSum / 40 > 52){ quality = Math.max(0.66, quality - 0.17); resize(); }
+          if(sampleSum / 40 > 52){
+            // the streaks need ~820px of internal width to look right, so don't shrink the canvas —
+            // drop cost instead: bloom first, then a streak layer, then a little resolution (floored)
+            level++;
+            if(level === 1) S.bloom = 0;
+            else if(level === 2) S.streakCount = Math.max(2, S.streakCount - 1);
+            else quality = 0.83;
+            resize();
+            dbg('bgLevel', level);
+          }
           sampleN = 0; sampleSum = 0;
         }
       }
@@ -2308,7 +2332,8 @@ void main() {
     let quality = 1;
     const pixelRatio = cssWidth => {
       const base = lite ? Math.max(window.devicePixelRatio || 1, S.minPixelWidth / cssWidth) : S.dpr;
-      return Math.max(0.75, Math.min(base, 2) * quality);
+      const floor = Math.min(2, S.minPixelWidth / cssWidth);   // never below the width the look needs
+      return Math.max(floor, Math.min(base, 2) * quality);
     };
     const resize = () => {
       const width = Math.max(1, container.clientWidth);
@@ -2572,6 +2597,8 @@ void main() {
 <script>
 (function(){
   const bootDone = () => { if(window.__axisBoot) window.__axisBoot.done('logo'); };
+  const dbg = (k, v) => { (window.__axisDebug = window.__axisDebug || {})[k] = v; };
+  dbg('logo', 'starting');
   const panel = document.getElementById('heroPanel');
   const hero = document.getElementById('hero-sticky');
   const imgEl = panel && panel.querySelector('.hero-wordmark');
@@ -2582,6 +2609,7 @@ void main() {
   // Opened by double-clicking the file (file://)? Browsers block reading image pixels there,
   // so the outline can't be traced. Keep the plain logo quietly instead of throwing CORS errors.
   if(location.protocol === 'file:'){
+    dbg('logo', 'skipped (file://)');
     bootDone();
     console.info('ElectricLogo: skipped on file:// (the browser blocks reading the logo image). Open the site through a local server or the live URL to see it.');
     return;
@@ -3110,26 +3138,26 @@ void main() {
   panel.appendChild(fx);
 
   const gl = canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false });
-  const bail = () => { fx.remove(); panel.classList.remove('electric-on'); bootDone(); };
-  if(!gl){ bail(); return; }
+  const bail = why => { if(why) dbg('logo', why); fx.remove(); panel.classList.remove('electric-on'); bootDone(); };
+  if(!gl){ bail('no WebGL2 context'); return; }
 
   const compile = (type, src) => {
     const sh = gl.createShader(type);
     gl.shaderSource(sh, src);
     gl.compileShader(sh);
-    if(!gl.getShaderParameter(sh, gl.COMPILE_STATUS)){ console.warn('ElectricLogo shader:', gl.getShaderInfoLog(sh)); gl.deleteShader(sh); return null; }
+    if(!gl.getShaderParameter(sh, gl.COMPILE_STATUS)){ const log = gl.getShaderInfoLog(sh); console.warn('ElectricLogo shader:', log); dbg('logoShaderLog', String(log).slice(0, 220)); gl.deleteShader(sh); return null; }
     return sh;
   };
   const vs = compile(gl.VERTEX_SHADER, VERT);
   const fs = compile(gl.FRAGMENT_SHADER, FRAG);
   const prog = gl.createProgram();
-  if(!vs || !fs || !prog){ bail(); return; }
+  if(!vs || !fs || !prog){ bail('shader compile failed'); return; }
   gl.attachShader(prog, vs);
   gl.attachShader(prog, fs);
   gl.bindAttribLocation(prog, 0, 'position');
   gl.bindAttribLocation(prog, 1, 'uv');
   gl.linkProgram(prog);
-  if(!gl.getProgramParameter(prog, gl.LINK_STATUS)){ console.warn('ElectricLogo link:', gl.getProgramInfoLog(prog)); bail(); return; }
+  if(!gl.getProgramParameter(prog, gl.LINK_STATUS)){ const log = gl.getProgramInfoLog(prog); console.warn('ElectricLogo link:', log); dbg('logoShaderLog', String(log).slice(0, 220)); bail('shader link failed'); return; }
 
   const U = {};
   ['tFieldFrom','tGlowFrom','tFieldTo','tGlowTo','uMapFrom','uSizeFrom','uMapTo','uSizeTo','uMorph','uResolution','uUnit','uTime',
@@ -3209,6 +3237,13 @@ void main() {
   };
 
   const frame = now => {
+    try{ frameInner(now); }
+    catch(err){
+      alive = false; dbg('logo', 'frame error: ' + err.message);
+      panel.classList.remove('electric-on');
+    }
+  };
+  const frameInner = now => {
     raf = 0;
     if(!alive || !visible || document.hidden) return;
     if(primed && !started) return;           // ready and waiting for the splash — go() restarts the loop
@@ -3359,10 +3394,12 @@ void main() {
       if(!primed){
         primed = true;
         gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));   // force the GPU to really finish (first draw compiles the shader)
+        const glErr = gl.getError();
+        dbg('logo', 'primed' + (glErr ? ' (GL error ' + glErr + ')' : ''));
         bootDone();
       }
       // first real frame → crossfade the plain <img> out and the lightning in
-      if(started && !shown){ shown = true; panel.classList.add('electric-on'); }
+      if(started && !shown){ shown = true; panel.classList.add('electric-on'); dbg('logo', 'running'); }
     }
 
     if(started || !primed) raf = requestAnimationFrame(frame);
@@ -3395,6 +3432,7 @@ void main() {
   /* ───────── lifecycle ───────── */
   canvas.addEventListener('webglcontextlost', e => {          // fall back to the plain logo
     e.preventDefault();
+    dbg('logo', 'WebGL context lost');
     alive = false;
     cancelAnimationFrame(raf);
     panel.classList.remove('electric-on');
@@ -3412,13 +3450,31 @@ void main() {
   image.decoding = 'async';
   image.onload = () => {
     try { traced = traceShape(image); } catch(err){ traced = null; console.warn('ElectricLogo: could not read the logo pixels —', err.message); }
-    if(!traced){ alive = false; bail(); }
-    else start();
+    if(!traced){ alive = false; bail('trace failed (no readable pixels)'); }
+    else { dbg('logoTrace', traced.logoWidth + 'x' + traced.logoHeight + ', ' + (traced.edges.length / 2) + ' edge pts'); start(); }
   };
-  image.onerror = () => { alive = false; bail(); };
+  image.onerror = () => { alive = false; bail('logo image failed to load'); };
   image.src = imgEl.currentSrc || imgEl.src;
 
   resize();
+})();
+</script>
+
+<!-- ═══════════ ?debug overlay ═══════════
+     Open the site with ?debug at the end of the address (axisagency.co/?debug) to see
+     what the background and the electric logo are doing on THIS device. Off otherwise. -->
+<script>
+(function(){
+  if(!/[?&]debug(=|&|$)/.test(location.search)) return;
+  const el = document.createElement('pre');
+  el.style.cssText = 'position:fixed;left:6px;bottom:6px;z-index:2147483647;margin:0;padding:6px 8px;max-width:94vw;background:rgba(0,0,0,.85);color:#9f9;font:10px/1.35 ui-monospace,monospace;white-space:pre-wrap;word-break:break-word;border-radius:6px;pointer-events:none';
+  document.body.appendChild(el);
+  const base = { ua: navigator.userAgent.replace(/^Mozilla\/5\.0 /, '').slice(0, 90), screen: innerWidth + 'x' + innerHeight + ' @' + devicePixelRatio, boot: '' };
+  setInterval(() => {
+    base.boot = JSON.stringify(window.__axisBoot && window.__axisBoot.status ? window.__axisBoot.status() : {});
+    const d = Object.assign({}, base, window.__axisDebug || {});
+    el.textContent = Object.keys(d).map(k => k + ': ' + (typeof d[k] === 'object' ? JSON.stringify(d[k]) : d[k])).join('\n');
+  }, 500);
 })();
 </script>
 
