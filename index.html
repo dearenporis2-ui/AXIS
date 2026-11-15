@@ -769,6 +769,44 @@
     border:none; cursor:pointer;
   }
 
+
+  /* ── Lead form: errors, honeypot, confirmation modal ── */
+  .hp{position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;}
+  .form-error{grid-column:1/-1; color:#f0a3a3; font-size:.82rem; line-height:1.5;}
+  .contact-form .form-btn[disabled]{opacity:.6; cursor:progress; transform:none;}
+  .field input[aria-invalid="true"], .field textarea[aria-invalid="true"]{border-color:#f0a3a3;}
+  .lead-modal{
+    position:fixed; inset:0; z-index:1200; display:flex; align-items:center; justify-content:center;
+    padding:1.5rem; background:rgba(4,5,8,.8);
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    opacity:0; visibility:hidden; transition:opacity .35s ease, visibility 0s linear .35s;
+  }
+  .lead-modal.open{opacity:1; visibility:visible; transition:opacity .35s ease, visibility 0s;}
+  .lead-dialog{
+    width:min(440px,100%); padding:2.6rem 2rem 2rem; text-align:center; border-radius:var(--r-lg);
+    transform:translateY(24px) scale(.98); transition:transform .55s cubic-bezier(.16,1,.3,1);
+  }
+  .lead-modal.open .lead-dialog{transform:none;}
+  .lead-mark{width:64px; height:64px; margin:0 auto 1.4rem; display:block; fill:none; stroke:var(--gold-hi); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+  .lead-mark .lm-ring{stroke:var(--gold); stroke-width:1.2; opacity:.55;}
+  .lead-mark .lm-tick, .lead-mark .lm-bang{stroke-dasharray:40; stroke-dashoffset:40;}
+  .lead-modal.open .lead-mark .lm-tick, .lead-modal.open .lead-mark .lm-bang{animation:leadDraw .6s .25s cubic-bezier(.16,1,.3,1) forwards;}
+  .lead-dialog[data-state="ok"] .lm-bang{display:none;}
+  .lead-dialog[data-state="fail"] .lm-tick{display:none;}
+  .lead-dialog[data-state="fail"] .lead-mark{stroke:#f0a3a3;}
+  @keyframes leadDraw{to{stroke-dashoffset:0;}}
+  .lead-dialog h3{font-size:1.5rem; margin-bottom:.7rem;}
+  .lead-dialog p{color:var(--dim); line-height:1.65; font-size:.95rem; margin-bottom:1.8rem; overflow-wrap:anywhere;}
+  .lead-actions{display:flex; gap:.7rem; justify-content:center; flex-wrap:wrap;}
+  .lead-actions .btn{cursor:pointer; border:none; justify-content:center;}
+  .lead-actions .btn-ghost{border:1px solid var(--glass-border);}
+  .lead-actions [hidden]{display:none;}
+  @media(max-width:480px){ .lead-actions .btn{width:100%;} }
+  @media(prefers-reduced-motion:reduce){
+    .lead-modal, .lead-dialog{transition-duration:.01s !important;}
+    .lead-modal.open .lead-mark .lm-tick, .lead-modal.open .lead-mark .lm-bang{animation:none; stroke-dashoffset:0;}
+  }
+
   footer{position:relative; z-index:1; padding:2.6rem 3rem; border-top:1px solid rgba(255,255,255,0.07);
     display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;}
   .footer-mono{font-family:'DM Mono',monospace; font-size:.7rem; color:var(--dimmer); letter-spacing:.05em;}
@@ -1224,15 +1262,36 @@ window.__isLowEndHardware = (
       <p>Send the details and we'll reply on WhatsApp within a day.</p>
       <div class="contact-form">
         <div class="tpl-picked full" id="tplPicked" hidden><span class="mono">TEMPLATE</span><strong id="tplPickedName"></strong><button type="button" id="tplPickedClear" aria-label="Remove chosen template">✕</button></div>
-        <div class="field"><label>Name</label><input type="text" id="ctName" placeholder="Your name"></div>
-        <div class="field"><label>Phone / WhatsApp</label><input type="text" id="ctPhone" placeholder="+248 ..."></div>
-        <div class="field full"><label>Business</label><input type="text" id="ctBusiness" placeholder="Business name"></div>
-        <div class="field full"><label>What do you need?</label><textarea id="ctMsg" rows="4" placeholder="New site, booking platform, business documents..."></textarea></div>
-        <button class="btn btn-primary form-btn" onclick="sendWA()">Send message</button>
+        <div class="field"><label for="ctName">Name</label><input type="text" id="ctName" placeholder="Your name" maxlength="80" autocomplete="name"></div>
+        <div class="field"><label for="ctPhone">Phone / WhatsApp</label><input type="tel" id="ctPhone" placeholder="+248 ..." maxlength="30" autocomplete="tel"></div>
+        <div class="field full"><label for="ctBusiness">Business</label><input type="text" id="ctBusiness" placeholder="Business name" maxlength="100" autocomplete="organization"></div>
+        <div class="field full"><label for="ctMsg">What do you need?</label><textarea id="ctMsg" rows="4" maxlength="1000" placeholder="New site, booking platform, business documents..."></textarea></div>
+        <div class="hp" aria-hidden="true"><label>Leave this empty<input type="text" id="ctWebsite" tabindex="-1" autocomplete="off"></label></div>
+        <p class="form-error full" id="ctError" role="alert" hidden></p>
+        <button type="button" class="btn btn-primary form-btn" id="ctSend">Send message</button>
       </div>
     </div>
   </div>
 </section>
+
+
+<!-- ═══════════ LEAD CONFIRMATION ═══════════ -->
+<div class="lead-modal" id="leadModal" role="dialog" aria-modal="true" aria-labelledby="leadTitle" aria-describedby="leadBody" aria-hidden="true">
+  <div class="lead-dialog glass" id="leadDialog" data-state="ok">
+    <div class="glass-sheen"></div>
+    <svg class="lead-mark" viewBox="0 0 52 52" aria-hidden="true">
+      <circle class="lm-ring" cx="26" cy="26" r="24"/>
+      <path class="lm-tick" d="M15 27l8 8 15-17"/>
+      <path class="lm-bang" d="M26 14v15M26 36v.5"/>
+    </svg>
+    <h3 id="leadTitle">Message received.</h3>
+    <p id="leadBody"></p>
+    <div class="lead-actions">
+      <a class="btn btn-primary" id="leadWA" href="#" target="_blank" rel="noopener" hidden>Open WhatsApp</a>
+      <button type="button" class="btn btn-ghost" id="leadClose">Close</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════ FOOTER ═══════════ -->
 <footer>
@@ -1564,16 +1623,127 @@ requestAnimationFrame(() => requestAnimationFrame(() => {
   document.querySelectorAll('.reveal').forEach(el => rObs.observe(el));
 }));
 
-function sendWA(){
-  const name = document.getElementById('ctName').value.trim();
-  const phone = document.getElementById('ctPhone').value.trim();
-  const business = document.getElementById('ctBusiness').value.trim();
-  const msg = document.getElementById('ctMsg').value.trim();
-  if(!name || !msg){ alert('Please enter your name and describe what you need.'); return; }
-  const tplLine = window.__axisTemplate ? `\nTemplate: ${window.__axisTemplate.title}` : '';
-  const text = `Hi AXIS,\n\nName: ${name}\nBusiness: ${business || 'Not provided'}\nPhone: ${phone || 'Not provided'}${tplLine}\n\nProject details:\n${msg}`;
-  window.open(`https://wa.me/2482603277?text=${encodeURIComponent(text)}`, '_blank');
-}
+/* ═══════════ LEAD FORM → Cloudflare Worker ═══════════
+   Set LEAD_ENDPOINT to your deployed Worker's /trigger URL. */
+const LEAD_ENDPOINT = 'https://YOUR-WORKER.YOUR-SUBDOMAIN.workers.dev/trigger';
+const WA_NUMBER = '2482603277';
+
+(() => {
+  const $ = id => document.getElementById(id);
+  const sendBtn = $('ctSend'), errEl = $('ctError');
+  const modal = $('leadModal'), dialog = $('leadDialog');
+  const titleEl = $('leadTitle'), bodyEl = $('leadBody');
+  const waBtn = $('leadWA'), closeBtn = $('leadClose');
+  if(!sendBtn || !modal) return;
+
+  let sending = false, lastFocus = null, lastSentAt = 0;
+
+  function showError(msg, field){
+    errEl.textContent = msg; errEl.hidden = false;
+    ['ctName','ctPhone','ctMsg'].forEach(id => $(id).removeAttribute('aria-invalid'));
+    if(field){ field.setAttribute('aria-invalid','true'); field.focus(); }
+  }
+  function clearError(){
+    errEl.hidden = true; errEl.textContent = '';
+    ['ctName','ctPhone','ctMsg'].forEach(id => $(id).removeAttribute('aria-invalid'));
+  }
+
+  function waLink(lead){
+    const tpl = lead.template ? `\nTemplate: ${lead.template}` : '';
+    const text = `Hi AXIS,\n\nName: ${lead.name}\nBusiness: ${lead.company || 'Not provided'}\nPhone: ${lead.contact}${tpl}\n\nProject details:\n${lead.scope}`;
+    return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
+  }
+
+  function openModal(state, lead){
+    lastFocus = document.activeElement;
+    dialog.dataset.state = state;
+    if(state === 'ok'){
+      const first = lead.name.split(/\s+/)[0];
+      titleEl.textContent = 'Message received.';
+      bodyEl.textContent = `Thanks, ${first}. We'll reply on WhatsApp at ${lead.contact} within a day.`;
+      waBtn.hidden = true;
+    } else {
+      titleEl.textContent = 'Message not delivered.';
+      bodyEl.textContent = 'Something went wrong on our side. Send it on WhatsApp and we will pick it up straight away.';
+      waBtn.href = waLink(lead); waBtn.hidden = false;
+    }
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+    (state === 'fail' ? waBtn : closeBtn).focus({ preventScroll:true });
+  }
+  function closeModal(){
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+    if(lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll:true });
+  }
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if(e.target === modal) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if(!modal.classList.contains('open')) return;
+    if(e.key === 'Escape'){ closeModal(); return; }
+    if(e.key === 'Tab'){
+      const f = [...modal.querySelectorAll('button, a[href]')].filter(el => !el.hidden);
+      if(!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
+  });
+
+  // Fire-and-forget: the visitor never waits on Groq / ElevenLabs / Discord.
+  async function deliver(lead){
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 25000);
+    try{
+      const res = await fetch(LEAD_ENDPOINT, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ item: { ...lead, type:'new website lead', source:'axisagency.co' } }),
+        keepalive:true,
+        signal: ctrl.signal
+      });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+    }catch(err){
+      console.error('Lead delivery failed:', err);
+      // Swap the open pop-up to the fallback so the lead is never lost.
+      openModal('fail', lead);
+    }finally{
+      clearTimeout(timer);
+    }
+  }
+
+  function submit(){
+    if(sending) return;
+    clearError();
+    const lead = {
+      name: $('ctName').value.trim(),
+      contact: $('ctPhone').value.trim(),
+      company: $('ctBusiness').value.trim(),
+      scope: $('ctMsg').value.trim(),
+      template: window.__axisTemplate ? window.__axisTemplate.title : ''
+    };
+    if(!lead.name){ showError('Enter your name so we know who to reply to.', $('ctName')); return; }
+    if(lead.contact.replace(/\D/g,'').length < 7){ showError('Enter a phone or WhatsApp number we can reply to.', $('ctPhone')); return; }
+    if(!lead.scope){ showError('Tell us a little about what you need.', $('ctMsg')); return; }
+    if(Date.now() - lastSentAt < 30000){ showError('Your message was just sent. Give us a moment before sending another.'); return; }
+
+    sending = true; sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
+
+    // Honeypot: bots fill the hidden field. Show success, send nothing.
+    if(!$('ctWebsite').value){ deliver(lead); }
+    lastSentAt = Date.now();
+    openModal('ok', lead);
+
+    // Reset the form (the lead object keeps the data for the WhatsApp fallback).
+    const clearTpl = $('tplPickedClear');
+    if(window.__axisTemplate && clearTpl) clearTpl.click();
+    ['ctName','ctPhone','ctBusiness','ctMsg','ctWebsite'].forEach(id => $(id).value = '');
+    sending = false; sendBtn.disabled = false; sendBtn.textContent = 'Send message';
+  }
+  sendBtn.addEventListener('click', submit);
+})();
 </script>
 
 <script type="module">
