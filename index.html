@@ -24,7 +24,7 @@
 <meta name="twitter:image" content="Logo_Name-removebg-preview.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Outfit:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
     --void:        #07080c;
@@ -88,7 +88,6 @@
   }
   .orb{
     position:absolute; border-radius:50%;
-    filter:blur(70px);
     opacity:.55;
     will-change:transform;
   }
@@ -807,6 +806,20 @@
     .lead-modal.open .lead-mark .lm-tick, .lead-modal.open .lead-mark .lm-bang{animation:none; stroke-dashoffset:0;}
   }
 
+
+  /* ── Lite mode (weak devices): remove the GPU-heavy effects ── */
+  html.lite *, html.lite *::before, html.lite *::after{
+    -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+  }
+  html.lite .glass{background:rgba(17,20,29,.82); box-shadow:0 2px 12px rgba(0,0,0,.4);}
+  html.lite .glass-sheen{display:none;}
+  html.lite nav::before{background:rgba(7,8,12,.94);}
+  html.lite .tpl-modal, html.lite .lead-modal{background:rgba(4,5,8,.95);}
+  html.lite #bg-orbs{display:none;}
+  html.lite .reveal{transform:translateY(20px); transition:opacity .45s ease, transform .45s ease;}
+  html.lite .reveal.v{transform:none;}
+  html.lite .tpl-grid.in .tpl-card{animation:none;}
+
   footer{position:relative; z-index:1; padding:2.6rem 3rem; border-top:1px solid rgba(255,255,255,0.07);
     display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;}
   .footer-mono{font-family:'DM Mono',monospace; font-size:.7rem; color:var(--dimmer); letter-spacing:.05em;}
@@ -814,8 +827,8 @@
   .footer-links a{color:var(--dim); text-decoration:none; font-size:.8rem; transition:color .3s;}
   .footer-links a:hover{color:var(--gold);}
 
-  .reveal{opacity:0; transform:translateY(60px) scale(.96); filter:blur(6px); transition:opacity 1.1s cubic-bezier(.16,1,.3,1), transform 1.1s cubic-bezier(.16,1,.3,1), filter 1.1s cubic-bezier(.16,1,.3,1);}
-  .reveal.v{opacity:1; transform:translateY(0) scale(1); filter:blur(0);}
+  .reveal{opacity:0; transform:translateY(40px) scale(.97); transition:opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1);}
+  .reveal.v{opacity:1; transform:translateY(0) scale(1);}
 
   @media(prefers-reduced-motion:reduce){
     .reveal{transition-duration:.3s !important; transform:none !important; filter:none !important;}
@@ -844,25 +857,6 @@
     outline:2px solid var(--gold); outline-offset:2px;
   }
 
-  /* Simple cursor: gold dot + trailing ring. Native pointer is only hidden once JS adds .has-cursor */
-  .cursor-dot, .cursor-ring{
-    position:fixed; top:0; left:0; z-index:9999; pointer-events:none;
-    border-radius:50%; opacity:0; will-change:transform;
-  }
-  .cursor-dot{width:6px; height:6px; margin:-3px 0 0 -3px; background:var(--gold-hi);}
-  .cursor-ring{
-    width:34px; height:34px; margin:-17px 0 0 -17px; border:1px solid var(--gold); scale:1;
-    transition:opacity .25s ease, scale .3s cubic-bezier(.16,1,.3,1), background .3s ease, border-color .3s ease;
-  }
-  .cursor-dot{transition:opacity .25s ease;}
-  .has-cursor .cursor-dot, .has-cursor .cursor-ring{opacity:1;}
-  .has-cursor.cursor-out .cursor-dot, .has-cursor.cursor-out .cursor-ring,
-  .has-cursor.cursor-text .cursor-dot, .has-cursor.cursor-text .cursor-ring{opacity:0;}
-  .cursor-ring.is-hover{scale:1.6; background:rgba(184,169,138,.12); border-color:var(--gold-hi);}
-  .cursor-ring.is-down{scale:.8;}
-  .has-cursor, .has-cursor a, .has-cursor button, .has-cursor .depth-carousel{cursor:none;}
-  .has-cursor input, .has-cursor textarea{cursor:text;}
-  @media(prefers-reduced-motion:reduce){ .cursor-ring{transition-duration:.01s;} }
 
   #splash{
     position:fixed; inset:0; z-index:100000;
@@ -906,6 +900,36 @@ window.__isLowEndHardware = (
   (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
   (navigator.deviceMemory && navigator.deviceMemory <= 4)
 );
+
+/* Lite mode: drops the GPU-heavy effects on weak devices.
+   Starts on if the device looks weak / data-saver is on / a past visit measured slow.
+   Otherwise a short frame-rate check after load switches it on if the page is lagging. */
+(function(){
+  var root = document.documentElement, c = navigator.connection || {}, remembered = false;
+  try{ remembered = localStorage.getItem('axisLite') === '1'; }catch(e){}
+  window.__axisLite = !!(window.__isLowEndHardware || c.saveData || remembered);
+  if(window.__axisLite) root.classList.add('lite');
+
+  function enable(){
+    if(window.__axisLite) return;
+    window.__axisLite = true;
+    root.classList.add('lite');
+    try{ localStorage.setItem('axisLite','1'); }catch(e){}
+  }
+  window.addEventListener('load', function(){
+    if(window.__axisLite) return;
+    setTimeout(function(){
+      var last = 0, n = 0, sum = 0;
+      (function tick(t){
+        if(document.hidden){ last = 0; return requestAnimationFrame(tick); }
+        if(last){ n++; if(n > 15){ sum += t - last; } }
+        last = t;
+        if(n < 75){ requestAnimationFrame(tick); return; }
+        if(sum / (n - 15) > 34) enable();   // averaging under ~30fps
+      })(performance.now());
+    }, 3000);
+  });
+})();
 </script>
 
 <div id="splash">
@@ -960,8 +984,6 @@ window.__isLowEndHardware = (
 })();
 </script>
 
-<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
-<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
 
 <svg class="svg-defs" aria-hidden="true">
   <filter id="liquid-distort">
@@ -1295,7 +1317,6 @@ window.__isLowEndHardware = (
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <script>
@@ -1443,9 +1464,11 @@ window.addEventListener('resize', () => { if(window.innerWidth > 860) closeMenu(
     const fade = Math.max(0, 1 - sy / (vh * 0.42));
     panel.style.transform = `translateY(${sy * 0.22}px) scale(${1 - Math.min(sy/(vh*0.42),1)*0.06})`;
     panel.style.opacity = fade;
-    orb1.style.transform = `translate(${sy*0.10}px, ${sy*0.16}px)`;
-    orb2.style.transform = `translate(${-sy*0.08}px, ${sy*0.1}px)`;
-    orb3.style.transform = `translate(${sy*0.05}px, ${-sy*0.07}px)`;
+    if(!window.__axisLite){
+      orb1.style.transform = `translate(${sy*0.10}px, ${sy*0.16}px)`;
+      orb2.style.transform = `translate(${-sy*0.08}px, ${sy*0.1}px)`;
+      orb3.style.transform = `translate(${sy*0.05}px, ${-sy*0.07}px)`;
+    }
     ticking = false;
   }
   window.addEventListener('scroll', () => { if(!ticking){ requestAnimationFrame(update); ticking = true; } }, {passive:true});
@@ -1462,41 +1485,6 @@ if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
   });
 }
 
-(function(){
-  if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
-  const dot = document.getElementById('cursorDot');
-  const ring = document.getElementById('cursorRing');
-  if(!dot || !ring) return;
-
-  const root = document.documentElement;
-  const HOVER = 'a, button, .btn, .svc-card, .tpl-card, .tpl-filter, .depth-carousel, [role="button"]';
-  let x = 0, y = 0, rx = 0, ry = 0, running = false, started = false;
-
-  function loop(){
-    rx += (x - rx) * 0.18;
-    ry += (y - ry) * 0.18;
-    ring.style.transform = 'translate3d(' + rx + 'px,' + ry + 'px,0)';
-    if(Math.abs(x - rx) > 0.1 || Math.abs(y - ry) > 0.1){ requestAnimationFrame(loop); }
-    else { running = false; }
-  }
-
-  window.addEventListener('mousemove', e => {
-    x = e.clientX; y = e.clientY;
-    dot.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)';
-    if(!started){ started = true; rx = x; ry = y; root.classList.add('has-cursor'); }
-    root.classList.remove('cursor-out');
-    if(!running){ running = true; requestAnimationFrame(loop); }
-  }, { passive:true });
-
-  window.addEventListener('mouseover', e => {
-    ring.classList.toggle('is-hover', !!e.target.closest(HOVER));
-    root.classList.toggle('cursor-text', !!e.target.closest('input, textarea'));
-  }, { passive:true });
-
-  window.addEventListener('mousedown', () => ring.classList.add('is-down'));
-  window.addEventListener('mouseup', () => ring.classList.remove('is-down'));
-  root.addEventListener('mouseleave', () => root.classList.add('cursor-out'));
-})();
 
 if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
   document.querySelectorAll('.btn').forEach(b => {
@@ -3383,6 +3371,15 @@ void main() {
   const isMobile = window.innerWidth < 900 || navigator.maxTouchPoints > 0;
   if(isMobile) return;
   const isLowEnd = !!window.__isLowEndHardware;
+  if(window.__axisLite) return;
+
+  await new Promise(resolve => {
+    const gate = new IntersectionObserver(es => {
+      if(es.some(e => e.isIntersecting)){ gate.disconnect(); resolve(); }
+    }, { rootMargin:'800px 0px' });
+    gate.observe(container);
+  });
+  if(window.__axisLite) return;
 
   const THREE = await import('https://unpkg.com/three@0.160.0/build/three.module.js');
 
@@ -3585,6 +3582,7 @@ void main() {
 
   let raf = 0, lastFrameTime = 0, lastT = performance.now();
   function animate(t){
+    if(window.__axisLite) return;   // lite mode switched on later: stop rendering
     raf = requestAnimationFrame(animate);
     if(!isVisible || document.hidden) return;
     if(t - lastFrameTime < frameInterval) return;
@@ -3726,7 +3724,7 @@ void main() {
       card.setAttribute('aria-roledescription', 'slide');
       card.setAttribute('aria-label', (i+1) + ' of ' + data.length);
       card.innerHTML = `
-        <img class="depth-carousel__img" src="${p.img}" alt="${p.title||''}" draggable="false">
+        <img class="depth-carousel__img" src="${p.img}" alt="${p.title||''}" draggable="false" decoding="async">
         <span class="depth-carousel__tint" style="background:${tint}"></span>
       `;
       card.addEventListener('click', () => {
