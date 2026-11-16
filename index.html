@@ -915,6 +915,7 @@ window.__isLowEndHardware = (
     window.__axisLite = true;
     root.classList.add('lite');
     try{ localStorage.setItem('axisLite','1'); }catch(e){}
+    try{ window.dispatchEvent(new Event('axis:lite')); }catch(e){}
   }
   window.addEventListener('load', function(){
     if(window.__axisLite) return;
@@ -3815,6 +3816,62 @@ void main() {
 
   if(window.__latestProjects){ buildCarousel(window.__latestProjects); }
   document.exports = document.addEventListener('projects-updated', e => buildCarousel(e.detail));
+})();
+</script>
+
+
+<script>
+/* ═══════════ CursorSwarm reveal ═══════════
+   Agent cursors build the Services, Process, About and Contact sections as you scroll.
+   Desktop + capable devices only. Everyone else (phones, weak devices, reduced-motion)
+   keeps the normal scroll reveal. Needs cursor-swarm.min.js next to this file. */
+(function(){
+  var fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
+  var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(window.__axisLite || !fine || reduced || innerWidth < 900) return;
+
+  var SECTIONS = ['#services', '#process', '#about', '#contact'];
+
+  function start(){
+    if(typeof CursorSwarm === 'undefined' || window.__axisLite) return;
+
+    // Hand these sections to the swarm: turn off their CSS scroll-reveal.
+    // (If the library fails to load we never get here, so the old reveal still works.)
+    document.querySelectorAll(SECTIONS.map(function(s){ return s + ' .reveal'; }).join(',')).forEach(function(el){
+      if(el.classList.contains('v')){ el.setAttribute('data-cs-ignore',''); return; } // already on screen: leave it
+      el.classList.remove('reveal');
+      el.style.transitionDelay = '';
+    });
+
+    var swarm = new CursorSwarm({
+      cursors: 2,
+      names: ['TYPE', 'LAYOUT'],
+      colors: ['#ddc99e', '#b8a98a'],     // site gold
+      startPosition: 'outside',
+      exitAfterBuild: 'edge',
+      idle: 'hide',
+      deconstruct: false,                 // build once, never take it apart
+      zIndex: 1050,                       // above nav, below the pop-ups
+      speed: 1.3,
+      typeDuration: 1.2,
+      hud: false, sparks: false, guides: false, labels: false,
+      ignore: '#splash, nav, #mobileMenu, #parallax-stage, #trust, #work, #templates, #top, ' +
+              '#bg-orbs, #bg-grid, #beamsBg, .svg-defs, .glass-sheen, .tpl-modal, .lead-modal, footer'
+    }).init();
+
+    // If the page later turns out to be struggling, show everything at once.
+    window.addEventListener('axis:lite', function(){ swarm.stop({ reveal:true }); });
+    window.__axisSwarm = swarm;
+  }
+
+  function load(){
+    var sc = document.createElement('script');
+    sc.src = 'cursor-swarm.min.js';
+    sc.async = true;
+    sc.onload = start;
+    document.body.appendChild(sc);
+  }
+  if(document.readyState === 'complete') load(); else window.addEventListener('load', load);
 })();
 </script>
 
