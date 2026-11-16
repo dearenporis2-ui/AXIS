@@ -3844,17 +3844,20 @@ void main() {
     });
 
     var swarm = new CursorSwarm({
-      cursors: 2,
-      names: ['TYPE', 'LAYOUT'],
-      colors: ['#ddc99e', '#b8a98a'],     // site gold
+      cursors: 4,
+      names: ['TYPE', 'LAYOUT', 'MEDIA', 'EDIT'],
+      colors: ['#ddc99e', '#b8a98a', '#f2e3bd', '#9a8c6e'],   // site gold, four shades
       startPosition: 'outside',
       exitAfterBuild: 'edge',
       idle: 'hide',
       deconstruct: false,                 // build once, never take it apart
+      relocation: 0.5,                    // half the blocks appear tilted + out of place, then get dragged home
+      copyPaste: 0.6,                     // repeated cards are copied from a built one, then edited
       zIndex: 1050,                       // above nav, below the pop-ups
       speed: 1.3,
       typeDuration: 1.2,
-      hud: false, sparks: false, guides: false, labels: false,
+      labels: true, sparks: true,         // name tags + particles
+      hud: false, guides: false,
       ignore: '#splash, nav, #mobileMenu, #parallax-stage, #trust, #work, #templates, #top, ' +
               '#bg-orbs, #bg-grid, #beamsBg, .svg-defs, .glass-sheen, .tpl-modal, .lead-modal, footer'
     }).init();
