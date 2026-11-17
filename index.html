@@ -931,7 +931,14 @@ window.__isLowEndHardware = (
    Otherwise a short frame-rate check after load switches it on if the page is lagging. */
 (function(){
   var root = document.documentElement, c = navigator.connection || {}, remembered = false;
-  try{ remembered = localStorage.getItem('axisLite') === '1'; }catch(e){}
+  // A slow reading is remembered for 6 hours, and only for the same kind of screen (phone-width vs desktop-width),
+  // so testing the phone view can never switch the desktop effects off.
+  var screenKind = innerWidth < 900 ? 'm' : 'd', SIX_HOURS = 6 * 60 * 60 * 1000;
+  try{
+    var saved = (localStorage.getItem('axisLite') || '').split(':');
+    if(saved.length === 2 && saved[0] === screenKind && Date.now() - Number(saved[1]) < SIX_HOURS) remembered = true;
+    else if(saved[0]) localStorage.removeItem('axisLite');   // old / expired / other screen kind
+  }catch(e){}
   window.__axisLite = !!(window.__isLowEndHardware || c.saveData || remembered);
   if(window.__axisLite) root.classList.add('lite');
 
@@ -939,7 +946,7 @@ window.__isLowEndHardware = (
     if(window.__axisLite) return;
     window.__axisLite = true;
     root.classList.add('lite');
-    try{ localStorage.setItem('axisLite','1'); }catch(e){}
+    try{ localStorage.setItem('axisLite', screenKind + ':' + Date.now()); }catch(e){}
     try{ window.dispatchEvent(new Event('axis:lite')); }catch(e){}
   }
   window.addEventListener('load', function(){
