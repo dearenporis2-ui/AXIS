@@ -821,20 +821,29 @@
   html.lite .tpl-grid.in .tpl-card{animation:none;}
 
 
-  /* ── Mobile: Services cards stack on top of each other as you scroll (ScrollStack, vanilla port) ── */
+  /* ── Mobile: Services cards + Process steps stack on top of each other as you scroll (ScrollStack, vanilla port) ── */
   html.has-stack, html.has-stack body{overflow-x:clip;}   /* "hidden" would stop the cards from pinning */
-  .services-grid.is-stack{display:block;}
-  .services-grid.is-stack .stack-slot{position:sticky;}
-  .services-grid.is-stack .svc-card,
-  .services-grid.is-stack .svc-card:hover{
+  .is-stack{display:block;}
+  .is-stack .stack-slot{position:sticky;}
+  :is(.services-grid, .process-list).is-stack .stack-card,
+  :is(.services-grid, .process-list).is-stack .stack-card:hover{
     background:var(--void-panel,#11141d);               /* solid: the cards sit on top of one another */
     border-color:var(--glass-border);
     -webkit-backdrop-filter:none; backdrop-filter:none;
     transform-origin:50% 0; will-change:transform;
     transition:none;                                     /* movement is driven by scroll, not by transitions */
   }
-  .services-grid.is-stack .svc-card:hover{transform:none;}
+  :is(.services-grid, .process-list).is-stack .stack-card:hover{transform:none;}
   .stack-shade{position:absolute; inset:0; border-radius:inherit; background:#000; opacity:var(--stack-dim,0); pointer-events:none;}
+  /* Process rows are plain rows on desktop; in the stack they become cards */
+  .process-list.is-stack .process-row{
+    position:relative; overflow:hidden;
+    grid-template-columns:44px 1fr; gap:1rem;
+    padding:1.7rem 1.4rem;
+    border:1px solid var(--glass-border); border-radius:var(--r-lg);
+    box-shadow:var(--glass-shadow);
+  }
+  .process-list.is-stack .process-row:last-child{border-bottom:1px solid var(--glass-border);}
 
   footer{position:relative; z-index:1; padding:2.6rem 3rem; border-top:1px solid rgba(255,255,255,0.07);
     display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;}
@@ -3905,14 +3914,13 @@ void main() {
 
 <script>
 /* ═══════════ Mobile card stack (ScrollStack, vanilla port) ═══════════
-   On phones the Services cards pin to the top and the next card slides over the last one.
-   Desktop and tablets keep the normal grid. */
+   On phones the Services cards and the Process steps pin to the top and the next one slides
+   over the last. Desktop and tablets keep the normal layout. */
 (function(){
-  var grid = document.querySelector('#services .services-grid');
   var MOBILE = matchMedia('(max-width: 700px)');
   var REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
-  // overflow-x: clip is needed so the cards can pin; without it we leave the normal grid alone.
-  if(!grid || !(window.CSS && CSS.supports && CSS.supports('overflow-x', 'clip'))) return;
+  // overflow-x: clip is needed so the cards can pin; without it we leave the normal layout alone.
+  if(!(window.CSS && CSS.supports && CSS.supports('overflow-x', 'clip'))) return;
 
   var OPT = {
     itemDistance: 40,        // scrolling gap between cards (px)
@@ -3924,119 +3932,129 @@ void main() {
     holdDistance: 80         // how long the finished stack stays pinned (px of scroll)
   };
 
-  var active = false, raf = 0, ro = null;
-  var cards = [], slots = [], spacers = [], shades = [], saved = [], cache = [], endEl = null, nextSibling = null;
-
   function stackTop(){
     var nav = document.querySelector('nav');
     return (nav ? nav.offsetHeight : 64) + OPT.stackTopGap;
   }
 
-  function layout(){
-    var n = slots.length, top = stackTop(), off = OPT.itemStackDistance;
-    slots.forEach(function(slot, i){
-      slot.style.top = (top + i * off) + 'px';
-      slot.style.marginBottom = ((n - 1 - i) * off) + 'px';
-      slot.style.zIndex = i + 1;
-      if(i > 0){
-        var gap = OPT.itemDistance - (n - i) * off;
-        spacers[i].style.height = Math.max(0, gap) + 'px';
-        spacers[i].style.marginTop = Math.min(0, gap) + 'px';
-      }
-    });
-    endEl.style.height = OPT.holdDistance + 'px';
-  }
+  function createStack(grid){
+    var active = false, raf = 0, ro = null;
+    var cards = [], slots = [], spacers = [], shades = [], saved = [], cache = [], endEl = null;
 
-  function update(){
-    raf = 0;
-    if(!active) return;
-    var n = slots.length, off = OPT.itemStackDistance, top = stackTop();
-    var tops = slots.map(function(s){ return s.getBoundingClientRect().top; });
-    var hs = slots.map(function(s){ return s.offsetHeight; });
-    var depth = slots.map(function(){ return 0; });
-    for(var j = 1; j < n; j++){
-      var pinBefore = top + (j - 1) * off;
-      var start = pinBefore + hs[j - 1];
-      var span = Math.max(1, start - pinBefore - off);
-      var cover = Math.min(1, Math.max(0, (start - tops[j]) / span));
-      for(var i = 0; i < j; i++) depth[i] += cover;
+    function layout(){
+      var n = slots.length, top = stackTop(), off = OPT.itemStackDistance;
+      slots.forEach(function(slot, i){
+        slot.style.top = (top + i * off) + 'px';
+        slot.style.marginBottom = ((n - 1 - i) * off) + 'px';
+        slot.style.zIndex = i + 1;
+        if(i > 0){
+          var gap = OPT.itemDistance - (n - i) * off;
+          spacers[i].style.height = Math.max(0, gap) + 'px';
+          spacers[i].style.marginTop = Math.min(0, gap) + 'px';
+        }
+      });
+      endEl.style.height = OPT.holdDistance + 'px';
     }
-    cards.forEach(function(card, i){
-      var d = depth[i];
-      var scale = Math.max(OPT.baseScale, 1 - d * OPT.itemScale);
-      var dim = 1 - Math.pow(1 - OPT.dimAmount, d);
-      var t = d < 0.0005 ? '' : 'scale(' + scale.toFixed(4) + ')';
-      var dv = dim.toFixed(3);
-      if(cache[i].t !== t){ card.style.transform = t; cache[i].t = t; }
-      if(cache[i].d !== dv){ card.style.setProperty('--stack-dim', dv); cache[i].d = dv; }
-    });
-  }
 
-  function schedule(){ if(!raf) raf = requestAnimationFrame(update); }
-  function onResize(){ if(active){ layout(); schedule(); } }
-
-  function build(){
-    if(active) return;
-    active = true;
-    cards = Array.prototype.slice.call(grid.children);
-    nextSibling = grid.nextSibling;
-    var frag = document.createDocumentFragment();
-    cards.forEach(function(card, i){
-      saved[i] = { cls: card.className, delay: card.style.transitionDelay };
-      card.classList.remove('reveal', 'v');          // the stack replaces the normal scroll reveal
-      card.style.transitionDelay = '';
-      var shade = document.createElement('span');
-      shade.className = 'stack-shade'; shade.setAttribute('aria-hidden', 'true');
-      card.appendChild(shade); shades[i] = shade;
-      cache[i] = {};
-      if(i > 0){
-        var sp = document.createElement('div');
-        sp.setAttribute('aria-hidden', 'true');
-        spacers[i] = sp; frag.appendChild(sp);
+    function update(){
+      raf = 0;
+      if(!active) return;
+      var n = slots.length, off = OPT.itemStackDistance, top = stackTop();
+      var tops = slots.map(function(s){ return s.getBoundingClientRect().top; });
+      var hs = slots.map(function(s){ return s.offsetHeight; });
+      var depth = slots.map(function(){ return 0; });
+      for(var j = 1; j < n; j++){
+        var pinBefore = top + (j - 1) * off;
+        var start = pinBefore + hs[j - 1];
+        var span = Math.max(1, start - pinBefore - off);
+        var cover = Math.min(1, Math.max(0, (start - tops[j]) / span));
+        for(var i = 0; i < j; i++) depth[i] += cover;
       }
-      var slot = document.createElement('div');
-      slot.className = 'stack-slot';
-      slot.appendChild(card);
-      slots[i] = slot; frag.appendChild(slot);
-    });
-    endEl = document.createElement('div');
-    endEl.setAttribute('aria-hidden', 'true');
-    frag.appendChild(endEl);
-    grid.appendChild(frag);
-    grid.classList.add('is-stack');
-    document.documentElement.classList.add('has-stack');
-    layout();
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', onResize);
-    ro = new ResizeObserver(onResize);
-    ro.observe(grid);
-    update();
+      cards.forEach(function(card, i){
+        var d = depth[i];
+        var scale = Math.max(OPT.baseScale, 1 - d * OPT.itemScale);
+        var dim = 1 - Math.pow(1 - OPT.dimAmount, d);
+        var t = d < 0.0005 ? '' : 'scale(' + scale.toFixed(4) + ')';
+        var dv = dim.toFixed(3);
+        if(cache[i].t !== t){ card.style.transform = t; cache[i].t = t; }
+        if(cache[i].d !== dv){ card.style.setProperty('--stack-dim', dv); cache[i].d = dv; }
+      });
+    }
+
+    function schedule(){ if(!raf) raf = requestAnimationFrame(update); }
+    function onResize(){ if(active){ layout(); schedule(); } }
+
+    function build(){
+      if(active) return;
+      active = true;
+      cards = Array.prototype.slice.call(grid.children);
+      var frag = document.createDocumentFragment();
+      cards.forEach(function(card, i){
+        saved[i] = { cls: card.className, delay: card.style.transitionDelay };
+        card.classList.remove('reveal', 'v');          // the stack replaces the normal scroll reveal
+        card.classList.add('stack-card');
+        card.style.transitionDelay = '';
+        var shade = document.createElement('span');
+        shade.className = 'stack-shade'; shade.setAttribute('aria-hidden', 'true');
+        card.appendChild(shade); shades[i] = shade;
+        cache[i] = {};
+        if(i > 0){
+          var sp = document.createElement('div');
+          sp.setAttribute('aria-hidden', 'true');
+          spacers[i] = sp; frag.appendChild(sp);
+        }
+        var slot = document.createElement('div');
+        slot.className = 'stack-slot';
+        slot.appendChild(card);
+        slots[i] = slot; frag.appendChild(slot);
+      });
+      endEl = document.createElement('div');
+      endEl.setAttribute('aria-hidden', 'true');
+      frag.appendChild(endEl);
+      grid.appendChild(frag);
+      grid.classList.add('is-stack');
+      document.documentElement.classList.add('has-stack');
+      layout();
+      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('resize', onResize);
+      ro = new ResizeObserver(onResize);
+      ro.observe(grid);
+      update();
+    }
+
+    function teardown(){
+      if(!active) return;
+      active = false;
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', onResize);
+      if(ro){ ro.disconnect(); ro = null; }
+      cancelAnimationFrame(raf); raf = 0;
+      var frag = document.createDocumentFragment();
+      cards.forEach(function(card, i){
+        card.className = saved[i].cls;
+        card.style.transitionDelay = saved[i].delay;
+        card.style.transform = ''; card.style.removeProperty('--stack-dim');
+        if(shades[i].parentNode) shades[i].parentNode.removeChild(shades[i]);
+        frag.appendChild(card);
+      });
+      grid.textContent = '';
+      grid.appendChild(frag);
+      grid.classList.remove('is-stack');
+      slots = []; spacers = []; shades = []; saved = []; cache = []; endEl = null;
+      if(!document.querySelector('.is-stack')) document.documentElement.classList.remove('has-stack');
+    }
+
+    return { build: build, teardown: teardown };
   }
 
-  function teardown(){
-    if(!active) return;
-    active = false;
-    window.removeEventListener('scroll', schedule);
-    window.removeEventListener('resize', onResize);
-    if(ro){ ro.disconnect(); ro = null; }
-    cancelAnimationFrame(raf); raf = 0;
-    var frag = document.createDocumentFragment();
-    cards.forEach(function(card, i){
-      card.className = saved[i].cls;
-      card.style.transitionDelay = saved[i].delay;
-      card.style.transform = ''; card.style.removeProperty('--stack-dim');
-      if(shades[i].parentNode) shades[i].parentNode.removeChild(shades[i]);
-      frag.appendChild(card);
-    });
-    grid.textContent = '';
-    grid.appendChild(frag);
-    grid.classList.remove('is-stack');
-    document.documentElement.classList.remove('has-stack');
-    slots = []; spacers = []; shades = []; saved = []; cache = []; endEl = null;
-  }
+  var stacks = ['#services .services-grid', '#process .process-list'].map(function(sel){
+    var el = document.querySelector(sel);
+    return el ? createStack(el) : null;
+  }).filter(Boolean);
 
   function sync(){
-    if(MOBILE.matches && !REDUCED.matches) build(); else teardown();
+    var on = MOBILE.matches && !REDUCED.matches;
+    stacks.forEach(function(st){ if(on) st.build(); else st.teardown(); });
   }
   sync();
   (MOBILE.addEventListener ? MOBILE.addEventListener.bind(MOBILE, 'change') : MOBILE.addListener.bind(MOBILE))(sync);
