@@ -939,7 +939,10 @@ window.__isLowEndHardware = (
     if(saved.length === 2 && saved[0] === screenKind && Date.now() - Number(saved[1]) < SIX_HOURS) remembered = true;
     else if(saved[0]) localStorage.removeItem('axisLite');   // old / expired / other screen kind
   }catch(e){}
-  window.__axisLite = !!(window.__isLowEndHardware || c.saveData || remembered);
+  // CPU-core / memory numbers are only trusted on touch devices (phones, tablets). Desktop browsers such as
+  // Brave report deliberately fake, low numbers, so on desktop we rely on data-saver and the frame-rate check instead.
+  var touchDevice = matchMedia('(pointer:coarse)').matches;
+  window.__axisLite = !!((window.__isLowEndHardware && touchDevice) || c.saveData || remembered);
   if(window.__axisLite) root.classList.add('lite');
 
   function enable(){
