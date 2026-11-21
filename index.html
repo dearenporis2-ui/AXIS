@@ -321,6 +321,13 @@
   @media(max-width:860px){
     nav::before{-webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(7,8,12,.9);}
   }
+  /* Six nav links no longer fit beside the logo and button below ~1040px, so use the menu button there */
+  @media(min-width:861px) and (max-width:1040px){
+    .nav-links{display:none;}
+    .nav-cta{display:none;}
+    .hamburger{display:flex;}
+    nav{padding:1rem 1.4rem;}
+  }
   @media(prefers-reduced-motion:reduce){
     html.nav-ready nav > *{animation:none;}
     .hamburger *, .mobile-menu, .mobile-menu *, .mm-foot{transition-duration:.01s !important; transition-delay:0s !important;}
@@ -846,6 +853,114 @@
   }
   .process-list.is-stack .process-row:last-child{border-bottom:1px solid var(--glass-border);}
 
+
+  /* ── Pricing ── */
+  #pricing .section-head{max-width:720px;}
+  .demo-banner{
+    position:relative; overflow:hidden; display:flex; align-items:center; justify-content:space-between; gap:2rem;
+    padding:2.1rem 2.4rem; margin-bottom:2.6rem; border-radius:var(--r-lg);
+    background:linear-gradient(135deg,#efe3c8 0%,#c9b78e 100%); color:#14110c;
+    outline:1px solid rgba(20,17,12,.28); outline-offset:-12px;
+    transition:outline-offset .5s cubic-bezier(.16,1,.3,1), outline-color .4s, transform .5s cubic-bezier(.16,1,.3,1);
+  }
+  .demo-banner::after{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(110deg, transparent 35%, rgba(255,255,255,.5) 50%, transparent 65%);
+    transform:translateX(-120%); transition:transform 1.1s cubic-bezier(.16,1,.3,1);
+  }
+  .demo-banner:hover{outline-offset:-8px; outline-color:rgba(20,17,12,.5);}
+  .demo-banner:hover::after{transform:translateX(120%);}
+  .demo-copy{position:relative; z-index:1; max-width:660px;}
+  .demo-copy h3{font-size:clamp(1.25rem,2.4vw,1.65rem); line-height:1.2; margin-bottom:.7rem; color:#14110c;}
+  .demo-copy p{font-size:.95rem; line-height:1.65; color:rgba(20,17,12,.78);}
+  .demo-btn{position:relative; z-index:1; flex:none; background:#0d1017; color:var(--gold-hi); box-shadow:0 8px 26px rgba(13,16,23,.35);}
+  .demo-btn:hover{background:#000; transform:translateY(-2px);}
+
+  .price-switch{
+    position:relative; display:inline-flex; padding:5px; margin-bottom:2.2rem; max-width:100%;
+    border:1px solid var(--glass-border); border-radius:100px; background:rgba(255,255,255,.03);
+  }
+  .ps-thumb{
+    position:absolute; top:5px; bottom:5px; left:0; width:0; border-radius:100px;
+    background:rgba(184,169,138,.16); border:1px solid rgba(184,169,138,.55);
+    transition:transform .5s cubic-bezier(.16,1,.3,1), width .5s cubic-bezier(.16,1,.3,1);
+  }
+  .ps-tab{
+    position:relative; z-index:1; background:none; border:0; cursor:pointer; color:var(--dim);
+    font:600 .85rem 'Outfit',sans-serif; letter-spacing:.02em; padding:.8rem 1.5rem; border-radius:100px;
+    display:inline-flex; align-items:center; gap:.6rem; transition:color .3s;
+  }
+  .ps-tab small{font:500 .62rem 'DM Mono',monospace; letter-spacing:.16em; text-transform:uppercase; opacity:.7;}
+  .ps-tab:hover{color:var(--white);}
+  .ps-tab[aria-selected="true"]{color:var(--gold-hi);}
+  .ps-tab:focus-visible, .bill-btn:focus-visible{outline:2px solid var(--gold-hi); outline-offset:2px;}
+  .ps-thumb:not([style*="width"]) ~ .ps-tab[aria-selected="true"]{background:rgba(184,169,138,.16);}   /* no-JS fallback */
+
+  .price-panel:not([hidden]){animation:priceIn .55s cubic-bezier(.16,1,.3,1);}
+  @keyframes priceIn{from{opacity:0; transform:translateY(14px);}}
+  .price-grid{display:grid; gap:1.1rem; align-items:stretch;}
+  .price-grid--4{grid-template-columns:repeat(4,1fr);}
+  .price-grid--3{grid-template-columns:repeat(3,1fr);}
+  .price-card{display:flex; flex-direction:column; padding:2rem 1.7rem 1.7rem; border-radius:var(--r-lg);}
+  .price-card--hi{border-color:rgba(184,169,138,.6); box-shadow:0 0 0 1px rgba(184,169,138,.35), 0 24px 70px rgba(184,169,138,.12), var(--glass-shadow);}
+  .price-top{display:flex; align-items:center; justify-content:space-between; gap:.6rem; min-height:1.6rem; margin-bottom:.8rem;}
+  .price-badge{
+    margin-left:auto; padding:.32rem .7rem; border-radius:100px; white-space:nowrap;
+    font:500 .6rem 'DM Mono',monospace; letter-spacing:.16em; text-transform:uppercase;
+    background:var(--gold); color:#181410;
+  }
+  .price-kicker{font:500 .62rem 'DM Mono',monospace; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); line-height:1.3;}
+  .price-card h3{font-size:1.3rem; margin-bottom:1.1rem;}
+  .price-amount{display:flex; align-items:baseline; flex-wrap:wrap; gap:.4rem; font-family:'Space Grotesk',sans-serif; font-weight:600; color:var(--white);}
+  .price-amount .num{font-size:1.75rem; letter-spacing:-.01em; line-height:1.1; white-space:nowrap;}
+  .price-grid--4 .price-amount{flex-direction:column; align-items:flex-start; gap:.25rem;}
+  .price-grid--4 .price-amount .num{font-size:1.5rem;}
+  .price-amount .cur, .price-amount .per{font:500 .72rem 'DM Mono',monospace; letter-spacing:.12em; color:var(--gold);}
+  .price-amount.swap{animation:priceIn .4s cubic-bezier(.16,1,.3,1);}
+  .price-sub{min-height:1.3rem; margin-top:.4rem; font:500 .72rem 'DM Mono',monospace; letter-spacing:.06em; color:rgba(184,169,138,.85);}
+  .price-desc{color:var(--dim); font-size:.9rem; line-height:1.6; margin:1rem 0 1.4rem;}
+  .price-list{list-style:none; display:flex; flex-direction:column; gap:.7rem; margin-bottom:1.8rem; flex:1;}
+  .price-list li{position:relative; padding-left:1.5rem; font-size:.86rem; line-height:1.5; color:rgba(245,246,248,.85);}
+  .price-list li::before{
+    content:''; position:absolute; left:0; top:.22em; width:.95rem; height:.95rem; background:var(--gold);
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.6'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5l3.2 3.2L13 4.6'/%3E%3C/svg%3E") center/contain no-repeat;
+  }
+  .price-btn{justify-content:center; width:100%; margin-top:auto; border:1px solid transparent;}
+  .price-btn.btn-ghost{border-color:var(--glass-border);}
+  .price-caption{color:var(--dim); font-size:.86rem; line-height:1.6;}
+  .price-panel > .price-caption{margin-top:1.4rem;}
+
+  .bill-row{display:flex; align-items:center; justify-content:space-between; gap:1.4rem 2rem; flex-wrap:wrap; margin-bottom:1.6rem;}
+  .bill-row .price-caption{max-width:620px;}
+  .bill-toggle{display:inline-flex; padding:4px; border:1px solid var(--glass-border); border-radius:100px; background:rgba(255,255,255,.03);}
+  .bill-btn{
+    background:none; border:0; cursor:pointer; color:var(--dim); font:600 .82rem 'Outfit',sans-serif;
+    padding:.6rem 1.2rem; border-radius:100px; display:inline-flex; align-items:center; gap:.55rem;
+    transition:background .3s, color .3s;
+  }
+  .bill-btn[aria-pressed="true"]{background:rgba(184,169,138,.16); color:var(--gold-hi); box-shadow:inset 0 0 0 1px rgba(184,169,138,.5);}
+  .bill-save{font:500 .6rem 'DM Mono',monospace; letter-spacing:.1em; text-transform:uppercase; padding:.22rem .5rem; border-radius:100px; background:var(--gold); color:#181410;}
+
+  @media(max-width:1180px){ .price-grid--4{grid-template-columns:repeat(2,1fr);} }
+  @media(max-width:900px){
+    .price-grid--3{grid-template-columns:1fr; max-width:560px;}
+    .demo-banner{flex-direction:column; align-items:flex-start; padding:1.8rem 1.6rem; gap:1.4rem;}
+  }
+  @media(max-width:680px){
+    .price-grid--4{grid-template-columns:1fr; max-width:560px;}
+    .price-switch{display:flex; width:100%;}
+    .ps-tab{flex:1; justify-content:center; text-align:center; padding:.8rem .7rem; font-size:.78rem;}
+    .ps-tab small{display:none;}
+    .bill-row{flex-direction:column; align-items:flex-start;}
+  }
+  html.lite .demo-banner::after{display:none;}
+  html.lite .price-card.glass{background:rgba(17,20,29,.9);}
+  @media(prefers-reduced-motion:reduce){
+    .price-panel:not([hidden]), .price-amount.swap{animation:none;}
+    .ps-thumb, .demo-banner, .demo-banner::after{transition:none;}
+  }
+
   footer{position:relative; z-index:1; padding:2.6rem 3rem; border-top:1px solid rgba(255,255,255,0.07);
     display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;}
   .footer-mono{font-family:'DM Mono',monospace; font-size:.7rem; color:var(--dimmer); letter-spacing:.05em;}
@@ -884,38 +999,78 @@
   }
 
 
-  #splash{
-    position:fixed; inset:0; z-index:100000;
-    background:var(--void);
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.6rem;
-    transition:opacity .6s ease;
+  /* ── Loading screen: blueprint ──
+     Base styles are the FINISHED state; the animations only describe how it gets there,
+     so lite mode / reduced motion simply switch the animations off. */
+  #splash{position:fixed; inset:0; z-index:100000; overflow:hidden; color:var(--gold);}
+  #splash.hidden{pointer-events:none;}
+  .sp-shutter{position:absolute; left:0; right:0; height:50.2%; background:var(--void); will-change:transform;
+    transition:transform .95s cubic-bezier(.76,0,.24,1) .3s;}
+  .sp-top{top:0; border-bottom:1px solid var(--gold);}
+  .sp-bottom{bottom:0;}
+  #splash.hidden .sp-top{transform:translateY(-101%);}
+  #splash.hidden .sp-bottom{transform:translateY(101%);}
+  .sp-fade, .sp-grid, .sp-axis, .sp-stage, .sp-readout, .sp-progress-wrap{transition:opacity .35s ease;}
+  #splash.hidden .sp-grid, #splash.hidden .sp-axis, #splash.hidden .sp-stage,
+  #splash.hidden .sp-readout, #splash.hidden .sp-progress-wrap{opacity:0;}
+
+  .sp-grid{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(184,169,138,.16) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(184,169,138,.16) 1px, transparent 1px),
+      linear-gradient(rgba(184,169,138,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(184,169,138,.06) 1px, transparent 1px);
+    background-size:240px 240px, 240px 240px, 48px 48px, 48px 48px;
+    background-position:center, center, center, center;
+    -webkit-mask-image:radial-gradient(circle at 50% 50%, #000 0, rgba(0,0,0,.55) 38%, transparent 74%);
+            mask-image:radial-gradient(circle at 50% 50%, #000 0, rgba(0,0,0,.55) 38%, transparent 74%);
+    animation:spGrid 1.2s cubic-bezier(.16,1,.3,1) .05s backwards;
   }
-  #splash.hidden{opacity:0; pointer-events:none;}
-  .splash-logo{
-    width:min(220px,50vw);
-    animation:splashPulse 1.6s ease-in-out infinite;
-  }
-  @keyframes splashPulse{
-    0%,100%{opacity:.55; transform:scale(.98);}
-    50%{opacity:1; transform:scale(1);}
-  }
-  .splash-bar{
-    width:140px; height:2px; border-radius:2px;
-    background:rgba(255,255,255,0.1); overflow:hidden;
-  }
-  .splash-bar-fill{
-    width:40%; height:100%; border-radius:2px;
-    background:var(--gold);
-    animation:splashBar 1.2s ease-in-out infinite;
-  }
-  @keyframes splashBar{
-    0%{transform:translateX(-100%);}
-    100%{transform:translateX(350%);}
-  }
-  .splash-bar-fill.det{animation:none; transform:none; transition:width .7s cubic-bezier(.16,1,.3,1);}
+  @keyframes spGrid{from{clip-path:circle(0% at 50% 50%);} to{clip-path:circle(100% at 50% 50%);}}
+
+  .sp-axis{position:absolute; background:rgba(184,169,138,.35);}
+  .sp-axis-h{left:0; right:0; top:50%; height:1px; transform-origin:50% 50%; animation:spAxisH .8s cubic-bezier(.16,1,.3,1) backwards;}
+  .sp-axis-v{top:0; bottom:0; left:50%; width:1px; transform-origin:50% 50%; animation:spAxisV .8s cubic-bezier(.16,1,.3,1) .08s backwards;}
+  @keyframes spAxisH{from{transform:scaleX(0);}}
+  @keyframes spAxisV{from{transform:scaleY(0);}}
+
+  .sp-stage{position:absolute; left:50%; top:50%; width:min(72vmin,320px); aspect-ratio:1; transform:translate(-50%,-50%);}
+  .sp-frame{width:100%; height:100%; display:block; overflow:visible;}
+  .sp-stage-fill{fill:var(--void);}
+  .sp-corners path, .sp-mark path{stroke-dasharray:100; stroke-dashoffset:0;}
+  .sp-corners path{animation:spDraw .7s cubic-bezier(.65,0,.35,1) .25s backwards;}
+  .sp-mark path{animation:spDraw .6s cubic-bezier(.65,0,.35,1) backwards;}
+  .sp-mark path:nth-child(1){animation-delay:.45s;}
+  .sp-mark path:nth-child(2){animation-delay:.6s;}
+  .sp-mark path:nth-child(3){animation-delay:.75s;}   /* finishes at ~1.35s, before the 1.5s minimum */
+  @keyframes spDraw{from{stroke-dashoffset:100;}}
+  .sp-ticks{animation:spFadeIn .6s ease .5s backwards;}
+  @keyframes spFadeIn{from{opacity:0;}}
+  .sp-scan{position:absolute; left:6%; right:6%; top:6%; height:1px; background:linear-gradient(90deg, transparent, var(--gold-hi), transparent);
+    opacity:0; animation:spScan 2.4s ease-in-out 1.3s infinite;}
+  @keyframes spScan{0%,100%{transform:translateY(0); opacity:0;} 15%,85%{opacity:.5;} 50%{transform:translateY(calc(min(72vmin,320px) * .88));}}
+  .sp-tag{position:absolute; font:500 10px/1 'DM Mono',ui-monospace,monospace; letter-spacing:.14em; color:rgba(184,169,138,.6);
+    white-space:nowrap; animation:spFadeIn .6s ease .7s backwards;}
+  .sp-tag-l{left:0; bottom:calc(100% + 12px);}
+  .sp-tag-r{right:0; bottom:calc(100% + 12px);}
+
+  .sp-readout{position:absolute; left:clamp(1.2rem,4vw,3rem); right:clamp(1.2rem,4vw,3rem); bottom:clamp(1.6rem,5vh,3rem);
+    display:flex; justify-content:space-between; align-items:flex-end; gap:1rem;
+    font:500 11px/1 'DM Mono',ui-monospace,monospace; letter-spacing:.14em; animation:spFadeIn .5s ease .6s backwards;}
+  .sp-status{color:rgba(184,169,138,.75);}
+  .sp-count{color:var(--gold-hi); font-size:clamp(1.6rem,5vw,2.6rem); font-weight:500; letter-spacing:.04em; font-variant-numeric:tabular-nums;}
+  .sp-progress-wrap{position:absolute; left:0; right:0; bottom:0; height:2px; background:rgba(184,169,138,.12);}
+  .sp-progress{height:100%; background:var(--gold); transform-origin:0 50%; transform:scaleX(0); will-change:transform;}
+
+  @media(max-width:420px){ .sp-tag-r{display:none;} }   /* the two labels would touch on small phones */
+  html.lite #splash *{animation:none !important;}
+  html.lite .sp-grid{clip-path:none;}
   @media(prefers-reduced-motion:reduce){
-    .splash-logo{animation:none;}
-    .splash-bar-fill{animation:none; width:100%;}
+    #splash *{animation:none !important;}
+    .sp-shutter{transition:none;}
+    #splash{transition:opacity .4s ease;}
+    #splash.hidden{opacity:0;}
   }
 </style>
 </head>
@@ -969,39 +1124,99 @@ window.__isLowEndHardware = (
 })();
 </script>
 
-<div id="splash">
-  <img src="Logo_Name-removebg-preview.png" alt="AXIS" class="splash-logo">
-  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+<div id="splash" role="progressbar" aria-label="Loading AXIS" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+  <div class="sp-shutter sp-top"></div>
+  <div class="sp-shutter sp-bottom"></div>
+  <div class="sp-grid"></div>
+  <div class="sp-axis sp-axis-h"></div>
+  <div class="sp-axis sp-axis-v"></div>
+  <div class="sp-stage">
+    <div class="sp-tag sp-tag-l" aria-hidden="true">SHEET 01 / ENGINEERING</div>
+    <div class="sp-tag sp-tag-r" aria-hidden="true">SCALE 1:1</div>
+    <svg class="sp-frame" viewBox="0 0 320 320" aria-hidden="true">
+      <rect class="sp-stage-fill" x="0" y="0" width="320" height="320" opacity=".92"/>
+      <g class="sp-ticks" stroke="rgba(184,169,138,.4)" stroke-width="1">
+        <path d="M40 2v6M80 2v6M120 2v6M160 2v10M200 2v6M240 2v6M280 2v6"/>
+        <path d="M40 318v-6M80 318v-6M120 318v-6M160 318v-10M200 318v-6M240 318v-6M280 318v-6"/>
+        <path d="M2 40h6M2 80h6M2 120h6M2 160h10M2 200h6M2 240h6M2 280h6"/>
+        <path d="M318 40h-6M318 80h-6M318 120h-6M318 160h-10M318 200h-6M318 240h-6M318 280h-6"/>
+      </g>
+      <g class="sp-corners" fill="none" stroke="#b8a98a" stroke-width="1.6" stroke-linecap="square">
+        <path pathLength="100" d="M2 34V2H34"/>
+        <path pathLength="100" d="M286 2H318V34"/>
+        <path pathLength="100" d="M318 286V318H286"/>
+        <path pathLength="100" d="M34 318H2V286"/>
+      </g>
+      <g class="sp-mark" transform="translate(86.4 86.4) scale(2.3)" fill="none" stroke="#ddc99e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path pathLength="100" d="M32 13L50 50"/>
+        <path pathLength="100" d="M32 13L18 43"/>
+        <path pathLength="100" d="M13 50L42 34"/>
+      </g>
+    </svg>
+    <div class="sp-scan" aria-hidden="true"></div>
+  </div>
+  <div class="sp-readout" aria-hidden="true">
+    <span class="sp-status">LOADING</span>
+    <span class="sp-count">000</span>
+  </div>
+  <div class="sp-progress-wrap" aria-hidden="true"><div class="sp-progress"></div></div>
 </div>
 <script>
 (function(){
   const splash = document.getElementById('splash');
-  const fill = splash.querySelector('.splash-bar-fill');
-  const MIN_DISPLAY_MS = 600;
+  const countEl = splash.querySelector('.sp-count');
+  const statusEl = splash.querySelector('.sp-status');
+  const barEl = splash.querySelector('.sp-progress');
+  const root = document.documentElement;
+  const calm = root.classList.contains('lite') || matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const MIN_DISPLAY_MS = calm ? 500 : 1500;     // long enough for the drawing to finish
   const DATA_WAIT_MS = 3000;
   const MAX_WAIT_MS = 12000;
   const shownAt = performance.now();
   const parts = { page:false, fonts:false, bg:false, logo:false, data:false };
   const names = Object.keys(parts);
-  let lifted = false;
+  const LABELS = { page:'PAGE', fonts:'TYPE', bg:'BACKGROUND', logo:'MARK', data:'DATA' };
+  let lifted = false, shown = 0, raf = 0, lastLabel = '';
+
+  function realProgress(){ return names.filter(k => parts[k]).length / names.length * 100; }
+
+  function render(v){
+    countEl.textContent = String(Math.round(v)).padStart(3, '0');
+    barEl.style.transform = 'scaleX(' + (v / 100).toFixed(4) + ')';
+    const pending = names.find(k => !parts[k]);
+    // 'READY' only once the count has actually reached 100, even if everything loaded early
+    const label = v >= 99.5 ? 'READY' : (pending ? 'LOADING  ' + LABELS[pending] : 'FINALISING');
+    if(label !== lastLabel){ lastLabel = label; statusEl.textContent = label; }
+  }
 
   function lift(){
     if(lifted) return;
     lifted = true;
-    const wait = Math.max(0, MIN_DISPLAY_MS - (performance.now() - shownAt));
-    setTimeout(() => {
-      splash.classList.add('hidden');
-      document.documentElement.classList.add('nav-ready');
-      window.dispatchEvent(new Event('axis:ready'));
-      setTimeout(() => splash.remove(), 650);
-    }, wait);
+    cancelAnimationFrame(raf);
+    render(100);
+    splash.setAttribute('aria-valuenow', '100');
+    splash.classList.add('hidden');
+    root.classList.add('nav-ready');
+    window.dispatchEvent(new Event('axis:ready'));
+    setTimeout(() => splash.remove(), 1500);
+  }
+
+  function tick(now){
+    raf = 0;
+    if(lifted) return;
+    const elapsed = now - shownAt;
+    // the count never runs ahead of real loading, nor ahead of the animation's time budget
+    const goal = Math.min(realProgress(), Math.min(100, elapsed / MIN_DISPLAY_MS * 100));
+    shown += (goal - shown) * 0.14;
+    if(goal - shown < 0.4) shown = goal;
+    render(shown);
+    if(shown >= 99.5 && elapsed >= MIN_DISPLAY_MS){ setTimeout(lift, 220); return; }   // brief hold on 100
+    raf = requestAnimationFrame(tick);
   }
 
   function update(){
-    const n = names.filter(k => parts[k]).length;
-    fill.classList.add('det');
-    fill.style.width = Math.min(100, Math.round(((n + 0.3) / names.length) * 100)) + '%';
-    if(n === names.length) lift();
+    splash.setAttribute('aria-valuenow', String(Math.round(realProgress())));
+    if(!raf && !lifted) raf = requestAnimationFrame(tick);
   }
 
   window.__axisBoot = {
@@ -1016,8 +1231,9 @@ window.__isLowEndHardware = (
   else window.addEventListener('load', () => done('page'), { once:true });
 
   setTimeout(() => done('data'), DATA_WAIT_MS);
-  setTimeout(lift, MAX_WAIT_MS);
-  update();
+  setTimeout(lift, MAX_WAIT_MS);          // safety net: never trap a visitor on the loading screen
+  render(0);
+  raf = requestAnimationFrame(tick);
 })();
 </script>
 
@@ -1049,6 +1265,7 @@ window.__isLowEndHardware = (
     <li><a href="#work">Work</a></li>
       <li data-tpl-nav hidden><a href="#templates">Templates</a></li>
     <li><a href="#process">Process</a></li>
+    <li><a href="#pricing">Pricing</a></li>
     <li><a href="#about">About</a></li>
   </ul>
 
@@ -1074,7 +1291,8 @@ window.__isLowEndHardware = (
   <a href="#work" class="mobile-link" style="--d:.41s"><span class="ml-i">02</span>Work</a>
   <a href="#templates" class="mobile-link" data-tpl-nav hidden style="--d:.48s"><span class="ml-i">03</span>Templates</a>
   <a href="#process" class="mobile-link" style="--d:.55s"><span class="ml-i">04</span>Process</a>
-  <a href="#about" class="mobile-link" style="--d:.62s"><span class="ml-i">05</span>About</a>
+  <a href="#pricing" class="mobile-link" style="--d:.62s"><span class="ml-i">05</span>Pricing</a>
+  <a href="#about" class="mobile-link" style="--d:.69s"><span class="ml-i">06</span>About</a>
   <div class="mm-foot">
     <a href="#contact" class="mobile-cta"><span>Start a project</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l7-7M3.5 2.5h6v6"/></svg></a>
     <span class="mm-meta">LAT -4.68° · SEYCHELLES</span>
@@ -1279,6 +1497,158 @@ window.__isLowEndHardware = (
 </section>
 
 <!-- ═══════════ ABOUT ═══════════ -->
+<section id="pricing">
+  <div class="section-inner">
+    <div class="section-head reveal">
+      <div class="eyebrow">Transparent investment</div>
+      <h2>Engineering built around your goals</h2>
+      <p>From rapid launches to full-stack platforms—hand-coded from scratch with zero template bloat.</p>
+    </div>
+
+    <div class="demo-banner reveal">
+      <div class="demo-copy">
+        <h3>See your brand live before you commit — 1 free concept demo</h3>
+        <p>Every qualified new client gets a complimentary, custom-coded live preview of their homepage concept (Hero + 1 preview section) hosted on an AXIS staging link before paying a single rupee.</p>
+      </div>
+      <a href="#contact" class="btn demo-btn" data-demo="true">Request your free demo</a>
+    </div>
+
+    <div class="price-switch reveal" role="tablist" aria-label="Pricing type">
+      <span class="ps-thumb" aria-hidden="true"></span>
+      <button type="button" class="ps-tab" role="tab" id="tab-dev" aria-selected="true" aria-controls="panel-dev">Website development <small>One-time</small></button>
+      <button type="button" class="ps-tab" role="tab" id="tab-care" aria-selected="false" aria-controls="panel-care" tabindex="-1">Hosting &amp; care retainers <small>Recurring</small></button>
+    </div>
+
+    <div class="price-panel" role="tabpanel" id="panel-dev" aria-labelledby="tab-dev">
+      <div class="price-grid price-grid--4">
+        <article class="price-card glass">
+          <div class="glass-sheen"></div>
+          
+          <div class="price-top"><span class="price-kicker">Template-based</span></div>
+          <h3>Express Build</h3>
+          <div class="price-amount"><span class="cur">SCR</span><span class="num">4,500 – 6,000</span></div>
+          <p class="price-desc">Fast, budget-friendly online presence using a clean pre-built layout.</p>
+          <ul class="price-list">
+          <li>1–3 responsive pages</li>
+          <li>Custom brand colors, logo, text &amp; photo integration</li>
+          <li>Direct WhatsApp &amp; contact inquiry setup</li>
+          <li>SSL certificate &amp; basic SEO</li>
+          <li>Pre-built template (no custom animations)</li>
+          </ul>
+          <a href="#contact" class="btn btn-ghost price-btn" data-plan="Express Build · SCR 4,500 – 6,000">Get started</a>
+        </article>
+        <article class="price-card glass">
+          <div class="glass-sheen"></div>
+          
+          <div class="price-top"><span class="price-kicker">100% hand-coded</span></div>
+          <h3>Custom Core</h3>
+          <div class="price-amount"><span class="cur">SCR</span><span class="num">8,500 – 12,000</span></div>
+          <p class="price-desc">Built from zero with no templates for maximum speed and clean code.</p>
+          <ul class="price-list">
+          <li>1–4 hand-coded responsive pages</li>
+          <li>Tailored UI layout built around your brand</li>
+          <li>Smooth custom CSS transitions &amp; hover states</li>
+          <li>Fast global load speed &amp; local SEO setup</li>
+          <li>2 rounds of design revisions</li>
+          </ul>
+          <a href="#contact" class="btn btn-ghost price-btn" data-plan="Custom Core · SCR 8,500 – 12,000" data-demo="true">Request free demo</a>
+        </article>
+        <article class="price-card glass price-card--hi">
+          <div class="glass-sheen"></div>
+          <div class="price-top"><span class="price-badge">Most popular</span></div>
+          <h3>Interactive Experience</h3>
+          <div class="price-amount"><span class="cur">SCR</span><span class="num">15,000 – 22,000</span></div>
+          <p class="price-desc">High-impact bespoke engineering with custom motion and interactive UI.</p>
+          <ul class="price-list">
+          <li>5–8 hand-coded pages</li>
+          <li>Bespoke CSS + ReactBits interactive animations</li>
+          <li>Custom service catalogs, menus, or media galleries</li>
+          <li>Google Maps, WhatsApp &amp; analytics integration</li>
+          <li>2 rounds of design revisions</li>
+          </ul>
+          <a href="#contact" class="btn btn-primary price-btn" data-plan="Interactive Experience · SCR 15,000 – 22,000" data-demo="true">Request free demo</a>
+        </article>
+        <article class="price-card glass">
+          <div class="glass-sheen"></div>
+          
+          <div class="price-top"><span class="price-kicker">Full-stack &amp; live systems</span></div>
+          <h3>Custom Web Platform</h3>
+          <div class="price-amount"><span class="cur">SCR</span><span class="num">25,000 – 45,000+</span></div>
+          <p class="price-desc">End-to-end web applications with live databases and business automation.</p>
+          <ul class="price-list">
+          <li>Everything in Interactive Experience</li>
+          <li>Custom database &amp; cloud backend integration</li>
+          <li>Live booking, fleet/tour availability, or inventory engine</li>
+          <li>Custom admin dashboard for self-management</li>
+          <li>Automated branded PDF quotes &amp; receipts</li>
+          </ul>
+          <a href="#contact" class="btn btn-ghost price-btn" data-plan="Custom Web Platform · SCR 25,000 – 45,000+" data-demo="true">Request free demo</a>
+        </article>
+      </div>
+      <p class="price-caption">All builds follow a 50% upfront deposit (after demo approval) and 50% upon launch.</p>
+    </div>
+
+    <div class="price-panel" role="tabpanel" id="panel-care" aria-labelledby="tab-care" hidden>
+      <div class="bill-row">
+        <p class="price-caption">All-inclusive hosting, annual domain renewal (.com, .co, .org, .net, .online), and dedicated engineering support. Save with quarterly billing.</p>
+        <div class="bill-toggle" role="group" aria-label="Billing period">
+          <button type="button" class="bill-btn" data-bill="m" aria-pressed="true">Monthly</button>
+          <button type="button" class="bill-btn" data-bill="q" aria-pressed="false">Quarterly <span class="bill-save" id="billSave">Save up to 29%</span></button>
+        </div>
+      </div>
+      <div class="price-grid price-grid--3">
+        <article class="price-card glass" data-care="Essential Hosting">
+          <div class="glass-sheen"></div>
+          <div class="price-top"></div>
+          
+          <h3>Essential Hosting</h3>
+          <div class="price-amount" data-m="450" data-q="1200"><span class="cur">SCR</span><span class="num">450</span><span class="per">/ mo</span></div>
+          <div class="price-sub"></div>
+          <p class="price-desc">All-in-one infrastructure for static sites that rarely need updates.</p>
+          <ul class="price-list">
+          <li>High-speed global CDN hosting &amp; SSL security</li>
+          <li>Annual domain registration/renewal &amp; DNS included (.com, .co, .org, .net, .online)</li>
+          <li>24/7 uptime monitoring &amp; automated backups</li>
+          <li>Content or code edits billed separately per request</li>
+          </ul>
+          <a href="#contact" class="btn btn-ghost price-btn" data-plan="Essential Hosting">Choose this plan</a>
+        </article>
+        <article class="price-card glass price-card--hi" data-care="Managed Growth">
+          <div class="glass-sheen"></div>
+          <div class="price-top"><span class="price-badge">Recommended</span></div>
+          <h3>Managed Growth</h3>
+          <div class="price-amount" data-m="1500" data-q="3750"><span class="cur">SCR</span><span class="num">1,500</span><span class="per">/ mo</span></div>
+          <div class="price-sub"></div>
+          <p class="price-desc">Hands-off updates, domain coverage, and active care for growing businesses.</p>
+          <ul class="price-list">
+          <li>Everything in Essential Hosting (including annual domain renewal)</li>
+          <li>Up to 2 hours/month of custom code, text, or media updates</li>
+          <li>Monthly performance &amp; local SEO checkup</li>
+          <li>Priority 24-hour WhatsApp &amp; email support</li>
+          </ul>
+          <a href="#contact" class="btn btn-primary price-btn" data-plan="Managed Growth">Choose this plan</a>
+        </article>
+        <article class="price-card glass" data-care="Platform Care">
+          <div class="glass-sheen"></div>
+          <div class="price-top"></div>
+          
+          <h3>Platform Care</h3>
+          <div class="price-amount" data-m="3500" data-q="7500"><span class="cur">SCR</span><span class="num">3,500</span><span class="per">/ mo</span></div>
+          <div class="price-sub"></div>
+          <p class="price-desc">Priority engineering support for live databases and booking platforms.</p>
+          <ul class="price-list">
+          <li>Everything in Managed Growth (including annual domain renewal)</li>
+          <li>Database, media storage &amp; API usage monitoring</li>
+          <li>Up to 4 hours/month of feature updates &amp; new sections</li>
+          <li>Same-day priority technical &amp; emergency support</li>
+          </ul>
+          <a href="#contact" class="btn btn-ghost price-btn" data-plan="Platform Care">Choose this plan</a>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="about">
   <div class="section-inner about-wrap">
     <div class="about-copy reveal">
@@ -1346,6 +1716,7 @@ window.__isLowEndHardware = (
     <a href="#services">Services</a>
     <a href="#work">Work</a>
     <a href="#templates" data-tpl-nav hidden>Templates</a>
+    <a href="#pricing">Pricing</a>
     <a href="#contact">Contact</a>
     <a href="terms.html">Terms</a>
     <a href="admin.html" style="opacity:.35;">Admin</a>
@@ -1425,7 +1796,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
   const list = document.querySelector('.nav-links');
   const links = document.querySelectorAll('.nav-links a');
   const pill = document.getElementById('navPill');
-  const sections = ['services','work','templates','process','about'].map(id => document.getElementById(id));
+  const sections = ['services','work','templates','process','pricing','about'].map(id => document.getElementById(id));
   let hovering = false;
 
   function place(el){
@@ -1486,7 +1857,7 @@ function closeMenu(){ setMenu(false); }
 hbg.addEventListener('click', () => setMenu(!hbg.classList.contains('open')));
 mob.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeMenu(); });
-window.addEventListener('resize', () => { if(window.innerWidth > 860) closeMenu(); });
+window.addEventListener('resize', () => { if(window.innerWidth > 1040) closeMenu(); });
 
 (function(){
   const panel = document.getElementById('heroPanel');
@@ -3897,7 +4268,7 @@ void main() {
       labels: true, sparks: true,         // name tags + particles
       hud: false, guides: false,
       ignore: '#splash, nav, #mobileMenu, #parallax-stage, #trust, #templates, #top, ' +
-              '#depthCarousel, .depth-carousel__dots, #galleryCaption, #bg-orbs, #bg-grid, #beamsBg, .svg-defs, .glass-sheen, .tpl-modal, .lead-modal, footer'
+              '#pricing, #depthCarousel, .depth-carousel__dots, #galleryCaption, #bg-orbs, #bg-grid, #beamsBg, .svg-defs, .glass-sheen, .tpl-modal, .lead-modal, footer'
     }).init();
 
     // Boxes (cards, panels) are never moved: their text can't start until the box is done,
@@ -4069,6 +4440,95 @@ void main() {
   }
   sync();
   (MOBILE.addEventListener ? MOBILE.addEventListener.bind(MOBILE, 'change') : MOBILE.addListener.bind(MOBILE))(sync);
+})();
+</script>
+
+
+<script>
+/* ═══════════ Pricing: tabs, billing toggle, plan buttons ═══════════ */
+(function(){
+  const root = document.getElementById('pricing');
+  if(!root) return;
+  const tabs = Array.from(root.querySelectorAll('[role="tab"]'));
+  const thumb = root.querySelector('.ps-thumb');
+  const fmt = n => Math.round(n).toLocaleString('en-US');
+  let billing = 'm';
+
+  /* tabs */
+  function placeThumb(){
+    const a = root.querySelector('[role="tab"][aria-selected="true"]');
+    if(!a || !thumb) return;
+    thumb.style.width = a.offsetWidth + 'px';
+    thumb.style.transform = 'translateX(' + (a.offsetLeft - 5) + 'px)';
+  }
+  function selectTab(tab, focus){
+    tabs.forEach(t => {
+      const on = t === tab;
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    placeThumb();
+    if(focus) tab.focus();
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => selectTab(t));
+    t.addEventListener('keydown', e => {
+      let n = -1;
+      if(e.key === 'ArrowRight') n = (i + 1) % tabs.length;
+      else if(e.key === 'ArrowLeft') n = (i - 1 + tabs.length) % tabs.length;
+      else if(e.key === 'Home') n = 0;
+      else if(e.key === 'End') n = tabs.length - 1;
+      if(n > -1){ e.preventDefault(); selectTab(tabs[n], true); }
+    });
+  });
+  window.addEventListener('resize', placeThumb);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(placeThumb);
+  placeThumb();
+
+  /* monthly / quarterly (savings are worked out from the prices themselves) */
+  const careCards = Array.from(root.querySelectorAll('.price-card[data-care]'));
+  const saving = el => 1 - Number(el.dataset.q) / (3 * Number(el.dataset.m));
+  const maxSave = Math.max.apply(null, careCards.map(c => saving(c.querySelector('.price-amount'))));
+  const saveChip = document.getElementById('billSave');
+  if(saveChip) saveChip.textContent = 'Save up to ' + Math.round(maxSave * 100) + '%';
+
+  function renderBilling(animate){
+    careCards.forEach(card => {
+      const amt = card.querySelector('.price-amount');
+      const m = Number(amt.dataset.m), q = Number(amt.dataset.q), pct = Math.round(saving(amt) * 100);
+      amt.querySelector('.num').textContent = fmt(billing === 'q' ? q : m);
+      amt.querySelector('.per').textContent = billing === 'q' ? '/ qtr' : '/ mo';
+      card.querySelector('.price-sub').textContent = billing === 'q'
+        ? 'SCR ' + fmt(q / 3) + '/mo · save ' + pct + '%'
+        : 'or SCR ' + fmt(q) + ' / qtr · save ' + pct + '%';
+      card.querySelector('.price-btn').dataset.plan = card.dataset.care + ' (' +
+        (billing === 'q' ? 'quarterly, SCR ' + fmt(q) + ' / qtr' : 'monthly, SCR ' + fmt(m) + ' / mo') + ')';
+      if(animate){ amt.classList.remove('swap'); void amt.offsetWidth; amt.classList.add('swap'); }
+    });
+  }
+  root.querySelectorAll('.bill-btn').forEach(b => b.addEventListener('click', () => {
+    billing = b.dataset.bill;
+    root.querySelectorAll('.bill-btn').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    renderBilling(true);
+  }));
+  renderBilling(false);
+
+  /* plan / demo buttons -> contact form (page scroll is handled by the normal #contact link) */
+  const PLAN_LINES = /^(?:Interested in: .*|I'd like a free concept demo\.)\n/gm;
+  root.addEventListener('click', e => {
+    const a = e.target.closest('a[data-plan], a[data-demo]');
+    if(!a) return;
+    const msg = document.getElementById('ctMsg');
+    if(!msg) return;
+    const lines = [];
+    if(a.dataset.plan) lines.push('Interested in: ' + a.dataset.plan);
+    if(a.dataset.demo === 'true') lines.push("I'd like a free concept demo.");
+    msg.value = lines.join('\n') + (lines.length ? '\n' : '') + msg.value.replace(PLAN_LINES, '');
+    if(window.matchMedia('(pointer:fine)').matches){
+      setTimeout(() => { const n = document.getElementById('ctName'); if(n) n.focus({ preventScroll:true }); }, 800);
+    }
+  });
 })();
 </script>
 
