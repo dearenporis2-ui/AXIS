@@ -1067,79 +1067,41 @@
   }
 
 
-  /* ── Loading screen: blueprint ──
-     Base styles are the FINISHED state; the animations only describe how it gets there,
-     so lite mode / reduced motion simply switch the animations off. */
-  #splash{position:fixed; inset:0; z-index:100000; overflow:hidden; color:var(--gold);}
-  #splash.hidden{pointer-events:none;}
-  .sp-shutter{position:absolute; left:0; right:0; height:50.2%; background:var(--void); will-change:transform;
-    transition:transform .95s cubic-bezier(.76,0,.24,1) .3s;}
-  .sp-top{top:0; border-bottom:1px solid var(--gold);}
-  .sp-bottom{bottom:0;}
-  #splash.hidden .sp-top{transform:translateY(-101%);}
-  #splash.hidden .sp-bottom{transform:translateY(101%);}
-  .sp-fade, .sp-grid, .sp-axis, .sp-stage, .sp-readout, .sp-progress-wrap{transition:opacity .35s ease;}
-  #splash.hidden .sp-grid, #splash.hidden .sp-axis, #splash.hidden .sp-stage,
-  #splash.hidden .sp-readout, #splash.hidden .sp-progress-wrap{opacity:0;}
-
-  .sp-grid{
-    position:absolute; inset:0;
-    background-image:
-      linear-gradient(rgba(184,169,138,.16) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(184,169,138,.16) 1px, transparent 1px),
-      linear-gradient(rgba(184,169,138,.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(184,169,138,.06) 1px, transparent 1px);
-    background-size:240px 240px, 240px 240px, 48px 48px, 48px 48px;
-    background-position:center, center, center, center;
-    -webkit-mask-image:radial-gradient(circle at 50% 50%, #000 0, rgba(0,0,0,.55) 38%, transparent 74%);
-            mask-image:radial-gradient(circle at 50% 50%, #000 0, rgba(0,0,0,.55) 38%, transparent 74%);
-    animation:spGrid 1.2s cubic-bezier(.16,1,.3,1) .05s backwards;
+  /* ── AXIS loading screen: quiet, branded and quick ── */
+  #splash{
+    position:fixed; inset:0; z-index:100000; overflow:hidden;
+    display:grid; place-items:center; color:var(--white); background:var(--void);
+    opacity:1; transform:scale(1);
+    transition:opacity .48s cubic-bezier(.22,1,.36,1), transform .48s cubic-bezier(.22,1,.36,1);
   }
-  @keyframes spGrid{from{clip-path:circle(0% at 50% 50%);} to{clip-path:circle(100% at 50% 50%);}}
-
-  .sp-axis{position:absolute; background:rgba(184,169,138,.35);}
-  .sp-axis-h{left:0; right:0; top:50%; height:1px; transform-origin:50% 50%; animation:spAxisH .8s cubic-bezier(.16,1,.3,1) backwards;}
-  .sp-axis-v{top:0; bottom:0; left:50%; width:1px; transform-origin:50% 50%; animation:spAxisV .8s cubic-bezier(.16,1,.3,1) .08s backwards;}
-  @keyframes spAxisH{from{transform:scaleX(0);}}
-  @keyframes spAxisV{from{transform:scaleY(0);}}
-
-  .sp-stage{position:absolute; left:50%; top:50%; width:min(72vmin,320px); aspect-ratio:1; transform:translate(-50%,-50%);}
-  .sp-frame{width:100%; height:100%; display:block; overflow:visible;}
-  .sp-stage-fill{fill:var(--void);}
-  .sp-corners path, .sp-mark path{stroke-dasharray:100; stroke-dashoffset:0;}
-  .sp-corners path{animation:spDraw .7s cubic-bezier(.65,0,.35,1) .25s backwards;}
-  .sp-mark path{animation:spDraw .6s cubic-bezier(.65,0,.35,1) backwards;}
-  .sp-mark path:nth-child(1){animation-delay:.45s;}
-  .sp-mark path:nth-child(2){animation-delay:.6s;}
-  .sp-mark path:nth-child(3){animation-delay:.75s;}   /* finishes at ~1.35s, before the 1.5s minimum */
-  @keyframes spDraw{from{stroke-dashoffset:100;}}
-  .sp-ticks{animation:spFadeIn .6s ease .5s backwards;}
-  @keyframes spFadeIn{from{opacity:0;}}
-  .sp-scan{position:absolute; left:6%; right:6%; top:6%; height:1px; background:linear-gradient(90deg, transparent, var(--gold-hi), transparent);
-    opacity:0; animation:spScan 2.4s ease-in-out 1.3s infinite;}
-  @keyframes spScan{0%,100%{transform:translateY(0); opacity:0;} 15%,85%{opacity:.5;} 50%{transform:translateY(calc(min(72vmin,320px) * .88));}}
-  .sp-tag{position:absolute; font:500 10px/1 'DM Mono',ui-monospace,monospace; letter-spacing:.14em; color:rgba(184,169,138,.6);
-    white-space:nowrap; animation:spFadeIn .6s ease .7s backwards;}
-  .sp-tag-l{left:0; bottom:calc(100% + 12px);}
-  .sp-tag-r{right:0; bottom:calc(100% + 12px);}
-
-  .sp-readout{position:absolute; left:clamp(1.2rem,4vw,3rem); right:clamp(1.2rem,4vw,3rem); bottom:clamp(1.6rem,5vh,3rem);
-    display:flex; justify-content:space-between; align-items:flex-end; gap:1rem;
-    font:500 11px/1 'DM Mono',ui-monospace,monospace; letter-spacing:.14em; animation:spFadeIn .5s ease .6s backwards;}
-  .sp-status{color:rgba(184,169,138,.75);}
-  .sp-count{color:var(--gold-hi); font-size:clamp(1.6rem,5vw,2.6rem); font-weight:500; letter-spacing:.04em; font-variant-numeric:tabular-nums;}
-  .sp-progress-wrap{position:absolute; left:0; right:0; bottom:0; height:2px; background:rgba(184,169,138,.12);}
-  .sp-progress{height:100%; background:var(--gold); transform-origin:0 50%; transform:scaleX(0); will-change:transform;}
-
-  @media(max-width:420px){ .sp-tag-r{display:none;} }   /* the two labels would touch on small phones */
+  #splash::before{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 43%, rgba(184,169,138,.14), transparent 34%),
+               radial-gradient(ellipse at 50% 100%, rgba(169,214,255,.045), transparent 48%);
+  }
+  #splash.hidden{opacity:0; transform:scale(1.015); pointer-events:none;}
+  .sp-shell{position:relative; z-index:1; width:min(360px,calc(100% - 48px)); display:flex; flex-direction:column; align-items:center; text-align:center;}
+  .sp-emblem{position:relative; width:144px; height:144px; display:grid; place-items:center; margin-bottom:28px;}
+  .sp-emblem::before,.sp-emblem::after{content:''; position:absolute; border-radius:50%; pointer-events:none;}
+  .sp-emblem::before{inset:0; border:1px solid rgba(184,169,138,.19); box-shadow:0 0 60px rgba(184,169,138,.07), inset 0 0 40px rgba(184,169,138,.035); animation:spHalo 3.2s ease-in-out infinite;}
+  .sp-emblem::after{inset:8px; border:1px solid transparent; border-top-color:rgba(221,201,158,.78); border-right-color:rgba(221,201,158,.18); animation:spOrbit 7s linear infinite;}
+  .sp-emblem img{position:relative; z-index:1; width:92px; height:auto; filter:drop-shadow(0 0 22px rgba(221,201,158,.16)); animation:spLogoIn .75s cubic-bezier(.22,1,.36,1) both;}
+  @keyframes spHalo{0%,100%{opacity:.7; transform:scale(.98);} 50%{opacity:1; transform:scale(1.025);}}
+  @keyframes spOrbit{from{transform:rotate(0deg);} to{transform:rotate(360deg);}}
+  @keyframes spLogoIn{from{opacity:0; transform:translateY(8px) scale(.96);} to{opacity:1; transform:translateY(0) scale(1);}}
+  .sp-name{font:600 clamp(1.5rem,5vw,1.9rem)/1 'Space Grotesk',sans-serif; letter-spacing:.16em; padding-left:.16em;}
+  .sp-subtitle{margin-top:.7rem; color:var(--gold); font:400 .58rem/1 'DM Mono',monospace; letter-spacing:.28em; text-transform:uppercase; padding-left:.28em;}
+  .sp-loading{width:100%; margin-top:48px;}
+  .sp-readout{display:flex; align-items:center; justify-content:space-between; gap:1rem; font:400 .58rem/1 'DM Mono',monospace; letter-spacing:.13em; text-transform:uppercase;}
+  .sp-status{color:rgba(245,246,248,.5); text-align:left;}
+  .sp-count{color:var(--gold-hi); min-width:3.5ch; text-align:right; font-variant-numeric:tabular-nums;}
+  .sp-count::after{content:'%'; margin-left:2px; color:rgba(221,201,158,.65);}
+  .sp-progress-wrap{height:2px; margin-top:.85rem; overflow:hidden; border-radius:2px; background:rgba(255,255,255,.1);}
+  .sp-progress{width:100%; height:100%; transform:scaleX(0); transform-origin:left center; background:linear-gradient(90deg,var(--gold),var(--gold-hi)); box-shadow:0 0 14px rgba(221,201,158,.38); will-change:transform;}
+  .sp-foot{position:absolute; left:clamp(1.2rem,4vw,3rem); right:clamp(1.2rem,4vw,3rem); bottom:clamp(1.3rem,4vh,2.3rem); display:flex; justify-content:space-between; gap:1rem; color:rgba(245,246,248,.3); font:400 .52rem/1 'DM Mono',monospace; letter-spacing:.14em; text-transform:uppercase;}
+  @media(max-width:480px){.sp-foot{font-size:.46rem; letter-spacing:.09em;}}
   html.lite #splash *{animation:none !important;}
-  html.lite .sp-grid{clip-path:none;}
-  @media(prefers-reduced-motion:reduce){
-    #splash *{animation:none !important;}
-    .sp-shutter{transition:none;}
-    #splash{transition:opacity .4s ease;}
-    #splash.hidden{opacity:0;}
-  }
+  @media(prefers-reduced-motion:reduce){#splash *{animation:none !important;} #splash{transition:none;}}
 </style>
 </head>
 <body>
@@ -1193,41 +1155,21 @@ window.__isLowEndHardware = (
 </script>
 
 <div id="splash" role="progressbar" aria-label="Loading AXIS" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-  <div class="sp-shutter sp-top"></div>
-  <div class="sp-shutter sp-bottom"></div>
-  <div class="sp-grid"></div>
-  <div class="sp-axis sp-axis-h"></div>
-  <div class="sp-axis sp-axis-v"></div>
-  <div class="sp-stage">
-    <div class="sp-tag sp-tag-l" aria-hidden="true">SHEET 01 / ENGINEERING</div>
-    <div class="sp-tag sp-tag-r" aria-hidden="true">SCALE 1:1</div>
-    <svg class="sp-frame" viewBox="0 0 320 320" aria-hidden="true">
-      <rect class="sp-stage-fill" x="0" y="0" width="320" height="320" opacity=".92"/>
-      <g class="sp-ticks" stroke="rgba(184,169,138,.4)" stroke-width="1">
-        <path d="M40 2v6M80 2v6M120 2v6M160 2v10M200 2v6M240 2v6M280 2v6"/>
-        <path d="M40 318v-6M80 318v-6M120 318v-6M160 318v-10M200 318v-6M240 318v-6M280 318v-6"/>
-        <path d="M2 40h6M2 80h6M2 120h6M2 160h10M2 200h6M2 240h6M2 280h6"/>
-        <path d="M318 40h-6M318 80h-6M318 120h-6M318 160h-10M318 200h-6M318 240h-6M318 280h-6"/>
-      </g>
-      <g class="sp-corners" fill="none" stroke="#b8a98a" stroke-width="1.6" stroke-linecap="square">
-        <path pathLength="100" d="M2 34V2H34"/>
-        <path pathLength="100" d="M286 2H318V34"/>
-        <path pathLength="100" d="M318 286V318H286"/>
-        <path pathLength="100" d="M34 318H2V286"/>
-      </g>
-      <g class="sp-mark" transform="translate(86.4 86.4) scale(2.3)" fill="none" stroke="#ddc99e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-        <path pathLength="100" d="M32 13L50 50"/>
-        <path pathLength="100" d="M32 13L18 43"/>
-        <path pathLength="100" d="M13 50L42 34"/>
-      </g>
-    </svg>
-    <div class="sp-scan" aria-hidden="true"></div>
+  <div class="sp-shell">
+    <div class="sp-emblem" aria-hidden="true">
+      <img src="assets/axis-mark.webp" width="256" height="171" alt="" fetchpriority="high" decoding="async">
+    </div>
+    <div class="sp-name" aria-hidden="true">AXIS</div>
+    <div class="sp-subtitle" aria-hidden="true">Digital Engineering</div>
+    <div class="sp-loading" aria-hidden="true">
+      <div class="sp-readout">
+        <span class="sp-status">PREPARING YOUR EXPERIENCE</span>
+        <span class="sp-count">000</span>
+      </div>
+      <div class="sp-progress-wrap"><div class="sp-progress"></div></div>
+    </div>
   </div>
-  <div class="sp-readout" aria-hidden="true">
-    <span class="sp-status">LOADING</span>
-    <span class="sp-count">000</span>
-  </div>
-  <div class="sp-progress-wrap" aria-hidden="true"><div class="sp-progress"></div></div>
+  <div class="sp-foot" aria-hidden="true"><span>SEYCHELLES · DIGITAL STUDIO</span><span>AXIS / 01</span></div>
 </div>
 <script>
 (function(){
@@ -1237,13 +1179,13 @@ window.__isLowEndHardware = (
   const barEl = splash.querySelector('.sp-progress');
   const root = document.documentElement;
   const calm = root.classList.contains('lite') || matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const MIN_DISPLAY_MS = calm ? 500 : 1500;     // long enough for the drawing to finish
-  const DATA_WAIT_MS = 3000;
+  const MIN_DISPLAY_MS = calm ? 350 : 1100;
+  const DATA_WAIT_MS = 1200;                    // the carousel has built-in fallback projects
   const MAX_WAIT_MS = 12000;
   const shownAt = performance.now();
   const parts = { page:false, fonts:false, bg:false, logo:false, data:false };
   const names = Object.keys(parts);
-  const LABELS = { page:'PAGE', fonts:'TYPE', bg:'BACKGROUND', logo:'MARK', data:'DATA' };
+  const LABELS = { page:'PAGE', fonts:'TYPE', bg:'VISUALS', logo:'BRAND', data:'CONTENT' };
   let lifted = false, shown = 0, raf = 0, lastLabel = '';
 
   function realProgress(){ return names.filter(k => parts[k]).length / names.length * 100; }
