@@ -933,8 +933,11 @@
   @media(max-width:680px){ .folder-switch{gap:calc(22px * var(--s));} }
   html.lite .pf-tilt{transition:none; transform:none !important;}
   html.lite .pf-ground{display:none;}
+  /* before it scrolls into view the selected folder waits closed, then opens */
+  .pf-folder.pf-hold[aria-selected="true"] .pf-front{transform:translateZ(8px) rotateX(0deg);}
+  .pf-folder.pf-hold[aria-selected="true"] .pf-page{transform:translate3d(var(--x),var(--y),4px) rotateZ(var(--r));}
+  .price-card.pf-pending{opacity:0;}
 
-  .price-panel:not([hidden]){animation:priceIn .55s cubic-bezier(.16,1,.3,1);}
   @keyframes priceIn{from{opacity:0; transform:translateY(14px);}}
   .price-grid{display:grid; gap:1.1rem; align-items:stretch;}
   .price-grid--4{grid-template-columns:repeat(4,1fr);}
@@ -4521,6 +4524,7 @@ void main() {
       document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
     });
     if(focus) tab.focus();
+    if(typeof emerge === 'function') emerge(tab);
   }
   tabs.forEach((t, i) => {
     t.addEventListener('click', () => selectTab(t));
@@ -4562,6 +4566,111 @@ void main() {
       });
       t.addEventListener('pointerleave', () => { t.style.removeProperty('--ry'); t.style.removeProperty('--rx'); });
     });
+  }
+
+
+  /* ── The cards come out of the open folder ──
+     Each card starts as a small version of its folder page, rises out of the folder and grows to
+     full size in its place. Cards that are too far below the folder (phones) just grow into place
+     as they scroll in. Off for lite mode and reduced motion (the cards are simply shown). */
+  const pagesOf = tab => Array.from(tab.querySelectorAll('.pf-page'));
+  const ownAnims = el => el.getAnimations().filter(x => !(window.CSSTransition && x instanceof CSSTransition) && !(window.CSSAnimation && x instanceof CSSAnimation));
+  const panelOf = tab => document.getElementById(tab.getAttribute('aria-controls'));
+  const cardsOf = tab => Array.from(panelOf(tab).querySelectorAll('.price-card'));
+  let animate = !!(folderRow && 'animate' in Element.prototype && 'IntersectionObserver' in window &&
+                   !matchMedia('(prefers-reduced-motion: reduce)').matches && !window.__axisLite);
+  let emerge = null;
+
+  if(animate){
+    let ready = false, settleTimer = 0, fallbackTimer = 0, queue = [], rowIO = null, cardIO = null;
+    const firstTab = tabs.find(t => t.getAttribute('aria-selected') === 'true');
+
+    function settle(){                       // the flap needs a moment to open before cards leave
+      ready = false; clearTimeout(settleTimer); clearTimeout(fallbackTimer);
+      settleTimer = setTimeout(() => { ready = true; queue.splice(0).forEach(fn => fn()); }, 850);
+    }
+    function openNow(){
+      if(!firstTab.classList.contains('pf-hold')) return;
+      firstTab.classList.remove('pf-hold');
+      settle();
+    }
+    function play(card, k){
+      const tab = tabs.find(t => t.getAttribute('aria-selected') === 'true');
+      const i = cardsOf(tab).indexOf(card);
+      const page = pagesOf(tab)[i];
+      let frames, delay = 0, duration = 800, ease = 'cubic-bezier(.22,1,.36,1)';
+      const cr = card.getBoundingClientRect();
+      if(page){
+        const pr = page.getBoundingClientRect();
+        const dx = pr.left + pr.width / 2 - (cr.left + cr.width / 2);
+        const dy = pr.top + pr.height / 2 - (cr.top + cr.height / 2);
+        if(Math.hypot(dx, dy) <= window.innerHeight * 0.95){
+          const s0 = Math.max(0.12, Math.min(pr.width / cr.width, pr.height / cr.height));
+          const rot = parseFloat(page.style.getPropertyValue('--or')) || 0;
+          frames = [
+            { transform:'translate(' + dx + 'px,' + dy + 'px) scale(' + s0 + ') rotate(' + rot + 'deg)', opacity:0, offset:0, easing:'ease-out' },
+            { transform:'translate(' + dx * 0.97 + 'px,' + (dy * 0.97 - 12) + 'px) scale(' + s0 * 1.08 + ') rotate(' + rot + 'deg)', opacity:1, offset:0.14, easing:'cubic-bezier(.33,1,.68,1)' },
+            { transform:'none', opacity:1, offset:1 }
+          ];
+          delay = k * 120; duration = 1600; ease = 'linear';   // each step above has its own easing
+          // the page it came from fades away as the card takes its place
+          page.animate([{ opacity:1 }, { opacity:0 }], { duration:240, delay:delay + 30, fill:'forwards' });
+        }
+      }
+      if(!frames) frames = [{ transform:'translateY(46px) scale(.86)', opacity:0 }, { transform:'none', opacity:1 }];
+      const a = card.animate(frames, { duration, delay, easing:ease, fill:'both' });
+      card.classList.remove('pf-pending');
+      a.onfinish = () => { try{ a.cancel(); }catch(e){} };
+    }
+    function arm(tab){
+      cardsOf(tab).forEach(c => { c.classList.add('pf-pending'); cardIO.observe(c); });
+    }
+
+    cardIO = new IntersectionObserver(entries => {
+      const hits = entries.filter(e => e.isIntersecting).map(e => e.target);
+      hits.sort((a, b) => (a.compareDocumentPosition(b) & 4) ? -1 : 1);
+      hits.forEach((card, k) => {
+        cardIO.unobserve(card);
+        const run = () => play(card, k);
+        if(ready) run(); else queue.push(run);
+      });
+      // safety: if the cards are on screen but the folder row never reached the trigger, open anyway
+      if(hits.length && !ready && !settleTimer){
+        clearTimeout(fallbackTimer);
+        fallbackTimer = setTimeout(openNow, 1200);
+      }
+    }, { threshold: 0.12 });
+
+    rowIO = new IntersectionObserver(entries => {
+      if(!entries.some(e => e.isIntersecting)) return;
+      rowIO.disconnect();
+      openNow();
+    }, { threshold: 0.5 });
+
+    emerge = function(tab){
+      // folders swap: the old one gets its pages back, the new one opens and sends its cards out
+      tabs.forEach(t => { if(t !== tab) pagesOf(t).forEach(pg => {
+        const hidden = ownAnims(pg).length;
+        ownAnims(pg).forEach(x => x.cancel());
+        if(hidden) pg.animate([{ opacity:0 }, { opacity:1 }], { duration:400 });
+      }); });
+      if(firstTab.classList.contains('pf-hold')){ firstTab.classList.remove('pf-hold'); rowIO.disconnect(); }
+      arm(tab);
+      settle();
+    };
+
+    window.addEventListener('axis:lite', () => {      // page turned out to be slow: just show everything
+      animate = false; emerge = null;
+      cardIO.disconnect(); rowIO.disconnect(); clearTimeout(settleTimer); clearTimeout(fallbackTimer);
+      root.querySelectorAll('.price-card').forEach(c => { c.classList.remove('pf-pending'); ownAnims(c).forEach(x => x.cancel()); });
+      root.querySelectorAll('.pf-page').forEach(pg => ownAnims(pg).forEach(x => x.cancel()));
+      firstTab.classList.remove('pf-hold');
+    });
+
+    // start: the selected folder waits closed; it opens when the folders scroll into view
+    firstTab.classList.add('pf-hold');
+    arm(firstTab);
+    rowIO.observe(folderRow);
   }
 
   /* the "From ..." line on each folder follows the real prices */
