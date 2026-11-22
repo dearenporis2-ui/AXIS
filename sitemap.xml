@@ -2,8 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://axisagency.co/</loc>
-    <lastmod>2026-10-15</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
+  <url><loc>https://axisagency.co/terms.html</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://axisagency.co/services/web-design-seychelles.html</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://axisagency.co/services/booking-platforms-seychelles.html</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://axisagency.co/services/business-documents-seychelles.html</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://axisagency.co/services/website-support-seychelles.html</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://axisagency.co/PS5-controller-page/</loc><lastmod>2026-11-22</lastmod></url>
 </urlset>
