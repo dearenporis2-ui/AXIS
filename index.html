@@ -1102,6 +1102,54 @@
   @media(max-width:480px){.sp-foot{font-size:.46rem; letter-spacing:.09em;}}
   html.lite #splash *{animation:none !important;}
   @media(prefers-reduced-motion:reduce){#splash *{animation:none !important;} #splash{transition:none;}}
+
+  /* Phone layouts: keep cards readable while reducing their visual footprint. */
+  @media(max-width:680px){
+    section{padding:4.4rem 1rem;}
+    .section-head{margin-bottom:2.2rem;}
+    .section-head p{font-size:.92rem;}
+    .services-grid{grid-template-columns:minmax(0,1fr); gap:.8rem;}
+    .svc-card{padding:1.35rem 1.2rem; gap:.7rem;}
+    .svc-card h3{font-size:1.08rem;}
+    .svc-card p{font-size:.84rem; line-height:1.5;}
+    .tpl-grid{grid-template-columns:minmax(0,1fr); gap:.8rem;}
+    .tpl-card{display:grid; grid-template-columns:minmax(96px,34%) minmax(0,1fr); min-height:132px;}
+    .tpl-media{height:100%; min-height:132px; aspect-ratio:auto;}
+    .tpl-badge{top:.55rem; left:.55rem; max-width:calc(100% - 1.1rem); padding:.25rem .45rem; font-size:.52rem; letter-spacing:.08em;}
+    .tpl-body{min-width:0; padding:.8rem .9rem; gap:.35rem;}
+    .tpl-cat{font-size:.54rem; letter-spacing:.1em;}
+    .tpl-card h3{font-size:1rem; line-height:1.2;}
+    .tpl-card p{font-size:.78rem; line-height:1.4; -webkit-line-clamp:2;}
+    .tpl-foot{padding-top:.45rem; gap:.5rem; font-size:.62rem;}
+    .tpl-modal{align-items:flex-end; padding:.65rem;}
+    .tpl-dialog{width:100%; max-height:calc(100dvh - 1.3rem); overflow:auto; border-radius:18px;}
+    .price-grid--4{max-width:none; gap:.7rem;}
+    .price-card{padding:1.2rem 1.1rem 1.1rem; border-radius:18px;}
+    .price-top{min-height:1.3rem; margin-bottom:.55rem;}
+    .price-card h3{font-size:1.15rem; margin-bottom:.75rem;}
+    .price-grid--4 .price-amount .num{font-size:1.35rem;}
+    .price-desc{font-size:.84rem; line-height:1.5; margin:.7rem 0 .9rem;}
+    .price-list{gap:.5rem; margin-bottom:1rem;}
+    .price-list li{padding-left:1.3rem; font-size:.81rem; line-height:1.4;}
+    .price-btn{min-height:44px;}
+    .bill-row{gap:.8rem; margin-bottom:1rem;}
+    .bill-toggle{max-width:100%;}
+    .bill-btn{padding:.55rem .8rem; font-size:.76rem;}
+  }
+  @media(max-width:380px){
+    .tpl-card{grid-template-columns:92px minmax(0,1fr); min-height:124px;}
+    .tpl-media{min-height:124px;}
+    .tpl-body{padding:.7rem .75rem;}
+    .tpl-card h3{font-size:.94rem;}
+    .tpl-card p{font-size:.74rem;}
+    .price-card{padding:1.05rem .9rem .95rem;}
+  }
+  @media(hover:none){
+    .svc-card:hover, .svc-card--link:hover{transform:none;}
+    .tpl-card:hover, .tpl-card:focus-visible{transform:none;}
+    .tpl-card:hover .tpl-media img{transform:none;}
+    .tpl-card:hover .tpl-view svg{transform:none;}
+  }
 </style>
 </head>
 <body>
