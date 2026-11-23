@@ -2299,11 +2299,20 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
       if(hint) hint.textContent = 'The 3D pass is unavailable right now. Use the button below to view the archive.';
     });
   }
+  function resetLanyardCard(){
+    if(lanyardCleanup){ lanyardCleanup(); lanyardCleanup = null; }
+    if(!window.AxisLanyard || !window.AxisLanyard.mount) return;
+    requestAnimationFrame(() => {
+      if(!gate.hidden || lanyardCleanup) return;
+      lanyardCleanup = window.AxisLanyard.mount(lanyardMount);
+    });
+  }
   function hideGate(restoreFocus){
     const finish = () => {
       gate.classList.remove('is-open'); gate.hidden = true;
       gate.setAttribute('aria-hidden','true');
       document.body.classList.remove('portfolio-gate-open');
+      if(restoreFocus) resetLanyardCard();
       if(restoreFocus && returnFocus && returnFocus.isConnected) returnFocus.focus({preventScroll:true});
     };
     if(window.gsap && !reduceMotion.matches && !document.documentElement.classList.contains('lite')){
@@ -2384,6 +2393,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
       gallery.classList.remove('open'); gallery.hidden = true;
       gallery.setAttribute('aria-hidden','true');
       document.body.classList.remove('portfolio-gallery-open');
+      resetLanyardCard();
       if(returnFocus && returnFocus.isConnected) returnFocus.focus({preventScroll:true});
     };
     if(window.gsap && !reduceMotion.matches && !document.documentElement.classList.contains('lite')){
