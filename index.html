@@ -2292,7 +2292,10 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
     if(hint) hint.textContent = 'Preparing your AXIS access pass…';
     loadLanyard().then(() => {
       if(gate.hidden || !window.AxisLanyard || !window.AxisLanyard.mount) return;
-      if(!lanyardCleanup) lanyardCleanup = window.AxisLanyard.mount(lanyardMount);
+      if(!lanyardCleanup || !lanyardMount.querySelector('.lanyard-canvas')){
+        if(lanyardCleanup){ lanyardCleanup(); lanyardCleanup = null; }
+        lanyardCleanup = window.AxisLanyard.mount(lanyardMount);
+      }
       if(hint) hint.textContent = 'Drag the AXIS pass down to reveal the full project archive.';
     }).catch(error => {
       console.error(error);
@@ -2301,11 +2304,6 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
   }
   function resetLanyardCard(){
     if(lanyardCleanup){ lanyardCleanup(); lanyardCleanup = null; }
-    if(!window.AxisLanyard || !window.AxisLanyard.mount) return;
-    requestAnimationFrame(() => {
-      if(!gate.hidden || lanyardCleanup) return;
-      lanyardCleanup = window.AxisLanyard.mount(lanyardMount);
-    });
   }
   function hideGate(restoreFocus){
     const finish = () => {
