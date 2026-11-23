@@ -1286,6 +1286,98 @@
     .portfolio-gallery__filter{flex:none;}
   }
   @media(prefers-reduced-motion:reduce){.portfolio-gallery,.portfolio-gallery *{scroll-behavior:auto;}}
+
+  /* Pull-to-enter lanyard intro. A light CSS/SVG adaptation keeps this static site framework-free. */
+  .axis-pull-intro{
+    position:fixed; inset:0; z-index:3000; overflow:hidden; isolation:isolate;
+    color:var(--white); background:rgba(7,8,12,.985); touch-action:pan-x pan-y;
+  }
+  .axis-pull-intro[hidden]{display:none !important;}
+  .axis-pull-intro::before{
+    content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 42%,rgba(184,169,138,.14),transparent 40%),
+      radial-gradient(ellipse at 5% 95%,rgba(169,214,255,.06),transparent 35%),
+      linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size:auto,auto,68px 68px,68px 68px;
+    mask-image:radial-gradient(ellipse 90% 85% at 50% 40%,black 25%,transparent 100%);
+  }
+  .axis-pull-intro__top{position:absolute; top:max(1rem,env(safe-area-inset-top)); left:clamp(1rem,4vw,3rem); right:clamp(1rem,4vw,3rem); z-index:3; display:flex; align-items:center; justify-content:space-between; gap:1rem;}
+  .axis-pull-intro__brand{display:flex; align-items:center; gap:.75rem; color:var(--white); font:500 .66rem 'DM Mono',monospace; letter-spacing:.14em; text-transform:uppercase;}
+  .axis-pull-intro__brand img{width:36px; height:28px; object-fit:contain;}
+  .axis-pull-intro__skip{padding:.65rem .9rem; border:1px solid var(--glass-border); border-radius:100px; color:var(--dim); background:rgba(255,255,255,.035); cursor:pointer; font:500 .58rem 'DM Mono',monospace; letter-spacing:.1em; text-transform:uppercase; transition:color .25s,border-color .25s;}
+  .axis-pull-intro__skip:hover{color:var(--white); border-color:var(--gold);}
+  .axis-pull-intro__copy{position:absolute; top:clamp(5.4rem,12vh,8.2rem); left:1rem; right:1rem; z-index:1; text-align:center; pointer-events:none;}
+  .axis-pull-intro__eyebrow{color:var(--gold); font:500 .61rem 'DM Mono',monospace; letter-spacing:.23em; text-transform:uppercase;}
+  .axis-pull-intro__copy h1{margin:.7rem 0 .45rem; font:500 clamp(1.65rem,4.4vw,3rem)/1.05 'Space Grotesk',sans-serif; letter-spacing:-.045em;}
+  .axis-pull-intro__copy p{color:var(--dim); font-size:.85rem; letter-spacing:.01em;}
+  .axis-pull-intro__cord{position:absolute; inset:0; width:100%; height:100%; z-index:1; overflow:visible; pointer-events:none;}
+  .axis-pull-intro__cord-glow{fill:none; stroke:rgba(221,201,158,.2); stroke-width:10; stroke-linecap:round; filter:blur(6px);}
+  .axis-pull-intro__cord-line{fill:none; stroke:url(#axisCordGradient); stroke-width:2.4; stroke-linecap:round; filter:drop-shadow(0 0 8px rgba(221,201,158,.45));}
+  .axis-pull-intro__anchor{fill:#11141d; stroke:rgba(221,201,158,.72); stroke-width:1.4;}
+  .axis-pull-intro__anchor-core{fill:var(--gold-hi); filter:drop-shadow(0 0 8px rgba(221,201,158,.8));}
+  .axis-pull-card{
+    position:absolute; z-index:2; top:23vh; left:50%; width:min(276px,74vw); height:min(358px,49vh);
+    min-height:310px; padding:0; border:0; border-radius:23px; background:transparent; color:var(--white);
+    cursor:grab; touch-action:none; outline:none; -webkit-tap-highlight-color:transparent;
+    transform:translateX(-50%); transform-style:preserve-3d; perspective:1000px;
+    filter:drop-shadow(0 34px 55px rgba(0,0,0,.48));
+  }
+  .axis-pull-card:active{cursor:grabbing;}
+  .axis-pull-card:focus-visible .axis-pull-card__face{box-shadow:0 0 0 2px var(--gold-hi),0 25px 65px rgba(0,0,0,.5);}
+  .axis-pull-card__face{
+    position:relative; display:flex; flex-direction:column; width:100%; height:100%; overflow:hidden;
+    padding:1.2rem 1.25rem 1.05rem; border:1px solid rgba(221,201,158,.56); border-radius:23px;
+    background:linear-gradient(145deg,rgba(25,28,36,.98),rgba(9,11,16,.98) 68%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -25px 65px rgba(0,0,0,.25);
+    transform-style:preserve-3d; backface-visibility:hidden;
+  }
+  .axis-pull-card__face::before{content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(115deg,transparent 18%,rgba(255,255,255,.085) 35%,transparent 50%); transform:translateX(-125%);}
+  .axis-pull-card__face::after{content:''; position:absolute; inset:7px; border:1px solid rgba(255,255,255,.055); border-radius:17px; pointer-events:none;}
+  .axis-pull-card__brand{display:flex; align-items:center; gap:.65rem; padding-bottom:.85rem; border-bottom:1px solid rgba(255,255,255,.11); transform:translateZ(18px);}
+  .axis-pull-card__brand img{width:48px; height:38px; object-fit:contain;}
+  .axis-pull-card__brand span{font:500 .62rem/1.55 'DM Mono',monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-hi);}
+  .axis-pull-card__label{margin-top:1.25rem; color:var(--dimmer); font:500 .56rem 'DM Mono',monospace; letter-spacing:.2em; text-transform:uppercase; transform:translateZ(24px);}
+  .axis-pull-card__name{margin:.42rem 0 0; font:500 clamp(1.6rem,7vw,2.05rem)/.98 'Space Grotesk',sans-serif; letter-spacing:-.06em; text-align:left; transform:translateZ(32px);}
+  .axis-pull-card__name span{color:var(--gold-hi);}
+  .axis-pull-card__role{margin-top:.5rem; color:var(--dim); font:500 .57rem 'DM Mono',monospace; letter-spacing:.12em; text-transform:uppercase; text-align:left; transform:translateZ(25px);}
+  .axis-pull-card__chip{position:relative; width:46px; height:36px; margin-top:1.1rem; border:1px solid rgba(221,201,158,.42); border-radius:8px; background:linear-gradient(135deg,rgba(221,201,158,.18),rgba(221,201,158,.035)); transform:translateZ(20px);}
+  .axis-pull-card__chip::before,.axis-pull-card__chip::after{content:''; position:absolute; background:rgba(221,201,158,.35);}
+  .axis-pull-card__chip::before{left:50%; top:0; bottom:0; width:1px;}
+  .axis-pull-card__chip::after{top:50%; left:0; right:0; height:1px;}
+  .axis-pull-card__bottom{display:flex; align-items:center; justify-content:space-between; gap:.8rem; margin-top:auto; padding-top:.8rem; border-top:1px solid rgba(255,255,255,.11); color:var(--dimmer); font:500 .52rem 'DM Mono',monospace; letter-spacing:.12em; text-transform:uppercase; transform:translateZ(18px);}
+  .axis-pull-card__serial{color:var(--gold);}
+  .axis-pull-card.is-dragging .axis-pull-card__face::before{animation:lanyardGlint .7s ease both;}
+  @keyframes lanyardGlint{to{transform:translateX(125%);}}
+  .axis-pull-prompt{position:absolute; left:clamp(1.1rem,8vw,7rem); right:auto; bottom:max(2.7rem,7vh); z-index:3; display:flex; align-items:flex-start; justify-content:center; flex-direction:column; gap:.65rem; text-align:left; pointer-events:none;}
+  .axis-pull-prompt__icon{display:grid; place-items:center; width:38px; height:38px; border:1px solid rgba(221,201,158,.36); border-radius:50%; color:var(--gold-hi); animation:pullCue 1.6s ease-in-out infinite;}
+  .axis-pull-prompt__icon svg{width:16px; height:16px;}
+  .axis-pull-prompt__text{color:var(--gold-hi); font:500 .62rem 'DM Mono',monospace; letter-spacing:.17em; text-transform:uppercase; transition:color .2s;}
+  .axis-pull-prompt__sub{color:var(--dimmer); font:400 .58rem 'DM Mono',monospace; letter-spacing:.07em; text-transform:uppercase;}
+  .axis-pull-prompt.is-ready .axis-pull-prompt__text{color:#fff;}
+  .axis-pull-prompt.is-ready .axis-pull-prompt__icon{background:rgba(184,169,138,.14); border-color:var(--gold);}
+  @keyframes pullCue{0%,100%{transform:translateY(0);box-shadow:0 0 0 0 rgba(221,201,158,0);}50%{transform:translateY(-5px);box-shadow:0 0 0 8px rgba(221,201,158,.045);}}
+  .axis-pull-intro.is-leaving{transform:translateY(-105%); transition:transform .9s cubic-bezier(.76,0,.24,1); pointer-events:none;}
+  .axis-pull-intro.is-visible .axis-pull-card{animation:axisCardFall 1.2s cubic-bezier(.16,1,.3,1) both;}
+  @keyframes axisCardFall{from{opacity:0;transform:translate(-50%,-90vh) rotate(-12deg) scale(.82);}to{opacity:1;transform:translate(-50%,0) rotate(0) scale(1);}}
+  html.lite .axis-pull-prompt__icon{animation:none;}
+  @media(max-width:600px){
+    .axis-pull-intro__copy{top:clamp(5.6rem,12vh,7.2rem);}
+    .axis-pull-intro__copy p{font-size:.76rem;}
+    .axis-pull-card{top:24vh; width:min(252px,76vw); height:min(330px,47vh); min-height:296px;}
+    .axis-pull-card__face{padding:1.05rem 1.1rem .95rem;}
+    .axis-pull-card__label{margin-top:1rem;}
+    .axis-pull-card__chip{margin-top:.85rem;}
+  }
+  @media(max-height:660px){
+    .axis-pull-intro__copy{top:4.2rem;}
+    .axis-pull-card{top:9.2rem; height:min(245px,43vh); min-height:220px;}
+    .axis-pull-card__face{padding:.8rem 1rem .75rem;}
+    .axis-pull-card__label{margin-top:.65rem;}
+    .axis-pull-card__chip{width:39px; height:29px; margin-top:.55rem;}
+    .axis-pull-prompt{bottom:1rem;}
+  }
+  @media(prefers-reduced-motion:reduce){.axis-pull-prompt__icon{animation:none;}}
 </style>
 </head>
 <body>
@@ -1996,6 +2088,46 @@ window.__isLowEndHardware = (
   </div>
 </footer>
 
+<div class="axis-pull-intro" id="axisPullIntro" aria-hidden="true" hidden>
+  <div class="axis-pull-intro__top">
+    <div class="axis-pull-intro__brand"><img src="assets/axis-mark.webp" alt=""><span>AXIS Digital Engineering</span></div>
+    <button type="button" class="axis-pull-intro__skip" id="axisPullSkip">Skip intro <span aria-hidden="true">↗</span></button>
+  </div>
+  <div class="axis-pull-intro__copy" id="axisPullCopy">
+    <div class="axis-pull-intro__eyebrow">A different way in</div>
+    <h1>Pull the page into view.</h1>
+    <p>Take hold of the AXIS pass and pull upward.</p>
+  </div>
+  <svg class="axis-pull-intro__cord" id="axisPullCord" aria-hidden="true" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="axisCordGradient" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0" stop-color="#8f8063"/>
+        <stop offset=".52" stop-color="#ddc99e"/>
+        <stop offset="1" stop-color="#f5e7c5"/>
+      </linearGradient>
+    </defs>
+    <path class="axis-pull-intro__cord-glow" id="axisPullCordGlow" d="M 50 100 C 50 80 50 50 50 40"/>
+    <path class="axis-pull-intro__cord-line" id="axisPullCordLine" d="M 50 100 C 50 80 50 50 50 40"/>
+    <circle class="axis-pull-intro__anchor" id="axisPullAnchor" cx="50" cy="99" r="8"/>
+    <circle class="axis-pull-intro__anchor-core" id="axisPullAnchorCore" cx="50" cy="99" r="2.2"/>
+  </svg>
+  <button type="button" class="axis-pull-card" id="axisPullCard" aria-describedby="axisPullHint" aria-label="Pull the AXIS access pass upward to enter the website">
+    <span class="axis-pull-card__face">
+      <span class="axis-pull-card__brand"><img src="assets/axis-mark.webp" alt=""><span>AXIS<br>Digital Engineering</span></span>
+      <span class="axis-pull-card__label">Portfolio access / 001</span>
+      <span class="axis-pull-card__name">DEAREN<br><span>PORICE</span></span>
+      <span class="axis-pull-card__role">Founder · Creative Engineer</span>
+      <span class="axis-pull-card__chip" aria-hidden="true"></span>
+      <span class="axis-pull-card__bottom"><span>Seychelles</span><span class="axis-pull-card__serial">AX / 01</span></span>
+    </span>
+  </button>
+  <div class="axis-pull-prompt" id="axisPullHint" aria-live="polite">
+    <span class="axis-pull-prompt__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span>
+    <span class="axis-pull-prompt__text" id="axisPullHintText">Pull up to enter</span>
+    <span class="axis-pull-prompt__sub">or tap the pass</span>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -2233,6 +2365,154 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
   });
   document.addEventListener('projects-updated',e => updateProjects(e.detail));
   updateProjects(window.__latestProjects || []);
+})();
+
+/* ═══════════ Pull-to-enter lanyard intro ═══════════ */
+(function(){
+  const intro = document.getElementById('axisPullIntro');
+  const card = document.getElementById('axisPullCard');
+  const skip = document.getElementById('axisPullSkip');
+  const hint = document.getElementById('axisPullHint');
+  const hintText = document.getElementById('axisPullHintText');
+  const cord = document.getElementById('axisPullCord');
+  const cordLine = document.getElementById('axisPullCordLine');
+  const cordGlow = document.getElementById('axisPullCordGlow');
+  const anchor = document.getElementById('axisPullAnchor');
+  const anchorCore = document.getElementById('axisPullAnchorCore');
+  if(!intro || !card || !skip || !hintText || !cordLine) return;
+
+  const root = document.documentElement;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const seenKey = 'axisPullIntroSeen';
+  let drag = null, idleTween = null, timeline = null, finished = false, suppressClick = false;
+  const hasSeen = () => { try{ return sessionStorage.getItem(seenKey) === '1'; }catch(e){ return false; } };
+  const markSeen = () => { try{ sessionStorage.setItem(seenKey,'1'); }catch(e){} };
+  const clamp = (n,min,max) => Math.max(min,Math.min(max,n));
+
+  function updateCord(){
+    if(intro.hidden) return;
+    const r = card.getBoundingClientRect();
+    const w = innerWidth, h = innerHeight;
+    const ax = w * .5, ay = h - Math.max(66,Math.min(92,h * .105));
+    const bx = r.left + r.width * .5, by = r.bottom - 9;
+    const dx = bx - ax, dy = ay - by;
+    const tension = Number(card.dataset.tension || 0);
+    const sway = Math.sin(performance.now() / 690) * (11 * (1 - tension)) + (Number(window.gsap && window.gsap.getProperty(card,'x')) || 0) * .12;
+    const bow = 25 * (1 - tension);
+    const d = `M ${ax.toFixed(1)} ${ay.toFixed(1)} C ${(ax + dx * .18 + sway).toFixed(1)} ${(ay - dy * .38).toFixed(1)}, ${(bx - dx * .14 + sway * .45).toFixed(1)} ${(by + dy * .34).toFixed(1)}, ${bx.toFixed(1)} ${by.toFixed(1)}`;
+    cord.setAttribute('viewBox',`0 0 ${w} ${h}`);
+    cordLine.setAttribute('d',d); cordGlow.setAttribute('d',d);
+    anchor.setAttribute('cx',ax); anchor.setAttribute('cy',ay);
+    anchorCore.setAttribute('cx',ax); anchorCore.setAttribute('cy',ay);
+    cordLine.style.strokeWidth = String(2.2 + tension * 1.6);
+    cordGlow.style.opacity = String(.65 + tension * .3);
+    cord.dataset.bow = String(bow);
+  }
+  function startIdle(){
+    if(!window.gsap || finished || document.documentElement.classList.contains('lite')) return;
+    if(idleTween) idleTween.kill();
+    idleTween = gsap.to(card,{rotationZ:1.8,duration:2.2,repeat:-1,yoyo:true,ease:'sine.inOut',onUpdate:updateCord});
+  }
+  function show(){
+    if(finished || hasSeen() || reduced.matches) return;
+    intro.hidden = false; intro.setAttribute('aria-hidden','false');
+    document.body.classList.add('axis-pull-open');
+    card.disabled = true;
+    updateCord();
+    if(window.gsap){
+      gsap.set(card,{x:0,y:-innerHeight * .82,rotationX:-16,rotationY:15,rotationZ:-10,scale:.82,autoAlpha:0});
+      gsap.set([cordLine,cordGlow],{autoAlpha:0});
+      gsap.fromTo(document.getElementById('axisPullCopy'),{autoAlpha:0,y:12},{autoAlpha:1,y:0,duration:.6,delay:.16,ease:'power2.out'});
+      gsap.to(card,{x:0,y:0,rotationX:0,rotationY:0,rotationZ:0,scale:1,autoAlpha:1,duration:1.35,delay:.14,ease:'elastic.out(1,.58)',onUpdate:updateCord,onComplete:() => {
+        if(finished) return;
+        card.disabled = false;
+        gsap.to([cordLine,cordGlow],{autoAlpha:1,duration:.4});
+        gsap.fromTo(hint,{autoAlpha:0,y:10},{autoAlpha:1,y:0,duration:.45,ease:'power2.out'});
+        startIdle();
+      }});
+    }else{
+      card.style.opacity = '1'; cordLine.style.opacity = '1'; cordGlow.style.opacity = '.8';
+      intro.classList.add('is-visible');
+      setTimeout(() => { card.disabled = false; intro.classList.remove('is-visible'); },1250);
+    }
+  }
+  function finish(){
+    if(finished) return;
+    finished = true; markSeen();
+    card.disabled = true;
+    if(idleTween) idleTween.kill();
+    if(timeline) timeline.kill();
+    card.classList.remove('is-dragging');
+    hintText.textContent = 'Opening AXIS';
+    if(window.gsap){
+      gsap.killTweensOf(card);
+      timeline = gsap.timeline({onComplete:() => {
+        intro.hidden = true; intro.setAttribute('aria-hidden','true');
+        intro.classList.remove('is-visible'); document.body.classList.remove('axis-pull-open');
+        gsap.set(intro,{clearProps:'transform,opacity,visibility'});
+      }});
+      timeline.to(card,{y:-innerHeight * .9,rotationZ:-9,rotationY:-12,scale:.76,duration:.58,ease:'back.in(1.7)'},0)
+        .to([cordLine,cordGlow],{autoAlpha:0,duration:.26,ease:'power2.in'},.08)
+        .to(intro,{yPercent:-105,duration:.98,ease:'power4.inOut'},.18);
+    }else{
+      intro.classList.add('is-leaving');
+      setTimeout(() => { intro.hidden = true; intro.setAttribute('aria-hidden','true'); intro.classList.remove('is-leaving','is-visible'); document.body.classList.remove('axis-pull-open'); },900);
+    }
+  }
+  function resetCard(){
+    card.classList.remove('is-dragging');
+    card.dataset.tension = '0';
+    hint.classList.remove('is-ready'); hintText.textContent = 'Pull up to enter';
+    if(window.gsap){
+      gsap.to(card,{x:0,y:0,rotationX:0,rotationY:0,rotationZ:0,scale:1,duration:.85,ease:'elastic.out(1,.45)',onUpdate:updateCord,onComplete:startIdle});
+    }else{ card.style.transform='translateX(-50%)'; updateCord(); }
+  }
+  card.addEventListener('pointerdown',e => {
+    if(finished || card.disabled || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    drag = { id:e.pointerId,x:e.clientX,y:e.clientY,baseX:Number(window.gsap && window.gsap.getProperty(card,'x')) || 0 };
+    if(idleTween) idleTween.kill();
+    if(window.gsap) gsap.killTweensOf(card);
+    card.classList.add('is-dragging');
+    try{ card.setPointerCapture(e.pointerId); }catch(err){}
+    e.preventDefault();
+  });
+  card.addEventListener('pointermove',e => {
+    if(!drag || drag.id !== e.pointerId) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    const y = clamp(dy,-innerHeight * .38,70), x = clamp(drag.baseX + dx * .3,-66,66);
+    const tension = clamp(Math.max(0,-y) / 150,0,1);
+    card.dataset.tension = tension.toFixed(3);
+    if(window.gsap){
+      gsap.set(card,{x,y,rotationX:clamp(-dy * .045,-15,15),rotationY:clamp(dx * .075,-18,18),rotationZ:clamp(dx * .025,-8,8)});
+    }else card.style.transform = `translateX(calc(-50% + ${x}px)) translateY(${y}px) rotate(${clamp(dx * .025,-8,8)}deg)`;
+    hint.classList.toggle('is-ready',y < -112);
+    hintText.textContent = y < -112 ? 'Release to enter' : y < -46 ? 'Keep pulling...' : 'Pull up to enter';
+    updateCord();
+  });
+  function endDrag(e){
+    if(!drag || drag.id !== e.pointerId) return;
+    const y = clamp(e.clientY - drag.y,-innerHeight * .38,70);
+    const dx = e.clientX - drag.x;
+    drag = null;
+    if(Math.abs(y) > 8 || Math.abs(dx) > 8){
+      suppressClick = true; setTimeout(() => { suppressClick = false; },220);
+    }
+    if(y < -112) finish(); else resetCard();
+  }
+  card.addEventListener('pointerup',endDrag);
+  card.addEventListener('pointercancel',e => { if(drag && drag.id === e.pointerId){ drag = null; resetCard(); } });
+  card.addEventListener('click',e => { if(suppressClick){ e.preventDefault(); return; } finish(); });
+  card.addEventListener('keydown',e => {
+    if(e.key === 'ArrowUp'){ e.preventDefault(); finish(); }
+  });
+  skip.addEventListener('click',finish);
+  window.addEventListener('resize',updateCord,{passive:true});
+  function schedule(){
+    if(hasSeen() || reduced.matches) return;
+    setTimeout(show,1550); // let the existing AXIS loading screen finish first
+  }
+  if(root.classList.contains('nav-ready')) schedule();
+  else window.addEventListener('axis:ready',schedule,{once:true});
 })();
 
 (function(){
