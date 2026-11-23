@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1440">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#171a21"/><stop offset="1" stop-color="#090b10"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#a38d64"/><stop offset=".5" stop-color="#f0dfb5"/><stop offset="1" stop-color="#a38d64"/></linearGradient>
+  </defs>
+  <rect width="1024" height="1440" rx="72" fill="url(#bg)"/>
+  <rect x="26" y="26" width="972" height="1388" rx="52" fill="none" stroke="#ffffff" stroke-opacity=".12" stroke-width="2"/>
+  <text x="512" y="184" text-anchor="middle" fill="#b8a98a" font-family="Arial,sans-serif" font-size="22" letter-spacing="8">AXIS DIGITAL ENGINEERING</text>
+  <path d="M132 244h760" stroke="#ddc99e" stroke-opacity=".4" stroke-width="2"/>
+  <image href="axis-mark.webp" x="292" y="338" width="440" height="294" preserveAspectRatio="xMidYMid meet"/>
+  <text x="512" y="718" text-anchor="middle" fill="#f5f6f8" font-family="Arial,sans-serif" font-size="56" font-weight="600" letter-spacing="9">BUILT TO MOVE</text>
+  <text x="512" y="778" text-anchor="middle" fill="#aeb0b7" font-family="Arial,sans-serif" font-size="22" letter-spacing="4">DIGITAL EXPERIENCES FOR BUSINESS</text>
+  <path d="M132 866h760" stroke="#ddc99e" stroke-opacity=".4" stroke-width="2"/>
+  <g fill="none" stroke="url(#gold)" stroke-width="3" opacity=".66">
+    <path d="M172 966h170v170H172zM198 992h118v118H198zM224 1018h66v66h-66z"/>
+    <path d="M682 966h170v170H682zM708 992h118v118H708zM734 1018h66v66h-66z"/>
+    <path d="M427 966h54v54h-54zM497 966h54v54h-54zM567 966h54v54h-54zM392 1040h54v54h-54zM462 1040h54v54h-54zM532 1040h54v54h-54zM602 1040h54v54h-54zM427 1114h54v54h-54zM497 1114h54v54h-54zM567 1114h54v54h-54z"/>
+  </g>
+  <text x="512" y="1262" text-anchor="middle" fill="#ddc99e" font-family="Arial,sans-serif" font-size="24" letter-spacing="6">PULL TO OPEN THE ARCHIVE</text>
+  <text x="512" y="1322" text-anchor="middle" fill="#858993" font-family="Arial,sans-serif" font-size="17" letter-spacing="4">SEYCHELLES · EST. 2024</text>
+</svg>
