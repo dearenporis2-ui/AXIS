@@ -972,6 +972,7 @@
   .price-grid--4{grid-template-columns:repeat(4,1fr);}
   .price-grid--3{grid-template-columns:repeat(3,1fr);}
   .price-carousel-controls{display:none;}
+  .price-carousel-dots{display:none;}
   .price-card{display:flex; flex-direction:column; padding:2rem 1.7rem 1.7rem; border-radius:var(--r-lg);}
   .price-card--hi{border-color:rgba(184,169,138,.6); box-shadow:0 0 0 1px rgba(184,169,138,.35), 0 24px 70px rgba(184,169,138,.12), var(--glass-shadow);}
   .price-top{display:flex; align-items:center; justify-content:space-between; gap:.6rem; min-height:1.6rem; margin-bottom:.8rem;}
@@ -1124,25 +1125,22 @@
     .tpl-foot{padding-top:.45rem; gap:.5rem; font-size:.62rem;}
     .tpl-modal{align-items:flex-end; padding:.65rem;}
     .tpl-dialog{width:100%; max-height:calc(100dvh - 1.3rem); overflow:auto; border-radius:18px;}
-    .price-carousel{width:100%;}
+    .price-carousel{position:relative; width:100%; height:clamp(470px,68vh,560px); height:clamp(470px,68svh,560px); perspective:1100px; touch-action:pan-y; user-select:none;}
     .price-carousel .price-grid{
-      width:100%; max-width:none; display:grid; grid-auto-flow:column;
-      grid-auto-columns:min(90%,420px); grid-template-columns:none; gap:.75rem;
-      overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory;
-      scroll-padding-inline:.15rem; padding:.15rem .15rem .7rem;
-      scrollbar-width:none; -webkit-overflow-scrolling:touch;
+      position:relative; width:100%; height:100%; max-width:none; display:block;
+      transform-style:preserve-3d; overflow:visible;
     }
-    .price-carousel .price-grid::-webkit-scrollbar{display:none;}
-    .price-carousel .price-card{min-width:0; scroll-snap-align:start;}
-    .price-carousel-controls{display:flex; align-items:center; justify-content:flex-end; gap:.75rem; margin-top:.15rem;}
-    .price-carousel-arrow{
-      display:grid; place-items:center; width:40px; height:40px; padding:0;
-      border:1px solid var(--glass-border); border-radius:50%;
-      background:var(--glass-fill); color:var(--gold-hi); font:400 1.5rem/1 'Outfit',sans-serif;
-      cursor:pointer; -webkit-tap-highlight-color:transparent;
+    .price-carousel .price-card{
+      position:absolute; top:50%; left:50%; width:min(86%,400px); height:100%; min-width:0;
+      overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:rgba(184,169,138,.45) transparent;
+      backface-visibility:hidden; transform-style:preserve-3d; will-change:transform,opacity,filter;
+      transition:transform .62s cubic-bezier(.22,1,.36,1), opacity .4s ease, filter .4s ease;
+      -webkit-tap-highlight-color:transparent;
     }
-    .price-carousel-arrow:disabled{opacity:.35; cursor:default;}
-    .price-carousel-count{min-width:3.5em; text-align:center; color:var(--dim); font:500 .7rem 'DM Mono',monospace; letter-spacing:.08em;}
+    .price-carousel-controls{display:block; position:absolute; inset:0; z-index:20; pointer-events:none;}
+    .price-carousel-arrow{pointer-events:auto; -webkit-tap-highlight-color:transparent;}
+    .price-carousel-dots{display:flex;}
+    .price-carousel-dots{position:relative; z-index:21; margin-top:1rem;}
     .price-grid--4{gap:.7rem;}
     .price-grid--3{gap:.7rem;}
     .price-card{padding:1.2rem 1.1rem 1.1rem; border-radius:18px;}
@@ -1154,8 +1152,9 @@
     .price-list li{padding-left:1.3rem; font-size:.81rem; line-height:1.4;}
     .price-btn{min-height:44px;}
     .bill-row{gap:.8rem; margin-bottom:1rem;}
-    .bill-toggle{max-width:100%;}
-    .bill-btn{padding:.55rem .8rem; font-size:.76rem;}
+    .bill-toggle{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:2px; width:100%; max-width:100%;}
+    .bill-btn{min-width:0; min-height:50px; flex-direction:column; justify-content:center; gap:.2rem; padding:.4rem .2rem; font-size:.7rem; line-height:1.1; white-space:normal;}
+    .bill-save{margin:0; padding:.14rem .25rem; font-size:.46rem; letter-spacing:.03em;}
   }
   @media(max-width:380px){
     .tpl-card{grid-template-columns:92px minmax(0,1fr); min-height:124px;}
@@ -1163,7 +1162,8 @@
     .tpl-body{padding:.7rem .75rem;}
     .tpl-card h3{font-size:.94rem;}
     .tpl-card p{font-size:.74rem;}
-    .price-card{padding:1.05rem .9rem .95rem;}
+    .price-carousel{height:clamp(450px,68vh,540px); height:clamp(450px,68svh,540px);}
+    .price-carousel .price-card{width:calc(100% - 42px); padding:1.05rem .9rem .95rem;}
   }
   @media(hover:none){
     .svc-card:hover, .svc-card--link:hover{transform:none;}
@@ -1171,6 +1171,7 @@
     .tpl-card:hover .tpl-media img{transform:none;}
     .tpl-card:hover .tpl-view svg{transform:none;}
   }
+  @media(prefers-reduced-motion:reduce){.price-carousel .price-card{transition:none;}}
 </style>
 </head>
 <body>
@@ -1625,7 +1626,7 @@ window.__isLowEndHardware = (
     </div>
 
     <div class="price-panel" role="tabpanel" id="panel-dev" aria-labelledby="tab-dev">
-      <div class="price-carousel">
+      <div class="price-carousel" role="group" aria-roledescription="carousel" aria-label="Website development pricing">
       <div class="price-grid price-grid--4" id="priceDevTrack">
         <article class="price-card glass">
           <div class="glass-sheen"></div>
@@ -1691,31 +1692,32 @@ window.__isLowEndHardware = (
           <a href="#contact" class="btn btn-ghost price-btn" data-plan="Custom Web Platform · SCR 25,000 – 45,000+" data-demo="true">Request free demo</a>
         </article>
       </div>
-      <div class="price-carousel-controls" aria-label="Website development pricing cards">
-        <button type="button" class="price-carousel-arrow" data-price-step="-1" aria-label="Previous pricing card">‹</button>
-        <span class="price-carousel-count" aria-live="polite">1 / 4</span>
-        <button type="button" class="price-carousel-arrow" data-price-step="1" aria-label="Next pricing card">›</button>
+      <div class="price-carousel-controls">
+        <button type="button" class="depth-carousel__arrow depth-carousel__arrow--prev price-carousel-arrow" data-price-step="-1" aria-label="Previous pricing card"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="depth-carousel__arrow depth-carousel__arrow--next price-carousel-arrow" data-price-step="1" aria-label="Next pricing card"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
+      <div class="depth-carousel__dots price-carousel-dots" role="tablist" aria-label="Website development pricing cards"></div>
       </div>
       <p class="price-caption">All builds follow a 50% upfront deposit (after demo approval) and 50% upon launch.</p>
     </div>
 
     <div class="price-panel" role="tabpanel" id="panel-care" aria-labelledby="tab-care" hidden>
       <div class="bill-row">
-        <p class="price-caption">All-inclusive hosting, annual domain renewal (.com, .co, .org, .net, .online), and dedicated engineering support. Save with quarterly billing.</p>
+        <p class="price-caption">All-inclusive hosting, annual domain renewal (.com, .co, .org, .net, .online), and dedicated engineering support. Save with quarterly or yearly billing.</p>
         <div class="bill-toggle" role="group" aria-label="Billing period">
           <button type="button" class="bill-btn" data-bill="m" aria-pressed="true">Monthly</button>
           <button type="button" class="bill-btn" data-bill="q" aria-pressed="false">Quarterly <span class="bill-save" id="billSave">Save up to 29%</span></button>
+          <button type="button" class="bill-btn" data-bill="y" aria-pressed="false">Yearly <span class="bill-save">(Save Most)</span></button>
         </div>
       </div>
-      <div class="price-carousel">
+      <div class="price-carousel" role="group" aria-roledescription="carousel" aria-label="Hosting and care pricing">
       <div class="price-grid price-grid--3" id="priceCareTrack">
         <article class="price-card glass" data-care="Essential Hosting">
           <div class="glass-sheen"></div>
           <div class="price-top"></div>
           
           <h3>Essential Hosting</h3>
-          <div class="price-amount" data-m="450" data-q="1200"><span class="cur">SCR</span><span class="num">450</span><span class="per">/ mo</span></div>
+          <div class="price-amount" data-m="450" data-q="1200" data-y="4500"><span class="cur">SCR</span><span class="num">450</span><span class="per">/ mo</span></div>
           <div class="price-sub"></div>
           <p class="price-desc">All-in-one infrastructure for static sites that rarely need updates.</p>
           <ul class="price-list">
@@ -1730,7 +1732,7 @@ window.__isLowEndHardware = (
           <div class="glass-sheen"></div>
           <div class="price-top"><span class="price-badge">Recommended</span></div>
           <h3>Managed Growth</h3>
-          <div class="price-amount" data-m="1500" data-q="3750"><span class="cur">SCR</span><span class="num">1,500</span><span class="per">/ mo</span></div>
+          <div class="price-amount" data-m="1500" data-q="3750" data-y="14400"><span class="cur">SCR</span><span class="num">1,500</span><span class="per">/ mo</span></div>
           <div class="price-sub"></div>
           <p class="price-desc">Hands-off updates, domain coverage, and active care for growing businesses.</p>
           <ul class="price-list">
@@ -1746,7 +1748,7 @@ window.__isLowEndHardware = (
           <div class="price-top"></div>
           
           <h3>Platform Care</h3>
-          <div class="price-amount" data-m="3500" data-q="7500"><span class="cur">SCR</span><span class="num">3,500</span><span class="per">/ mo</span></div>
+          <div class="price-amount" data-m="3500" data-q="7500" data-y="27000"><span class="cur">SCR</span><span class="num">3,500</span><span class="per">/ mo</span></div>
           <div class="price-sub"></div>
           <p class="price-desc">Priority engineering support for live databases and booking platforms.</p>
           <ul class="price-list">
@@ -1758,11 +1760,11 @@ window.__isLowEndHardware = (
           <a href="#contact" class="btn btn-ghost price-btn" data-plan="Platform Care">Choose this plan</a>
         </article>
       </div>
-      <div class="price-carousel-controls" aria-label="Hosting and care pricing cards">
-        <button type="button" class="price-carousel-arrow" data-price-step="-1" aria-label="Previous pricing card">‹</button>
-        <span class="price-carousel-count" aria-live="polite">1 / 3</span>
-        <button type="button" class="price-carousel-arrow" data-price-step="1" aria-label="Next pricing card">›</button>
+      <div class="price-carousel-controls">
+        <button type="button" class="depth-carousel__arrow depth-carousel__arrow--prev price-carousel-arrow" data-price-step="-1" aria-label="Previous pricing card"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="depth-carousel__arrow depth-carousel__arrow--next price-carousel-arrow" data-price-step="1" aria-label="Next pricing card"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
+      <div class="depth-carousel__dots price-carousel-dots" role="tablist" aria-label="Hosting and care pricing cards"></div>
       </div>
     </div>
   </div>
@@ -4607,38 +4609,85 @@ void main() {
   window.addEventListener('resize', fitFolders);
   fitFolders();
 
-  /* Mobile pricing carousel: swipe cards or use the previous/next buttons. */
+  /* Mobile pricing carousel: match the depth stack, arrows and dot navigation in Selected work. */
   root.querySelectorAll('.price-carousel').forEach(carousel => {
     const track = carousel.querySelector('.price-grid');
     if(!track) return;
     const cards = Array.from(track.querySelectorAll('.price-card'));
-    const count = carousel.querySelector('.price-carousel-count');
+    const dots = carousel.querySelector('.price-carousel-dots');
     const buttons = Array.from(carousel.querySelectorAll('[data-price-step]'));
-    if(!cards.length || !count || buttons.length !== 2) return;
-    let index = 0, frame = 0;
-    function update(){
-      frame = 0;
-      index = cards.reduce((best, card, i) => {
-        const trackLeft = track.getBoundingClientRect().left;
-        const currentDistance = Math.abs(card.getBoundingClientRect().left - trackLeft - 2);
-        const bestDistance = Math.abs(cards[best].getBoundingClientRect().left - trackLeft - 2);
-        return currentDistance < bestDistance ? i : best;
-      }, 0);
-      count.textContent = (index + 1) + ' / ' + cards.length;
-      buttons.forEach(button => {
-        const step = Number(button.dataset.priceStep);
-        button.disabled = step < 0 ? index === 0 : index === cards.length - 1;
+    if(!cards.length || !dots || buttons.length !== 2) return;
+    let index = 0, dragStart = null, suppressClick = false;
+    const mobilePricing = matchMedia('(max-width:680px)');
+    const dotButtons = cards.map((card, i) => {
+      card.setAttribute('aria-roledescription','slide');
+      card.setAttribute('aria-label',(i + 1) + ' of ' + cards.length);
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'depth-carousel__dot' + (i === 0 ? ' is-active' : '');
+      dot.setAttribute('role','tab');
+      dot.setAttribute('aria-label','Go to pricing card ' + (i + 1));
+      dot.setAttribute('aria-selected',String(i === 0));
+      dot.addEventListener('click',() => setIndex(i));
+      dots.appendChild(dot);
+      return dot;
+    });
+    function layout(){
+      if(!mobilePricing.matches){
+        cards.forEach(card => {
+          ['transform','opacity','filter','z-index','pointer-events'].forEach(prop => card.style.removeProperty(prop));
+          card.removeAttribute('aria-hidden');
+          card.inert = false;
+        });
+        return;
+      }
+      const n = cards.length;
+      const xStep = Math.min(track.clientWidth * .14, 48);
+      cards.forEach((card, i) => {
+        let d = i - index;
+        if(n > 1){ d = ((d % n) + n) % n; if(d > n / 2) d -= n; }
+        const abs = Math.abs(d), visible = abs <= 2;
+        const x = d * xStep;
+        const scale = 1 - Math.min(abs, 3) * .075;
+        const rotate = d === 0 ? 0 : d * -7;
+        card.style.transform = `translate(-50%,-50%) translateX(${x}px) translateZ(${-abs * 82}px) scale(${scale}) rotateY(${rotate}deg)`;
+        card.style.opacity = visible ? (abs === 2 ? '.28' : abs === 1 ? '.68' : '1') : '0';
+        card.style.filter = `brightness(${1 - Math.min(abs * .16,.45)})`;
+        card.style.zIndex = String(10 - abs);
+        card.style.pointerEvents = d === 0 ? 'auto' : 'none';
+        card.setAttribute('aria-hidden',String(d !== 0));
+        card.inert = d !== 0;
+        dotButtons[i].classList.toggle('is-active',d === 0);
+        dotButtons[i].setAttribute('aria-selected',String(d === 0));
       });
     }
-    track.addEventListener('scroll', () => {
-      if(!frame) frame = requestAnimationFrame(update);
-    }, { passive:true });
-    buttons.forEach(button => button.addEventListener('click', () => {
-      const next = Math.max(0, Math.min(cards.length - 1, index + Number(button.dataset.priceStep)));
-      const left = track.scrollLeft + cards[next].getBoundingClientRect().left - track.getBoundingClientRect().left - 2;
-      track.scrollTo({ left, behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-    }));
-    update();
+    function setIndex(next){ index = (next + cards.length) % cards.length; layout(); }
+    buttons.forEach(button => button.addEventListener('click',() => setIndex(index + Number(button.dataset.priceStep))));
+    carousel.addEventListener('keydown',e => {
+      if(e.key === 'ArrowLeft'){ e.preventDefault(); setIndex(index - 1); }
+      else if(e.key === 'ArrowRight'){ e.preventDefault(); setIndex(index + 1); }
+    });
+    carousel.addEventListener('pointerdown',e => {
+      if(e.target.closest('button,a') || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      dragStart = { x:e.clientX, y:e.clientY };
+    });
+    carousel.addEventListener('pointerup',e => {
+      if(!dragStart) return;
+      const dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
+      dragStart = null;
+      if(Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy)){
+        suppressClick = true;
+        setIndex(index + (dx < 0 ? 1 : -1));
+        setTimeout(() => { suppressClick = false; },250);
+      }
+    });
+    carousel.addEventListener('pointercancel',() => { dragStart = null; });
+    carousel.addEventListener('click',e => {
+      if(!suppressClick) return;
+      e.preventDefault(); e.stopPropagation();
+    },true);
+    layout();
+    window.addEventListener('resize',layout,{passive:true});
   });
 
   /* folders lean toward the pointer (desktop only, off in lite mode / reduced motion) */
@@ -4775,7 +4824,7 @@ void main() {
     if(care.length && careMeta) careMeta.textContent = 'From SCR ' + Math.min.apply(null, care).toLocaleString('en-US') + ' / mo';
   })();
 
-  /* monthly / quarterly (savings are worked out from the prices themselves) */
+  /* Monthly, quarterly and yearly retainer prices */
   const careCards = Array.from(root.querySelectorAll('.price-card[data-care]'));
   const saving = el => 1 - Number(el.dataset.q) / (3 * Number(el.dataset.m));
   const maxSave = Math.max.apply(null, careCards.map(c => saving(c.querySelector('.price-amount'))));
@@ -4785,14 +4834,21 @@ void main() {
   function renderBilling(animate){
     careCards.forEach(card => {
       const amt = card.querySelector('.price-amount');
-      const m = Number(amt.dataset.m), q = Number(amt.dataset.q), pct = Math.round(saving(amt) * 100);
-      amt.querySelector('.num').textContent = fmt(billing === 'q' ? q : m);
-      amt.querySelector('.per').textContent = billing === 'q' ? '/ qtr' : '/ mo';
+      const m = Number(amt.dataset.m), q = Number(amt.dataset.q), y = Number(amt.dataset.y);
+      const pct = Math.round(saving(amt) * 100);
+      amt.querySelector('.num').textContent = fmt(billing === 'q' ? q : billing === 'y' ? y : m);
+      amt.querySelector('.per').textContent = billing === 'q' ? '/ qtr' : billing === 'y' ? '/ yr' : '/ mo';
       card.querySelector('.price-sub').textContent = billing === 'q'
         ? 'SCR ' + fmt(q / 3) + '/mo · save ' + pct + '%'
-        : 'or SCR ' + fmt(q) + ' / qtr · save ' + pct + '%';
-      card.querySelector('.price-btn').dataset.plan = card.dataset.care + ' (' +
-        (billing === 'q' ? 'quarterly, SCR ' + fmt(q) + ' / qtr' : 'monthly, SCR ' + fmt(m) + ' / mo') + ')';
+        : billing === 'y'
+          ? 'SCR ' + fmt(y / 12) + '/mo — Save SCR ' + fmt(m * 12 - y)
+          : 'or SCR ' + fmt(q) + ' / qtr · save ' + pct + '%';
+      const planText = billing === 'q'
+        ? 'quarterly, SCR ' + fmt(q) + ' / qtr'
+        : billing === 'y'
+          ? 'yearly (12 months), SCR ' + fmt(y) + ' / yr'
+          : 'monthly, SCR ' + fmt(m) + ' / mo';
+      card.querySelector('.price-btn').dataset.plan = card.dataset.care + ' (' + planText + ')';
       if(animate){ amt.classList.remove('swap'); void amt.offsetWidth; amt.classList.add('swap'); }
     });
   }
