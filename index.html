@@ -2326,6 +2326,8 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
   }
   function beginPullPreview(){
     if(pullPreviewActive || pullPreviewSettling) return;
+    if(window.gsap){ gsap.killTweensOf(gallery); gsap.set(gallery,{clearProps:'opacity,visibility,transform'}); }
+    else { gallery.style.removeProperty('opacity'); gallery.style.removeProperty('visibility'); gallery.style.removeProperty('transform'); }
     pullPreviewActive = true;
     gallery.hidden = false;
     gallery.setAttribute('aria-hidden','true');
@@ -2390,6 +2392,8 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
     const finish = () => {
       gallery.classList.remove('open'); gallery.hidden = true;
       gallery.setAttribute('aria-hidden','true');
+      if(window.gsap){ gsap.killTweensOf(gallery); gsap.set(gallery,{clearProps:'opacity,visibility,transform'}); }
+      else { gallery.style.removeProperty('opacity'); gallery.style.removeProperty('visibility'); gallery.style.removeProperty('transform'); }
       document.body.classList.remove('portfolio-gallery-open');
       resetLanyardCard();
       if(returnFocus && returnFocus.isConnected) returnFocus.focus({preventScroll:true});
