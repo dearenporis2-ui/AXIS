@@ -2266,7 +2266,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
     }
     lanyardLoad = new Promise((resolve,reject) => {
       const script = document.createElement('script');
-      script.src = 'assets/axis-lanyard.bundle.js'; script.async = true;
+      script.src = 'assets/axis-lanyard.bundle.js?v=2'; script.async = true;
       script.onload = resolve;
       script.onerror = () => reject(new Error('The interactive portfolio pass could not load.'));
       document.body.appendChild(script);

@@ -2,7 +2,7 @@
   "name": "axis-lanyard-component",
   "private": true,
   "scripts": {
-    "build": "esbuild src/entry.jsx --bundle --minify --format=iife --global-name=AxisLanyard --target=es2020 --outfile=../assets/axis-lanyard.bundle.js"
+    "build": "esbuild src/entry.jsx --bundle --minify --format=iife --global-name=AxisLanyard --jsx=automatic --target=es2020 --outfile=../assets/axis-lanyard.bundle.js"
   },
   "dependencies": {
     "react": "18.3.1",
