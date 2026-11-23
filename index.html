@@ -1195,10 +1195,18 @@
   }
   .portfolio-gallery.open{opacity:1; visibility:visible; pointer-events:auto;}
   .portfolio-gallery.pull-preview{
-    z-index:1600; pointer-events:none; transform:translate3d(0,var(--pull-y,-100%),0);
-    transition:none; will-change:transform;
+    z-index:1400; pointer-events:none;
+    clip-path:inset(0 0 calc(100% - var(--pull-reveal,0px)) 0);
+    filter:drop-shadow(0 12px 18px rgba(0,0,0,.38)); transition:none; will-change:clip-path;
   }
-  .portfolio-gallery.pull-preview.is-settling{transition:transform .46s cubic-bezier(.22,.75,.22,1);}
+  .portfolio-gallery.pull-preview::after{
+    content:''; position:absolute; top:calc(var(--pull-reveal,0px) - 1px); left:0; right:0; z-index:8; height:1px;
+    background:linear-gradient(90deg,transparent,rgba(221,201,158,.48),transparent); pointer-events:none;
+  }
+  .portfolio-gallery.pull-preview.is-settling{transition:clip-path .46s cubic-bezier(.22,.75,.22,1);}
+  .portfolio-lanyard-gate.is-pulling{background:transparent;}
+  .portfolio-lanyard-gate.is-pulling .portfolio-lanyard-gate__top,
+  .portfolio-lanyard-gate.is-pulling .portfolio-lanyard-gate__bottom{opacity:0; pointer-events:none;}
   @media(prefers-reduced-motion:reduce){.portfolio-gallery.pull-preview.is-settling{transition:none;}}
   .portfolio-gallery__ambient{
     position:absolute; inset:0; pointer-events:none; opacity:.75;
@@ -2324,38 +2332,41 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
     hideGate(false);
     openGallery();
   }
-  function beginPullPreview(){
+  function beginPullPreview(pointerY,startY){
     if(pullPreviewActive || pullPreviewSettling) return;
     if(window.gsap){ gsap.killTweensOf(gallery); gsap.set(gallery,{clearProps:'opacity,visibility,transform'}); }
     else { gallery.style.removeProperty('opacity'); gallery.style.removeProperty('visibility'); gallery.style.removeProperty('transform'); }
     pullPreviewActive = true;
     gallery.hidden = false;
     gallery.setAttribute('aria-hidden','true');
-    gallery.style.setProperty('--pull-y','-100%');
+    gallery.style.setProperty('--pull-reveal','0px');
     gallery.classList.add('pull-preview','open');
+    gate.classList.add('is-pulling');
     document.body.classList.add('portfolio-gallery-open');
+    setPullPreviewProgress(pointerY,startY);
   }
-  function setPullPreviewProgress(deltaY){
+  function setPullPreviewProgress(pointerY,startY){
     if(!pullPreviewActive) return;
-    const travel = Math.max(220,gateStage.clientHeight * .58);
-    const progress = Math.max(0,Math.min(1,deltaY / travel));
-    pullPeakDistance = Math.max(pullPeakDistance,deltaY);
-    gallery.style.setProperty('--pull-y',`${(-100 + progress * 100).toFixed(2)}%`);
+    const attachmentOffset = gateStage.clientHeight * .14;
+    const revealTo = Math.max(0,Math.min(window.innerHeight,pointerY + attachmentOffset));
+    pullPeakDistance = Math.max(pullPeakDistance,pointerY - startY);
+    gallery.style.setProperty('--pull-reveal',`${revealTo.toFixed(1)}px`);
   }
   function settlePullPreview(enter){
     if(!pullPreviewActive || pullPreviewSettling) return;
     pullPreviewSettling = true;
     pullPreviewActive = false;
     gallery.classList.add('is-settling');
-    gallery.style.setProperty('--pull-y',enter ? '0%' : '-100%');
+    gallery.style.setProperty('--pull-reveal',enter ? `${window.innerHeight}px` : '0px');
     let timeout;
     const finish = () => {
       clearTimeout(timeout);
       gallery.removeEventListener('transitionend',onTransitionEnd);
       if(dismissAfterPull) enter = false;
       gallery.classList.remove('pull-preview','is-settling');
-      gallery.style.removeProperty('--pull-y');
+      gallery.style.removeProperty('--pull-reveal');
       gallery.style.removeProperty('transition');
+      gate.classList.remove('is-pulling');
       pullPreviewSettling = false;
       if(enter){
         gate.classList.remove('is-open'); gate.hidden = true;
@@ -2377,7 +2388,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
       }
       dismissAfterPull = false;
     };
-    const onTransitionEnd = event => { if(event.target === gallery && event.propertyName === 'transform') finish(); };
+    const onTransitionEnd = event => { if(event.target === gallery && event.propertyName === 'clip-path') finish(); };
     if(reduceMotion.matches){ finish(); return; }
     gallery.addEventListener('transitionend',onTransitionEnd);
     timeout = setTimeout(finish,520);
@@ -2410,11 +2421,11 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
     if(!event.target.closest('.lanyard-canvas') || !event.target.hasPointerCapture?.(event.pointerId) || pullPreviewSettling) return;
     pullStart = {id:event.pointerId,x:event.clientX,y:event.clientY};
     pullPeakDistance = 0;
-    beginPullPreview();
+    beginPullPreview(event.clientY,event.clientY);
   });
   gateStage.addEventListener('pointermove',event => {
     if(!pullStart || event.pointerId !== pullStart.id) return;
-    setPullPreviewProgress(event.clientY - pullStart.y);
+    setPullPreviewProgress(event.clientY,pullStart.y);
   });
   gateStage.addEventListener('pointerup',event => {
     if(!pullStart || event.pointerId !== pullStart.id) return;
