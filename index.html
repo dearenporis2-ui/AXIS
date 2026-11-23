@@ -12,6 +12,7 @@
 <meta name="theme-color" content="#07080c">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="preload" as="image" href="assets/axis-wordmark.webp" fetchpriority="high">
+<link rel="preload" as="script" href="assets/axis-lanyard.bundle.js?v=2" fetchpriority="low">
 
 
 <meta property="og:type" content="website">
@@ -1402,9 +1403,9 @@ window.__isLowEndHardware = (
   const DATA_WAIT_MS = 1200;                    // the carousel has built-in fallback projects
   const MAX_WAIT_MS = 12000;
   const shownAt = performance.now();
-  const parts = { page:false, fonts:false, bg:false, logo:false, data:false };
+  const parts = { page:false, fonts:false, bg:false, logo:false, data:false, lanyard:false };
   const names = Object.keys(parts);
-  const LABELS = { page:'PAGE', fonts:'TYPE', bg:'VISUALS', logo:'BRAND', data:'CONTENT' };
+  const LABELS = { page:'PAGE', fonts:'TYPE', bg:'VISUALS', logo:'BRAND', data:'CONTENT', lanyard:'PORTFOLIO PASS' };
   let lifted = false, shown = 0, raf = 0, lastLabel = '';
 
   function realProgress(){ return names.filter(k => parts[k]).length / names.length * 100; }
@@ -2133,7 +2134,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
   const brand = document.getElementById('portfolioGalleryBrand');
   if(!gate || !gateStage || !lanyardMount || !gateClose || !gateSkip || !gallery || !shell || !grid || !filters || !count || !openBtn || !closeBtn) return;
 
-  let projects = [], activeCategory = 'All', returnFocus = null, lanyardCleanup = null, lanyardLoad = null, pullStart = null, pullPreviewActive = false, pullPreviewSettling = false, dismissAfterPull = false;
+  let projects = [], activeCategory = 'All', returnFocus = null, lanyardCleanup = null, lanyardLoad = null, pullStart = null, pullPeakDistance = 0, pullPreviewActive = false, pullPreviewSettling = false, dismissAfterPull = false;
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const canTilt = matchMedia('(hover:hover) and (pointer:fine)').matches && !reduceMotion.matches;
   const safeUrl = value => {
@@ -2291,7 +2292,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
     if(hint) hint.textContent = 'Preparing your AXIS access pass…';
     loadLanyard().then(() => {
       if(gate.hidden || !window.AxisLanyard || !window.AxisLanyard.mount) return;
-      lanyardCleanup = window.AxisLanyard.mount(lanyardMount);
+      if(!lanyardCleanup) lanyardCleanup = window.AxisLanyard.mount(lanyardMount);
       if(hint) hint.textContent = 'Drag the AXIS pass down to reveal the full project archive.';
     }).catch(error => {
       console.error(error);
@@ -2303,7 +2304,6 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
       gate.classList.remove('is-open'); gate.hidden = true;
       gate.setAttribute('aria-hidden','true');
       document.body.classList.remove('portfolio-gate-open');
-      if(lanyardCleanup){ lanyardCleanup(); lanyardCleanup = null; }
       if(restoreFocus && returnFocus && returnFocus.isConnected) returnFocus.focus({preventScroll:true});
     };
     if(window.gsap && !reduceMotion.matches && !document.documentElement.classList.contains('lite')){
@@ -2330,6 +2330,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
     if(!pullPreviewActive) return;
     const travel = Math.max(220,gateStage.clientHeight * .58);
     const progress = Math.max(0,Math.min(1,deltaY / travel));
+    pullPeakDistance = Math.max(pullPeakDistance,deltaY);
     gallery.style.setProperty('--pull-y',`${(-100 + progress * 100).toFixed(2)}%`);
   }
   function settlePullPreview(enter){
@@ -2351,7 +2352,6 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
         gate.classList.remove('is-open'); gate.hidden = true;
         gate.setAttribute('aria-hidden','true');
         document.body.classList.remove('portfolio-gate-open');
-        if(lanyardCleanup){ lanyardCleanup(); lanyardCleanup = null; }
         gallery.setAttribute('aria-hidden','false');
         shell.scrollTop = 0;
         requestAnimationFrame(() => {
@@ -2397,6 +2397,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
   gateStage.addEventListener('pointerdown',event => {
     if(!event.target.closest('.lanyard-canvas') || !event.target.hasPointerCapture?.(event.pointerId) || pullPreviewSettling) return;
     pullStart = {id:event.pointerId,x:event.clientX,y:event.clientY};
+    pullPeakDistance = 0;
     beginPullPreview();
   });
   gateStage.addEventListener('pointermove',event => {
@@ -2405,9 +2406,10 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
   });
   gateStage.addEventListener('pointerup',event => {
     if(!pullStart || event.pointerId !== pullStart.id) return;
-    const dx = Math.abs(event.clientX - pullStart.x), dy = event.clientY - pullStart.y;
+    const commitDistance = Math.max(24,gateStage.clientHeight * .05);
     pullStart = null;
-    settlePullPreview(dy > 90 && dy > dx * 1.2);
+    settlePullPreview(pullPeakDistance >= commitDistance);
+    pullPeakDistance = 0;
   });
   gateStage.addEventListener('pointercancel',() => {
     if(pullStart){ pullStart = null; settlePullPreview(false); }
@@ -2431,6 +2433,23 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
   });
   document.addEventListener('projects-updated',e => updateProjects(e.detail));
   updateProjects(window.__latestProjects || []);
+  loadLanyard().then(() => {
+    if(!lanyardCleanup && window.AxisLanyard && window.AxisLanyard.mount){
+      lanyardCleanup = window.AxisLanyard.mount(lanyardMount);
+    }
+    let frames = 0;
+    const markReady = () => {
+      if(lanyardMount.querySelector('.lanyard-canvas') || frames++ >= 120){
+        window.__axisBoot?.done('lanyard');
+        return;
+      }
+      requestAnimationFrame(markReady);
+    };
+    requestAnimationFrame(markReady);
+  }).catch(error => {
+    console.warn('Portfolio pass preloading failed:',error);
+    window.__axisBoot?.done('lanyard');
+  });
 })();
 
 
