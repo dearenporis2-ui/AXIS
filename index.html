@@ -1300,19 +1300,21 @@
 
   /* React Bits Lanyard gate: loaded only after a visitor requests the archive. */
   .portfolio-lanyard-gate{
-    position:fixed; inset:0; z-index:1500; display:grid; grid-template-rows:auto minmax(0,1fr) auto;
+    position:fixed; inset:0; z-index:1500; display:block;
     overflow:hidden; color:var(--white); background:radial-gradient(ellipse at 50% 45%,rgba(184,169,138,.12),transparent 42%),rgba(5,6,10,.98);
     opacity:0; visibility:hidden; pointer-events:none; isolation:isolate;
   }
   .portfolio-lanyard-gate[hidden]{display:none;}
   .portfolio-lanyard-gate.is-open{opacity:1; visibility:visible; pointer-events:auto;}
-  .portfolio-lanyard-gate__top,.portfolio-lanyard-gate__bottom{position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1.1rem clamp(1rem,5vw,4rem);}
+  .portfolio-lanyard-gate__top,.portfolio-lanyard-gate__bottom{position:absolute; left:0; right:0; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1.1rem clamp(1rem,5vw,4rem);}
+  .portfolio-lanyard-gate__top{top:0;}
+  .portfolio-lanyard-gate__bottom{bottom:0;}
   .portfolio-lanyard-gate__top{border-bottom:1px solid rgba(255,255,255,.08);}
   .portfolio-lanyard-gate__bottom{justify-content:center; flex-direction:column; padding-top:.5rem; padding-bottom:clamp(1rem,3vh,2rem); text-align:center;}
   .portfolio-lanyard-gate__brand{color:var(--gold-hi); font:500 .68rem 'DM Mono',monospace; letter-spacing:.15em; text-transform:uppercase;}
   .portfolio-lanyard-gate__close{display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid var(--glass-border); border-radius:50%; color:var(--white); background:rgba(255,255,255,.04); cursor:pointer;}
   .portfolio-lanyard-gate__close svg{width:17px; height:17px;}
-  .portfolio-lanyard-gate__stage{position:relative; width:100%; min-height:0; overflow:hidden;}
+  .portfolio-lanyard-gate__stage{position:absolute; inset:0; z-index:1; width:100%; height:100%; min-height:0; overflow:hidden;}
   .portfolio-lanyard-gate__mount{position:absolute; inset:0;}
   .portfolio-lanyard-gate__title{margin:0; color:var(--white); font:500 clamp(1.1rem,3vw,1.65rem)/1.2 'Space Grotesk',sans-serif; letter-spacing:.03em;}
   .portfolio-lanyard-gate__hint{margin:.4rem 0 0; color:var(--dim); font-size:.82rem;}
