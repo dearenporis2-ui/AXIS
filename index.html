@@ -1193,6 +1193,12 @@
     perspective:1600px; isolation:isolate;
   }
   .portfolio-gallery.open{opacity:1; visibility:visible; pointer-events:auto;}
+  .portfolio-gallery.pull-preview{
+    z-index:1600; pointer-events:none; transform:translate3d(0,var(--pull-y,-100%),0);
+    transition:none; will-change:transform;
+  }
+  .portfolio-gallery.pull-preview.is-settling{transition:transform .46s cubic-bezier(.22,.75,.22,1);}
+  @media(prefers-reduced-motion:reduce){.portfolio-gallery.pull-preview.is-settling{transition:none;}}
   .portfolio-gallery__ambient{
     position:absolute; inset:0; pointer-events:none; opacity:.75;
     background:radial-gradient(ellipse at 18% 8%,rgba(184,169,138,.16),transparent 36%),
@@ -2127,7 +2133,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
   const brand = document.getElementById('portfolioGalleryBrand');
   if(!gate || !gateStage || !lanyardMount || !gateClose || !gateSkip || !gallery || !shell || !grid || !filters || !count || !openBtn || !closeBtn) return;
 
-  let projects = [], activeCategory = 'All', returnFocus = null, lanyardCleanup = null, lanyardLoad = null, pullStart = null;
+  let projects = [], activeCategory = 'All', returnFocus = null, lanyardCleanup = null, lanyardLoad = null, pullStart = null, pullPreviewActive = false, pullPreviewSettling = false, dismissAfterPull = false;
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const canTilt = matchMedia('(hover:hover) and (pointer:fine)').matches && !reduceMotion.matches;
   const safeUrl = value => {
@@ -2306,8 +2312,71 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
   }
   function enterArchive(){
     if(gate.hidden) return;
+    if(pullPreviewActive){ settlePullPreview(true); return; }
+    if(pullPreviewSettling) return;
     hideGate(false);
     openGallery();
+  }
+  function beginPullPreview(){
+    if(pullPreviewActive || pullPreviewSettling) return;
+    pullPreviewActive = true;
+    gallery.hidden = false;
+    gallery.setAttribute('aria-hidden','true');
+    gallery.style.setProperty('--pull-y','-100%');
+    gallery.classList.add('pull-preview','open');
+    document.body.classList.add('portfolio-gallery-open');
+  }
+  function setPullPreviewProgress(deltaY){
+    if(!pullPreviewActive) return;
+    const travel = Math.max(220,gateStage.clientHeight * .58);
+    const progress = Math.max(0,Math.min(1,deltaY / travel));
+    gallery.style.setProperty('--pull-y',`${(-100 + progress * 100).toFixed(2)}%`);
+  }
+  function settlePullPreview(enter){
+    if(!pullPreviewActive || pullPreviewSettling) return;
+    pullPreviewSettling = true;
+    pullPreviewActive = false;
+    gallery.classList.add('is-settling');
+    gallery.style.setProperty('--pull-y',enter ? '0%' : '-100%');
+    let timeout;
+    const finish = () => {
+      clearTimeout(timeout);
+      gallery.removeEventListener('transitionend',onTransitionEnd);
+      if(dismissAfterPull) enter = false;
+      gallery.classList.remove('pull-preview','is-settling');
+      gallery.style.removeProperty('--pull-y');
+      gallery.style.removeProperty('transition');
+      pullPreviewSettling = false;
+      if(enter){
+        gate.classList.remove('is-open'); gate.hidden = true;
+        gate.setAttribute('aria-hidden','true');
+        document.body.classList.remove('portfolio-gate-open');
+        if(lanyardCleanup){ lanyardCleanup(); lanyardCleanup = null; }
+        gallery.setAttribute('aria-hidden','false');
+        shell.scrollTop = 0;
+        requestAnimationFrame(() => {
+          if(window.gsap && !reduceMotion.matches && !document.documentElement.classList.contains('lite')){
+            gsap.fromTo(shell,{y:26,scale:.992},{y:0,scale:1,duration:.62,ease:'power3.out',clearProps:'transform'});
+            animateCards();
+          }
+          closeBtn.focus({preventScroll:true});
+        });
+      }else{
+        gallery.classList.remove('open'); gallery.hidden = true;
+        gallery.setAttribute('aria-hidden','true');
+        document.body.classList.remove('portfolio-gallery-open');
+      }
+      dismissAfterPull = false;
+    };
+    const onTransitionEnd = event => { if(event.target === gallery && event.propertyName === 'transform') finish(); };
+    if(reduceMotion.matches){ finish(); return; }
+    gallery.addEventListener('transitionend',onTransitionEnd);
+    timeout = setTimeout(finish,520);
+  }
+  function closeLanyardGate(){
+    if(pullPreviewActive){ dismissAfterPull = true; settlePullPreview(false); }
+    else if(pullPreviewSettling) dismissAfterPull = true;
+    hideGate(true);
   }
   function closeGallery(){
     if(gallery.hidden) return;
@@ -2323,21 +2392,28 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
     }else finish();
   }
   openBtn.addEventListener('click',openLanyardGate);
-  gateClose.addEventListener('click',() => hideGate(true));
+  gateClose.addEventListener('click',closeLanyardGate);
   gateSkip.addEventListener('click',enterArchive);
   gateStage.addEventListener('pointerdown',event => {
-    if(!event.target.closest('.lanyard-canvas') || !event.target.hasPointerCapture?.(event.pointerId)) return;
+    if(!event.target.closest('.lanyard-canvas') || !event.target.hasPointerCapture?.(event.pointerId) || pullPreviewSettling) return;
     pullStart = {id:event.pointerId,x:event.clientX,y:event.clientY};
+    beginPullPreview();
+  });
+  gateStage.addEventListener('pointermove',event => {
+    if(!pullStart || event.pointerId !== pullStart.id) return;
+    setPullPreviewProgress(event.clientY - pullStart.y);
   });
   gateStage.addEventListener('pointerup',event => {
     if(!pullStart || event.pointerId !== pullStart.id) return;
     const dx = Math.abs(event.clientX - pullStart.x), dy = event.clientY - pullStart.y;
     pullStart = null;
-    if(dy > 90 && dy > dx * 1.2) enterArchive();
+    settlePullPreview(dy > 90 && dy > dx * 1.2);
   });
-  gateStage.addEventListener('pointercancel',() => { pullStart = null; });
+  gateStage.addEventListener('pointercancel',() => {
+    if(pullStart){ pullStart = null; settlePullPreview(false); }
+  });
   gate.addEventListener('keydown',event => {
-    if(event.key === 'Escape'){ event.preventDefault(); hideGate(true); }
+    if(event.key === 'Escape'){ event.preventDefault(); closeLanyardGate(); }
     if(event.key === 'Tab' && event.shiftKey && document.activeElement === gateClose){ event.preventDefault(); gateSkip.focus(); }
     else if(event.key === 'Tab' && !event.shiftKey && document.activeElement === gateSkip){ event.preventDefault(); gateClose.focus(); }
   });
