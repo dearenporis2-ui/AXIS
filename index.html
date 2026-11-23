@@ -1172,6 +1172,120 @@
     .tpl-card:hover .tpl-view svg{transform:none;}
   }
   @media(prefers-reduced-motion:reduce){.price-carousel .price-card{transition:none;}}
+
+  /* Immersive, searchable archive for every published portfolio project. */
+  .work-archive-cta{
+    display:flex; align-items:center; justify-content:space-between; gap:1.5rem;
+    margin:2.2rem auto 0; padding:1.1rem 1.25rem 1.1rem 1.5rem;
+    max-width:900px; border:1px solid var(--glass-border); border-radius:var(--r-lg);
+    background:linear-gradient(105deg,rgba(184,169,138,.08),rgba(255,255,255,.025));
+  }
+  .work-archive-cta__copy{display:flex; flex-direction:column; gap:.3rem;}
+  .work-archive-cta__copy strong{font:500 1rem 'Space Grotesk',sans-serif; color:var(--white);}
+  .work-archive-cta__copy span{font-size:.82rem; color:var(--dim);}
+  .work-archive-open{flex:none; display:inline-flex; align-items:center; gap:.6rem; cursor:pointer;}
+  .work-archive-open svg{width:15px; height:15px; transition:transform .3s;}
+  .work-archive-open:hover svg{transform:translate(3px,-3px);}
+
+  .portfolio-gallery{
+    position:fixed; inset:0; z-index:1400; overflow:hidden; color:var(--white);
+    background:rgba(4,5,8,.96); opacity:0; visibility:hidden; pointer-events:none;
+    perspective:1600px; isolation:isolate;
+  }
+  .portfolio-gallery.open{opacity:1; visibility:visible; pointer-events:auto;}
+  .portfolio-gallery__ambient{
+    position:absolute; inset:0; pointer-events:none; opacity:.75;
+    background:radial-gradient(ellipse at 18% 8%,rgba(184,169,138,.16),transparent 36%),
+      radial-gradient(ellipse at 92% 44%,rgba(92,122,164,.1),transparent 34%),
+      linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size:auto,auto,70px 70px,70px 70px;
+    mask-image:linear-gradient(to bottom,black,transparent 90%);
+  }
+  .portfolio-gallery__shell{
+    position:relative; z-index:1; width:100%; height:100%; overflow-y:auto;
+    overscroll-behavior:contain; scrollbar-color:rgba(184,169,138,.45) transparent;
+  }
+  .portfolio-gallery__top{
+    position:sticky; top:0; z-index:5; display:flex; align-items:center; justify-content:space-between;
+    min-height:76px; padding:.8rem clamp(1.1rem,5vw,4rem);
+    border-bottom:1px solid rgba(255,255,255,.08); background:rgba(7,8,12,.78);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  }
+  .portfolio-gallery__brand{display:flex; align-items:center; gap:.8rem; color:var(--white); text-decoration:none;}
+  .portfolio-gallery__brand-mark{display:grid; place-items:center; width:34px; height:34px; border:1px solid rgba(184,169,138,.55); border-radius:10px; color:var(--gold-hi); font:600 .8rem 'Space Grotesk',sans-serif;}
+  .portfolio-gallery__brand-name{font:500 .68rem 'DM Mono',monospace; letter-spacing:.13em; text-transform:uppercase;}
+  .portfolio-gallery__close{
+    display:grid; place-items:center; width:44px; height:44px; padding:0; border-radius:50%;
+    border:1px solid var(--glass-border); color:var(--white); background:rgba(255,255,255,.04); cursor:pointer;
+    transition:transform .3s,border-color .3s,background .3s;
+  }
+  .portfolio-gallery__close:hover{transform:rotate(90deg); border-color:var(--gold); background:rgba(184,169,138,.1);}
+  .portfolio-gallery__close svg{width:17px; height:17px;}
+  .portfolio-gallery__content{width:min(1320px,100%); margin:0 auto; padding:clamp(2rem,5vw,4.5rem) clamp(1.1rem,5vw,4rem) 4rem;}
+  .portfolio-gallery__intro{display:flex; align-items:flex-end; justify-content:space-between; gap:2rem; margin-bottom:2.4rem;}
+  .portfolio-gallery__eyebrow{display:flex; align-items:center; gap:.55rem; color:var(--gold); font:500 .66rem 'DM Mono',monospace; letter-spacing:.16em; text-transform:uppercase;}
+  .portfolio-gallery__eyebrow::before{content:''; width:22px; height:1px; background:currentColor;}
+  .portfolio-gallery__intro h2{max-width:760px; margin:.85rem 0 .7rem; font:500 clamp(2.2rem,6vw,5.3rem)/.98 'Space Grotesk',sans-serif; letter-spacing:-.055em;}
+  .portfolio-gallery__intro h2 em{color:var(--gold-hi); font-style:normal;}
+  .portfolio-gallery__intro p{max-width:600px; color:var(--dim); font-size:.95rem; line-height:1.65;}
+  .portfolio-gallery__count{flex:none; display:flex; align-items:flex-end; gap:.6rem; padding-bottom:.2rem;}
+  .portfolio-gallery__count strong{font:500 2.4rem/.9 'Space Grotesk',sans-serif; letter-spacing:-.06em; color:var(--gold-hi);}
+  .portfolio-gallery__count span{max-width:5rem; color:var(--dimmer); font:500 .58rem/1.4 'DM Mono',monospace; letter-spacing:.1em; text-transform:uppercase;}
+  .portfolio-gallery__filters{display:flex; flex-wrap:wrap; gap:.5rem; margin:0 0 1.4rem;}
+  .portfolio-gallery__filter{
+    padding:.53rem .9rem; border:1px solid var(--glass-border); border-radius:100px;
+    background:rgba(255,255,255,.025); color:var(--dim); cursor:pointer;
+    font:500 .63rem 'DM Mono',monospace; letter-spacing:.08em; text-transform:uppercase;
+    transition:color .25s,border-color .25s,background .25s;
+  }
+  .portfolio-gallery__filter:hover{color:var(--white); border-color:var(--glass-border-hi);}
+  .portfolio-gallery__filter.is-active{color:#181410; border-color:var(--gold); background:var(--gold);}
+  .portfolio-gallery__grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; perspective:1200px;}
+  .work-archive-card{min-width:0; perspective:1000px; transform-style:preserve-3d;}
+  .work-archive-card__inner{
+    height:100%; overflow:hidden; border:1px solid var(--glass-border); border-radius:var(--r-lg);
+    background:linear-gradient(145deg,rgba(20,23,31,.94),rgba(10,12,18,.94));
+    box-shadow:0 18px 50px rgba(0,0,0,.24); transform-style:preserve-3d;
+    transition:border-color .3s,box-shadow .3s;
+  }
+  .work-archive-card:hover .work-archive-card__inner{border-color:rgba(184,169,138,.6); box-shadow:0 24px 65px rgba(0,0,0,.36),0 0 38px rgba(184,169,138,.07);}
+  .work-archive-card__media{position:relative; aspect-ratio:16/10; overflow:hidden; background:var(--void-panel);}
+  .work-archive-card__media.is-empty{background:radial-gradient(ellipse at 50% 35%,rgba(184,169,138,.13),transparent 58%),linear-gradient(145deg,#141720,#090b10);}
+  .work-archive-card__media.is-empty::before{content:'AXIS / PROJECT ARCHIVE'; position:absolute; inset:0; display:grid; place-items:center; color:rgba(221,201,158,.52); font:500 .62rem 'DM Mono',monospace; letter-spacing:.2em;}
+  .work-archive-card__media::after{content:''; position:absolute; inset:35% 0 0; background:linear-gradient(to bottom,transparent,rgba(5,6,9,.66)); pointer-events:none;}
+  .work-archive-card__media img{width:100%; height:100%; display:block; object-fit:cover; transition:transform .8s cubic-bezier(.16,1,.3,1),filter .5s;}
+  .work-archive-card:hover .work-archive-card__media img{transform:scale(1.055); filter:saturate(1.08);}
+  .work-archive-card__index{position:absolute; top:.8rem; left:.85rem; z-index:1; color:rgba(255,255,255,.72); font:500 .6rem 'DM Mono',monospace; letter-spacing:.12em;}
+  .work-archive-card__category{position:absolute; right:.8rem; bottom:.75rem; z-index:1; padding:.36rem .6rem; border:1px solid rgba(221,201,158,.45); border-radius:100px; color:var(--gold-hi); background:rgba(5,6,9,.65); backdrop-filter:blur(10px); font:500 .56rem 'DM Mono',monospace; letter-spacing:.1em; text-transform:uppercase;}
+  .work-archive-card__body{display:flex; flex-direction:column; min-height:174px; padding:1rem 1.05rem 1.1rem;}
+  .work-archive-card__body h3{font:500 1.12rem/1.2 'Space Grotesk',sans-serif; letter-spacing:-.025em;}
+  .work-archive-card__body p{display:-webkit-box; margin:.5rem 0 1rem; overflow:hidden; color:var(--dim); font-size:.82rem; line-height:1.55; -webkit-line-clamp:3; -webkit-box-orient:vertical;}
+  .work-archive-card__link{display:inline-flex; align-items:center; gap:.5rem; width:fit-content; margin-top:auto; color:var(--gold-hi); text-decoration:none; font:500 .65rem 'DM Mono',monospace; letter-spacing:.08em; text-transform:uppercase;}
+  .work-archive-card__link svg{width:13px; height:13px; transition:transform .25s;}
+  .work-archive-card__link:hover svg{transform:translate(2px,-2px);}
+  .work-archive-card__pending{margin-top:auto; color:var(--dimmer); font:500 .62rem 'DM Mono',monospace; letter-spacing:.06em; text-transform:uppercase;}
+  .portfolio-gallery__empty{grid-column:1/-1; padding:3rem 1.5rem; border:1px dashed var(--glass-border); border-radius:var(--r-lg); color:var(--dim); text-align:center;}
+  body.portfolio-gallery-open{overflow:hidden;}
+  html.lite .portfolio-gallery__ambient{display:none;}
+  html.lite .work-archive-card__inner, html.lite .work-archive-card__media img{transition:none;}
+  @media(max-width:900px){.portfolio-gallery__grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  @media(max-width:600px){
+    .work-archive-cta{align-items:flex-start; flex-direction:column; gap:1rem; padding:1.1rem;}
+    .work-archive-open{width:100%; justify-content:center;}
+    .portfolio-gallery__top{min-height:64px;}
+    .portfolio-gallery__content{padding-top:2rem;}
+    .portfolio-gallery__intro{align-items:flex-start; flex-direction:column; gap:1rem; margin-bottom:1.6rem;}
+    .portfolio-gallery__intro h2{font-size:clamp(2.25rem,12vw,3.5rem);}
+    .portfolio-gallery__count{align-items:center;}
+    .portfolio-gallery__count strong{font-size:1.8rem;}
+    .portfolio-gallery__grid{grid-template-columns:minmax(0,1fr); gap:.8rem;}
+    .work-archive-card__body{min-height:150px;}
+    .portfolio-gallery__filters{flex-wrap:nowrap; overflow-x:auto; padding-bottom:.4rem; scrollbar-width:none;}
+    .portfolio-gallery__filters::-webkit-scrollbar{display:none;}
+    .portfolio-gallery__filter{flex:none;}
+  }
+  @media(prefers-reduced-motion:reduce){.portfolio-gallery,.portfolio-gallery *{scroll-behavior:auto;}}
 </style>
 </head>
 <body>
@@ -1528,8 +1642,46 @@ window.__isLowEndHardware = (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
       </a>
     </div>
+
+    <div class="work-archive-cta reveal">
+      <div class="work-archive-cta__copy">
+        <strong>There’s more to explore.</strong>
+        <span>Browse every project published to the AXIS portfolio.</span>
+      </div>
+      <button type="button" class="btn btn-ghost work-archive-open" id="openWorkArchive">
+        View all work
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
   </div>
 </section>
+
+<div class="portfolio-gallery" id="portfolioGallery" role="dialog" aria-modal="true" aria-labelledby="portfolioGalleryTitle" aria-hidden="true" hidden>
+  <div class="portfolio-gallery__ambient" aria-hidden="true"></div>
+  <div class="portfolio-gallery__shell" id="portfolioGalleryShell">
+    <header class="portfolio-gallery__top">
+      <a class="portfolio-gallery__brand" href="#work" id="portfolioGalleryBrand">
+        <span class="portfolio-gallery__brand-mark">A</span>
+        <span class="portfolio-gallery__brand-name">AXIS / Project archive</span>
+      </a>
+      <button type="button" class="portfolio-gallery__close" id="closeWorkArchive" aria-label="Close project archive">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </header>
+    <main class="portfolio-gallery__content">
+      <div class="portfolio-gallery__intro">
+        <div>
+          <div class="portfolio-gallery__eyebrow">Portfolio / all work</div>
+          <h2 id="portfolioGalleryTitle">A body of work <em>built to move.</em></h2>
+          <p>Websites, booking platforms and digital experiences made for ambitious businesses across Seychelles.</p>
+        </div>
+        <div class="portfolio-gallery__count"><strong id="workArchiveCount">00</strong><span>Published projects</span></div>
+      </div>
+      <div class="portfolio-gallery__filters" id="workArchiveFilters" role="group" aria-label="Filter projects by category"></div>
+      <div class="portfolio-gallery__grid" id="workArchiveGrid" aria-live="polite"></div>
+    </main>
+  </div>
+</div>
 
 <!-- ═══════════ TEMPLATES ═══════════ -->
 <section id="templates" hidden>
@@ -1911,6 +2063,177 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
 }, err => {
   console.warn('Firestore projects fetch failed, showing fallback:', err.message);
 });
+
+/* ═══════════ Immersive project archive ═══════════ */
+(function(){
+  const gallery = document.getElementById('portfolioGallery');
+  const shell = document.getElementById('portfolioGalleryShell');
+  const grid = document.getElementById('workArchiveGrid');
+  const filters = document.getElementById('workArchiveFilters');
+  const count = document.getElementById('workArchiveCount');
+  const openBtn = document.getElementById('openWorkArchive');
+  const closeBtn = document.getElementById('closeWorkArchive');
+  const brand = document.getElementById('portfolioGalleryBrand');
+  if(!gallery || !shell || !grid || !filters || !count || !openBtn || !closeBtn) return;
+
+  let projects = [], activeCategory = 'All', returnFocus = null;
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const canTilt = matchMedia('(hover:hover) and (pointer:fine)').matches && !reduceMotion.matches;
+  const safeUrl = value => {
+    const raw = String(value || '').trim();
+    if(!raw || raw === '#' || raw.startsWith('#')) return '';
+    try{
+      const parsed = new URL(raw, location.href);
+      return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? raw : '';
+    }catch(e){ return ''; }
+  };
+  function animateCards(){
+    if(!window.gsap || reduceMotion.matches || document.documentElement.classList.contains('lite')) return;
+    const cards = grid.querySelectorAll('.work-archive-card');
+    if(!cards.length) return;
+    gsap.fromTo(cards,
+      { opacity:0, y:38, z:-72, rotateX:7, scale:.96, transformOrigin:'50% 100%' },
+      { opacity:1, y:0, z:0, rotateX:0, scale:1, duration:.78, stagger:.055, ease:'power3.out', clearProps:'transform' }
+    );
+  }
+  function attachTilt(card){
+    if(!canTilt || !window.gsap || document.documentElement.classList.contains('lite')) return;
+    const surface = card.querySelector('.work-archive-card__inner');
+    card.addEventListener('pointermove',e => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - .5;
+      const y = (e.clientY - r.top) / r.height - .5;
+      gsap.to(surface,{ rotationY:x * 7, rotationX:y * -6, z:10, duration:.35, ease:'power2.out', overwrite:true });
+    });
+    card.addEventListener('pointerleave',() => gsap.to(surface,{ rotationY:0, rotationX:0, z:0, duration:.55, ease:'power3.out', overwrite:true }));
+  }
+  function makeCard(project,index){
+    const card = document.createElement('article');
+    card.className = 'work-archive-card';
+    const surface = document.createElement('div');
+    surface.className = 'work-archive-card__inner';
+    const media = document.createElement('div');
+    media.className = 'work-archive-card__media';
+    const imageUrl = safeUrl(project.img);
+    if(imageUrl){
+      const image = document.createElement('img');
+      image.src = imageUrl;
+      image.alt = (project.title || 'AXIS project') + ' portfolio preview';
+      image.loading = 'lazy'; image.decoding = 'async';
+      image.addEventListener('error',() => { image.remove(); media.classList.add('is-empty'); },{once:true});
+      media.appendChild(image);
+    }else media.classList.add('is-empty');
+    const number = document.createElement('span');
+    number.className = 'work-archive-card__index';
+    number.textContent = String(index + 1).padStart(2,'0');
+    media.appendChild(number);
+    const category = document.createElement('span');
+    category.className = 'work-archive-card__category';
+    category.textContent = project.cat || 'Project';
+    media.appendChild(category);
+
+    const body = document.createElement('div');
+    body.className = 'work-archive-card__body';
+    const title = document.createElement('h3');
+    title.textContent = project.title || 'Untitled project';
+    const description = document.createElement('p');
+    description.textContent = project.desc || 'Project details coming soon.';
+    body.append(title,description);
+    const href = safeUrl(project.link);
+    if(href){
+      const link = document.createElement('a');
+      link.className = 'work-archive-card__link'; link.href = href;
+      link.target = '_blank'; link.rel = 'noopener';
+      link.innerHTML = 'Explore project <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>';
+      body.appendChild(link);
+    }else{
+      const note = document.createElement('span');
+      note.className = 'work-archive-card__pending'; note.textContent = 'Project preview coming soon';
+      body.appendChild(note);
+    }
+    surface.append(media,body); card.appendChild(surface); attachTilt(card);
+    return card;
+  }
+  function renderGrid(animate){
+    const shown = activeCategory === 'All' ? projects : projects.filter(p => String(p.cat || 'Project').trim() === activeCategory);
+    grid.replaceChildren();
+    count.textContent = String(projects.length).padStart(2,'0');
+    if(!shown.length){
+      const empty = document.createElement('div');
+      empty.className = 'portfolio-gallery__empty';
+      empty.textContent = 'No projects have been published here yet.';
+      grid.appendChild(empty);
+      return;
+    }
+    shown.forEach((project,i) => grid.appendChild(makeCard(project,i)));
+    if(animate) animateCards();
+  }
+  function renderFilters(){
+    const categories = Array.from(new Set(projects.map(p => String(p.cat || 'Project').trim()).filter(Boolean))).sort((a,b) => a.localeCompare(b));
+    if(activeCategory !== 'All' && !categories.includes(activeCategory)) activeCategory = 'All';
+    filters.replaceChildren();
+    ['All',...categories].forEach(category => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'portfolio-gallery__filter' + (category === activeCategory ? ' is-active' : '');
+      button.textContent = category;
+      button.setAttribute('aria-pressed',String(category === activeCategory));
+      button.addEventListener('click',() => {
+        activeCategory = category; renderFilters(); renderGrid(true);
+      });
+      filters.appendChild(button);
+    });
+  }
+  function updateProjects(list){
+    projects = Array.isArray(list) ? list.filter(p => p && typeof p === 'object') : [];
+    renderFilters(); renderGrid(gallery.classList.contains('open'));
+  }
+  function openGallery(){
+    if(!gallery.hidden) return;
+    returnFocus = document.activeElement;
+    gallery.hidden = false;
+    gallery.setAttribute('aria-hidden','false');
+    document.body.classList.add('portfolio-gallery-open');
+    shell.scrollTop = 0;
+    requestAnimationFrame(() => {
+      gallery.classList.add('open');
+      if(window.gsap && !reduceMotion.matches && !document.documentElement.classList.contains('lite')){
+        gsap.fromTo(gallery,{autoAlpha:0},{autoAlpha:1,duration:.38,ease:'power2.out',clearProps:'opacity,visibility'});
+        gsap.fromTo(shell,{y:26,scale:.992},{y:0,scale:1,duration:.62,ease:'power3.out',clearProps:'transform'});
+        animateCards();
+      }
+      closeBtn.focus({preventScroll:true});
+    });
+  }
+  function closeGallery(){
+    if(gallery.hidden) return;
+    const finish = () => {
+      gallery.classList.remove('open'); gallery.hidden = true;
+      gallery.setAttribute('aria-hidden','true');
+      document.body.classList.remove('portfolio-gallery-open');
+      if(returnFocus && returnFocus.isConnected) returnFocus.focus({preventScroll:true});
+    };
+    if(window.gsap && !reduceMotion.matches && !document.documentElement.classList.contains('lite')){
+      gsap.to(gallery,{autoAlpha:0,duration:.28,ease:'power2.in',onComplete:finish});
+      gsap.to(shell,{y:14,scale:.995,duration:.28,ease:'power2.in',clearProps:'transform'});
+    }else finish();
+  }
+  openBtn.addEventListener('click',openGallery);
+  closeBtn.addEventListener('click',closeGallery);
+  if(brand) brand.addEventListener('click',e => { e.preventDefault(); closeGallery(); });
+  gallery.addEventListener('click',e => { if(e.target === gallery) closeGallery(); });
+  gallery.addEventListener('keydown',e => {
+    if(e.key === 'Escape'){ e.preventDefault(); closeGallery(); return; }
+    if(e.key !== 'Tab') return;
+    const focusables = Array.from(gallery.querySelectorAll('button:not(:disabled),a[href]')).filter(el => el.getClientRects().length);
+    if(!focusables.length) return;
+    const first = focusables[0], last = focusables[focusables.length - 1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  });
+  document.addEventListener('projects-updated',e => updateProjects(e.detail));
+  updateProjects(window.__latestProjects || []);
+})();
 
 (function(){
   const nav = document.querySelector('nav');
