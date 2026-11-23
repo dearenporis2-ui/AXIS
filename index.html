@@ -1203,6 +1203,15 @@
     content:''; position:absolute; top:calc(var(--pull-reveal,0px) - 1px); left:0; right:0; z-index:8; height:1px;
     background:linear-gradient(90deg,transparent,rgba(221,201,158,.48),transparent); pointer-events:none;
   }
+  .portfolio-gallery__lanyard-anchor{
+    position:absolute; z-index:10; top:var(--lanyard-anchor-y,42px); left:50%; display:none; place-items:center;
+    width:24px; height:24px; border:1px solid rgba(221,201,158,.78); border-radius:50%;
+    background:rgba(8,10,14,.94); box-shadow:0 0 0 5px rgba(221,201,158,.08),0 0 22px rgba(221,201,158,.28);
+    transform:translate(-50%,-50%); pointer-events:none;
+  }
+  .portfolio-gallery.pull-preview .portfolio-gallery__lanyard-anchor{display:grid;}
+  .portfolio-gallery__lanyard-anchor::before{content:''; width:7px; height:7px; border:1px solid var(--gold-hi); border-radius:50%; background:rgba(221,201,158,.2);}
+  .portfolio-gallery__lanyard-anchor::after{content:''; position:absolute; left:50%; top:100%; width:1px; height:12px; background:linear-gradient(rgba(221,201,158,.7),rgba(221,201,158,0));}
   .portfolio-gallery.pull-preview.is-settling{transition:clip-path .46s cubic-bezier(.22,.75,.22,1);}
   .portfolio-lanyard-gate.is-pulling{background:transparent;}
   .portfolio-lanyard-gate.is-pulling .portfolio-lanyard-gate__top,
@@ -1717,6 +1726,7 @@ window.__isLowEndHardware = (
 
 <div class="portfolio-gallery" id="portfolioGallery" role="dialog" aria-modal="true" aria-labelledby="portfolioGalleryTitle" aria-hidden="true" hidden>
   <div class="portfolio-gallery__ambient" aria-hidden="true"></div>
+  <div class="portfolio-gallery__lanyard-anchor" id="portfolioLanyardAnchor" aria-hidden="true"></div>
   <div class="portfolio-gallery__shell" id="portfolioGalleryShell">
     <header class="portfolio-gallery__top">
       <a class="portfolio-gallery__brand" href="#work" id="portfolioGalleryBrand">
@@ -2349,8 +2359,11 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
     if(!pullPreviewActive) return;
     const attachmentOffset = gateStage.clientHeight * .14;
     const revealTo = Math.max(0,Math.min(window.innerHeight,pointerY + attachmentOffset));
+    const stageTop = gateStage.getBoundingClientRect().top;
+    const anchorY = Math.max(0,stageTop - gateStage.clientHeight * .04);
     pullPeakDistance = Math.max(pullPeakDistance,pointerY - startY);
     gallery.style.setProperty('--pull-reveal',`${revealTo.toFixed(1)}px`);
+    gallery.style.setProperty('--lanyard-anchor-y',`${anchorY.toFixed(1)}px`);
   }
   function settlePullPreview(enter){
     if(!pullPreviewActive || pullPreviewSettling) return;
@@ -2365,6 +2378,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
       if(dismissAfterPull) enter = false;
       gallery.classList.remove('pull-preview','is-settling');
       gallery.style.removeProperty('--pull-reveal');
+      gallery.style.removeProperty('--lanyard-anchor-y');
       gallery.style.removeProperty('transition');
       gate.classList.remove('is-pulling');
       pullPreviewSettling = false;
