@@ -22,6 +22,7 @@ export function mount(container, props = {}) {
       cornerRadius={0.28}
       size={0.49}
       anchor="center"
+      anchorTarget={() => window.__axisLanyardPageAnchor || null}
       strapLength={0.48}
       strapColor="#b8a98a"
       strapWidth={0.7}

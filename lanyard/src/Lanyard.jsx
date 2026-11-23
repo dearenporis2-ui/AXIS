@@ -711,6 +711,7 @@ const Lanyard = ({
   cornerRadius = 0.3,
   size = 0.6,
   anchor = 'center',
+  anchorTarget = null,
   strapLength = 0.5,
   strapImage,
   strapColor = '#111111',
@@ -739,6 +740,7 @@ const Lanyard = ({
     cornerRadius,
     size,
     anchor,
+    anchorTarget,
     strapLength,
     strapImage,
     strapColor,
@@ -862,6 +864,9 @@ const Lanyard = ({
     scene.add(clampGroup);
 
     const sim = createSimulation();
+    const anchorNdc = new THREE.Vector2();
+    const anchorProjection = new THREE.Vector3();
+    const anchorDirection = new THREE.Vector3();
     const controls = [];
     const mouth = new THREE.Vector3();
     const tuck = new THREE.Vector3();
@@ -881,6 +886,20 @@ const Lanyard = ({
     let press = null;
     let imageToken = 0;
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+    const syncAnchorTarget = () => {
+      const target = settingsRef.current.anchorTarget?.();
+      if(!target || !Number.isFinite(target.x) || !Number.isFinite(target.y)) return false;
+      const rect = canvas.getBoundingClientRect();
+      if(!rect.width || !rect.height) return false;
+      anchorNdc.set(((target.x - rect.left) / rect.width) * 2 - 1, -(((target.y - rect.top) / rect.height) * 2 - 1));
+      anchorProjection.set(anchorNdc.x,anchorNdc.y,0.5).unproject(camera);
+      anchorDirection.subVectors(anchorProjection,camera.position).normalize();
+      if(Math.abs(anchorDirection.z) < 1e-8) return false;
+      const distance = -camera.position.z / anchorDirection.z;
+      sim.anchor.copy(camera.position).addScaledVector(anchorDirection,distance);
+      return true;
+    };
 
     const paintFaces = () => {
       const s = settingsRef.current;
@@ -931,7 +950,8 @@ const Lanyard = ({
       const cardTop = viewHeight / 2 - viewHeight * mix(0.12, 0.42, clamp(s.strapLength, 0, 1));
       const hangTop = cardTop + (layout.hangY - layout.height / 2);
       sim.anchor.set(anchorX, anchorY, 0);
-      configureSimulation(sim, layout, anchorY - hangTop);
+      if(syncAnchorTarget()) configureSimulation(sim, layout, Math.max(0.05,sim.anchor.y - hangTop));
+      else configureSimulation(sim, layout, anchorY - hangTop);
       sim.nodes[0].copy(sim.anchor);
       sim.previous[0].copy(sim.anchor);
     };
@@ -1135,6 +1155,10 @@ const Lanyard = ({
       last = now;
       time += dt;
       const current = physics();
+      if(syncAnchorTarget()){
+        sim.nodes[0].copy(sim.anchor);
+        sim.previous[0].copy(sim.anchor);
+      }
       stepSimulation(sim, dt, current, time);
       const body = sim.body;
       if (!Number.isFinite(body.position.x + body.position.y + body.position.z + body.quaternion.w)) {
