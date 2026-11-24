@@ -1126,14 +1126,14 @@
     .tpl-foot{padding-top:.45rem; gap:.5rem; font-size:.62rem;}
     .tpl-modal{align-items:flex-end; padding:.65rem;}
     .tpl-dialog{width:100%; max-height:calc(100dvh - 1.3rem); overflow:auto; border-radius:18px;}
-    .price-carousel{position:relative; width:100%; height:clamp(470px,68vh,560px); height:clamp(470px,68svh,560px); perspective:1100px; touch-action:pan-y; user-select:none;}
+    .price-carousel{position:relative; width:100%; height:auto; min-height:clamp(470px,68vh,560px); min-height:clamp(470px,68svh,560px); perspective:1100px; touch-action:pan-y; user-select:none;}
     .price-carousel .price-grid{
-      position:relative; width:100%; height:100%; max-width:none; display:block;
+      position:relative; width:100%; height:100%; min-height:inherit; max-width:none; display:block;
       transform-style:preserve-3d; overflow:visible;
     }
     .price-carousel .price-card{
-      position:absolute; top:50%; left:50%; width:min(86%,400px); height:100%; min-width:0;
-      overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:rgba(184,169,138,.45) transparent;
+      position:absolute; top:0; left:50%; width:min(86%,400px); height:auto; max-height:none; min-width:0;
+      overflow:visible; touch-action:pan-y;
       backface-visibility:hidden; transform-style:preserve-3d; will-change:transform,opacity,filter;
       transition:transform .62s cubic-bezier(.22,1,.36,1), opacity .4s ease, filter .4s ease;
       -webkit-tap-highlight-color:transparent;
@@ -1163,7 +1163,7 @@
     .tpl-body{padding:.7rem .75rem;}
     .tpl-card h3{font-size:.94rem;}
     .tpl-card p{font-size:.74rem;}
-    .price-carousel{height:clamp(450px,68vh,540px); height:clamp(450px,68svh,540px);}
+    .price-carousel{min-height:clamp(450px,68vh,540px); min-height:clamp(450px,68svh,540px);}
     .price-carousel .price-card{width:calc(100% - 42px); padding:1.05rem .9rem .95rem;}
   }
   @media(hover:none){
@@ -1200,10 +1200,12 @@
     filter:drop-shadow(0 12px 18px rgba(0,0,0,.38)); transition:none; will-change:clip-path;
   }
   .portfolio-gallery.pull-preview.is-settling{transition:clip-path .46s cubic-bezier(.22,.75,.22,1);}
-  .portfolio-lanyard-gate{transition:background-color .24s ease;}
-  .portfolio-lanyard-gate.is-pulling{background-color:rgba(5,6,10,.58);}
+  .portfolio-pull-backdrop{position:fixed; inset:0; z-index:1399; pointer-events:none; background:radial-gradient(ellipse at 50% 45%,rgba(184,169,138,.12),transparent 42%),rgba(5,6,10,.98);}
+  .portfolio-pull-backdrop[hidden]{display:none;}
+  .portfolio-lanyard-gate.is-pulling{background:transparent;}
   .portfolio-lanyard-gate.is-pulling .portfolio-lanyard-gate__top,
   .portfolio-lanyard-gate.is-pulling .portfolio-lanyard-gate__bottom{opacity:0; pointer-events:none; transition:opacity .24s ease;}
+  .portfolio-lanyard-gate__top,.portfolio-lanyard-gate__bottom{transition:opacity .24s ease;}
   @media(prefers-reduced-motion:reduce){.portfolio-gallery.pull-preview.is-settling{transition:none;}}
   .portfolio-gallery__ambient{
     position:absolute; inset:0; pointer-events:none; opacity:.75;
@@ -1322,6 +1324,8 @@
   .portfolio-lanyard-gate__skip{margin-top:.75rem; border:0; color:var(--gold-hi); background:transparent; font:500 .62rem 'DM Mono',monospace; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; text-decoration:underline; text-underline-offset:4px;}
   body.portfolio-gate-open{overflow:hidden;}
   html.lite .portfolio-lanyard-gate{background:#080a0e;}
+  html.lite .portfolio-lanyard-gate.is-pulling{background:transparent;}
+  html.lite .portfolio-pull-backdrop{background:#080a0e;}
   @media(max-width:600px){
     .portfolio-lanyard-gate__top{padding:.75rem 1rem;}
     .portfolio-lanyard-gate__stage{min-height:0;}
@@ -1699,6 +1703,7 @@ window.__isLowEndHardware = (
   </div>
 </section>
 
+<div class="portfolio-pull-backdrop" id="portfolioPullBackdrop" aria-hidden="true" hidden></div>
 <div class="portfolio-lanyard-gate" id="portfolioLanyardGate" role="dialog" aria-modal="true" aria-labelledby="portfolioLanyardTitle" aria-hidden="true" hidden>
   <header class="portfolio-lanyard-gate__top">
     <span class="portfolio-lanyard-gate__brand">AXIS / Portfolio access</span>
@@ -2128,6 +2133,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
 (function(){
   const gate = document.getElementById('portfolioLanyardGate');
   const gateStage = document.getElementById('lanyardStage');
+  const pullBackdrop = document.getElementById('portfolioPullBackdrop');
   const lanyardMount = document.getElementById('lanyardMount');
   const gateClose = document.getElementById('closeLanyardGate');
   const gateSkip = document.getElementById('skipLanyardGate');
@@ -2139,7 +2145,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
   const openBtn = document.getElementById('openWorkArchive');
   const closeBtn = document.getElementById('closeWorkArchive');
   const brand = document.getElementById('portfolioGalleryBrand');
-  if(!gate || !gateStage || !lanyardMount || !gateClose || !gateSkip || !gallery || !shell || !grid || !filters || !count || !openBtn || !closeBtn) return;
+  if(!gate || !gateStage || !pullBackdrop || !lanyardMount || !gateClose || !gateSkip || !gallery || !shell || !grid || !filters || !count || !openBtn || !closeBtn) return;
 
   let projects = [], activeCategory = 'All', returnFocus = null, lanyardCleanup = null, lanyardLoad = null, pullStart = null, pullPeakDistance = 0, pullPageOriginY = 0, pullPageRevealY = 0, pullPageAnchorX = 0, pullPreviewActive = false, pullPreviewSettling = false, dismissAfterPull = false;
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -2344,6 +2350,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
     pullPageAnchorX = stageRect.left + stageRect.width / 2;
     window.__axisLanyardPageAnchor = { x:pullPageAnchorX, y:pullPageOriginY };
     gallery.style.setProperty('--pull-reveal',`${pullPageOriginY.toFixed(1)}px`);
+    pullBackdrop.hidden = false;
     gallery.classList.add('pull-preview','open');
     gate.classList.add('is-pulling');
     document.body.classList.add('portfolio-gallery-open');
@@ -2375,6 +2382,7 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
       gallery.style.removeProperty('--pull-reveal');
       gallery.style.removeProperty('transition');
       window.__axisLanyardPageAnchor = null;
+      pullBackdrop.hidden = true;
       gate.classList.remove('is-pulling');
       pullPreviewSettling = false;
       if(enter){
@@ -5219,6 +5227,7 @@ void main() {
     });
     function layout(){
       if(!mobilePricing.matches){
+        carousel.style.removeProperty('height');
         cards.forEach(card => {
           ['transform','opacity','filter','z-index','pointer-events'].forEach(prop => card.style.removeProperty(prop));
           card.removeAttribute('aria-hidden');
@@ -5235,7 +5244,7 @@ void main() {
         const x = d * xStep;
         const scale = 1 - Math.min(abs, 3) * .075;
         const rotate = d === 0 ? 0 : d * -7;
-        card.style.transform = `translate(-50%,-50%) translateX(${x}px) translateZ(${-abs * 82}px) scale(${scale}) rotateY(${rotate}deg)`;
+        card.style.transform = `translate(-50%,0) translateX(${x}px) translateZ(${-abs * 82}px) scale(${scale}) rotateY(${rotate}deg)`;
         card.style.opacity = visible ? (abs === 2 ? '.28' : abs === 1 ? '.68' : '1') : '0';
         card.style.filter = `brightness(${1 - Math.min(abs * .16,.45)})`;
         card.style.zIndex = String(10 - abs);
@@ -5245,6 +5254,9 @@ void main() {
         dotButtons[i].classList.toggle('is-active',d === 0);
         dotButtons[i].setAttribute('aria-selected',String(d === 0));
       });
+      const minHeight = parseFloat(getComputedStyle(carousel).minHeight) || 0;
+      const contentHeight = Math.max.apply(null,cards.map(card => card.offsetHeight));
+      carousel.style.height = Math.max(minHeight,contentHeight) + 'px';
     }
     function setIndex(next){ index = (next + cards.length) % cards.length; layout(); }
     buttons.forEach(button => button.addEventListener('click',() => setIndex(index + Number(button.dataset.priceStep))));
@@ -5272,6 +5284,10 @@ void main() {
       e.preventDefault(); e.stopPropagation();
     },true);
     layout();
+    if(window.ResizeObserver){
+      const cardResizeObserver = new ResizeObserver(() => { if(mobilePricing.matches) layout(); });
+      cards.forEach(card => cardResizeObserver.observe(card));
+    }
     window.addEventListener('resize',layout,{passive:true});
   });
 
