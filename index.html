@@ -5176,6 +5176,7 @@ void main() {
       t.tabIndex = on ? 0 : -1;
       document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
     });
+    window.dispatchEvent(new Event('axis:pricing-layout'));
     if(focus) tab.focus();
     if(typeof emerge === 'function') emerge(tab);
   }
@@ -5258,6 +5259,7 @@ void main() {
       const contentHeight = Math.max.apply(null,cards.map(card => card.offsetHeight));
       carousel.style.height = Math.max(minHeight,contentHeight) + 'px';
     }
+    window.addEventListener('axis:pricing-layout',layout);
     function setIndex(next){ index = (next + cards.length) % cards.length; layout(); }
     buttons.forEach(button => button.addEventListener('click',() => setIndex(index + Number(button.dataset.priceStep))));
     carousel.addEventListener('keydown',e => {
@@ -5341,6 +5343,8 @@ void main() {
       const i = cardsOf(tab).indexOf(card);
       const page = pagesOf(tab)[i];
       let frames, delay = 0, duration = 800, ease = 'cubic-bezier(.22,1,.36,1)';
+      const targetTransform = getComputedStyle(card).transform;
+      const targetSuffix = targetTransform === 'none' ? '' : ' ' + targetTransform;
       const cr = card.getBoundingClientRect();
       if(page){
         const pr = page.getBoundingClientRect();
@@ -5350,16 +5354,19 @@ void main() {
           const s0 = Math.max(0.12, Math.min(pr.width / cr.width, pr.height / cr.height));
           const rot = parseFloat(page.style.getPropertyValue('--or')) || 0;
           frames = [
-            { transform:'translate(' + dx + 'px,' + dy + 'px) scale(' + s0 + ') rotate(' + rot + 'deg)', opacity:0, offset:0, easing:'ease-out' },
-            { transform:'translate(' + dx * 0.97 + 'px,' + (dy * 0.97 - 12) + 'px) scale(' + s0 * 1.08 + ') rotate(' + rot + 'deg)', opacity:1, offset:0.14, easing:'cubic-bezier(.33,1,.68,1)' },
-            { transform:'none', opacity:1, offset:1 }
+            { transform:'translate(' + dx + 'px,' + dy + 'px) scale(' + s0 + ') rotate(' + rot + 'deg)' + targetSuffix, opacity:0, offset:0, easing:'ease-out' },
+            { transform:'translate(' + dx * 0.97 + 'px,' + (dy * 0.97 - 12) + 'px) scale(' + s0 * 1.08 + ') rotate(' + rot + 'deg)' + targetSuffix, opacity:1, offset:0.14, easing:'cubic-bezier(.33,1,.68,1)' },
+            { transform:targetTransform, opacity:1, offset:1 }
           ];
           delay = k * 120; duration = 1600; ease = 'linear';   // each step above has its own easing
           // the page it came from fades away as the card takes its place
           page.animate([{ opacity:1 }, { opacity:0 }], { duration:240, delay:delay + 30, fill:'forwards' });
         }
       }
-      if(!frames) frames = [{ transform:'translateY(46px) scale(.86)', opacity:0 }, { transform:'none', opacity:1 }];
+      if(!frames) frames = [
+        { transform:'translateY(46px) scale(.86)' + targetSuffix, opacity:0 },
+        { transform:targetTransform, opacity:1 }
+      ];
       const a = card.animate(frames, { duration, delay, easing:ease, fill:'both' });
       card.classList.remove('pf-pending');
       a.onfinish = () => { try{ a.cancel(); }catch(e){} };
