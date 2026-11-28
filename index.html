@@ -1256,7 +1256,8 @@
   .portfolio-gallery__filter:hover{color:var(--white); border-color:var(--glass-border-hi);}
   .portfolio-gallery__filter.is-active{color:#181410; border-color:var(--gold); background:var(--gold);}
   .portfolio-gallery__grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; perspective:1200px;}
-  .work-archive-card{min-width:0; perspective:1000px; transform-style:preserve-3d;}
+  .work-archive-card{display:block; min-width:0; color:inherit; text-decoration:none; perspective:1000px; transform-style:preserve-3d;}
+  .work-archive-card:focus-visible{outline:2px solid var(--gold-hi); outline-offset:4px; border-radius:var(--r-lg);}
   .work-archive-card__inner{
     height:100%; overflow:hidden; border:1px solid var(--glass-border); border-radius:var(--r-lg);
     background:linear-gradient(145deg,rgba(20,23,31,.94),rgba(10,12,18,.94));
@@ -2179,8 +2180,15 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
     card.addEventListener('pointerleave',() => gsap.to(surface,{ rotationY:0, rotationX:0, z:0, duration:.55, ease:'power3.out', overwrite:true }));
   }
   function makeCard(project,index){
-    const card = document.createElement('article');
+    const href = safeUrl(project.link);
+    const card = document.createElement(href ? 'a' : 'article');
     card.className = 'work-archive-card';
+    if(href){
+      card.href = href;
+      card.target = '_blank';
+      card.rel = 'noopener';
+      card.setAttribute('aria-label','Explore project: ' + (project.title || 'Untitled project'));
+    }
     const surface = document.createElement('div');
     surface.className = 'work-archive-card__inner';
     const media = document.createElement('div');
@@ -2210,13 +2218,11 @@ db.collection('projects').orderBy('createdAt', 'desc').onSnapshot(snap => {
     const description = document.createElement('p');
     description.textContent = project.desc || 'Project details coming soon.';
     body.append(title,description);
-    const href = safeUrl(project.link);
     if(href){
-      const link = document.createElement('a');
-      link.className = 'work-archive-card__link'; link.href = href;
-      link.target = '_blank'; link.rel = 'noopener';
-      link.innerHTML = 'Explore project <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>';
-      body.appendChild(link);
+      const linkLabel = document.createElement('span');
+      linkLabel.className = 'work-archive-card__link';
+      linkLabel.innerHTML = 'Explore project <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>';
+      body.appendChild(linkLabel);
     }else{
       const note = document.createElement('span');
       note.className = 'work-archive-card__pending'; note.textContent = 'Project preview coming soon';
