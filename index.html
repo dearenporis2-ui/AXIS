@@ -245,6 +245,14 @@
   .nav-links a:hover{color:var(--white);}
   .nav-links a.active{color:var(--white);}
 
+  .social-links{display:flex;align-items:center;gap:.45rem;}
+  .social-link{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(255,255,255,.12);border-radius:50%;color:var(--dim);text-decoration:none;transition:color .25s,border-color .25s,background .25s,transform .25s;}
+  .social-link svg{width:17px;height:17px;display:block;}
+  .social-link:hover{color:var(--gold-hi);border-color:rgba(221,201,158,.55);background:rgba(184,169,138,.08);transform:translateY(-2px);}
+  .social-link:focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
+  .nav-socials{margin-left:auto;padding-left:.9rem;}
+  .mobile-socials .social-link{width:42px;height:42px;}
+
   .nav-cta, .mobile-cta{
     --c:10px;
     position:relative; overflow:hidden;
@@ -992,6 +1000,8 @@
   .price-amount .cur, .price-amount .per{font:500 .72rem 'DM Mono',monospace; letter-spacing:.12em; color:var(--gold);}
   .price-amount.swap{animation:priceIn .4s cubic-bezier(.16,1,.3,1);}
   .price-sub{min-height:1.3rem; margin-top:.4rem; font:500 .72rem 'DM Mono',monospace; letter-spacing:.06em; color:rgba(184,169,138,.85);}
+  .price-usd{margin:.35rem 0 0;color:var(--dimmer);font:500 .68rem 'DM Mono',monospace;letter-spacing:.02em;}
+  .price-currency-note{margin:.5rem 0 1rem;color:var(--dimmer);font:400 .65rem/1.5 'DM Mono',monospace;}
   .price-desc{color:var(--dim); font-size:.9rem; line-height:1.6; margin:1rem 0 1.4rem;}
   .price-list{list-style:none; display:flex; flex-direction:column; gap:.7rem; margin-bottom:1.8rem; flex:1;}
   .price-list li{position:relative; padding-left:1.5rem; font-size:.86rem; line-height:1.5; color:rgba(245,246,248,.85);}
@@ -1039,6 +1049,10 @@
   .footer-links{display:flex; gap:1.6rem;}
   .footer-links a{color:var(--dim); text-decoration:none; font-size:.8rem; transition:color .3s;}
   .footer-links a:hover{color:var(--gold);}
+  .footer-socials{margin-left:auto;}
+  @media(max-width:860px){.nav-socials{display:none;} .footer-socials{margin-left:0;}}
+  @media(min-width:861px) and (max-width:1040px){.nav-socials{display:none;}}
+  @media(max-width:600px){footer{padding:2rem 1.2rem;} .footer-links{flex-wrap:wrap;gap:.8rem 1rem;} .footer-socials{order:3;width:100%;}}
 
   .reveal{opacity:0; transform:translateY(40px) scale(.97); transition:opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1);}
   .reveal.v{opacity:1; transform:translateY(0) scale(1);}
@@ -1512,6 +1526,15 @@ window.__isLowEndHardware = (
     <li><a href="#about">About</a></li>
   </ul>
 
+  <div class="social-links nav-socials" aria-label="AXIS social profiles">
+    <a class="social-link" href="https://www.linkedin.com/in/dearen-porice-58091a3a4/" target="_blank" rel="noopener noreferrer" aria-label="Dearen Porice on LinkedIn">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2ZM8.34 18H5.67V9.4h2.67ZM7 8.22a1.55 1.55 0 1 1 .02-3.1 1.55 1.55 0 0 1-.02 3.1ZM18.33 18h-2.66v-4.18c0-1-.02-2.28-1.4-2.28-1.4 0-1.61 1.09-1.61 2.21V18H10V9.4h2.55v1.17h.04a2.8 2.8 0 0 1 2.52-1.39c2.7 0 3.2 1.78 3.2 4.09Z"/></svg>
+    </a>
+    <a class="social-link" href="https://www.instagram.com/porisdearen/" target="_blank" rel="noopener noreferrer" aria-label="Dearen Porice on Instagram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="18" cy="6" r=".9" fill="currentColor" stroke="none"/></svg>
+    </a>
+  </div>
+
   <a href="#contact" class="nav-cta"><span>Start a project</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l7-7M3.5 2.5h6v6"/></svg></a>
 
   <button class="hamburger" id="hamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
@@ -1538,6 +1561,10 @@ window.__isLowEndHardware = (
   <a href="#about" class="mobile-link" style="--d:.69s"><span class="ml-i">06</span>About</a>
   <div class="mm-foot">
     <a href="#contact" class="mobile-cta"><span>Start a project</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5l7-7M3.5 2.5h6v6"/></svg></a>
+    <div class="social-links mobile-socials" aria-label="AXIS social profiles">
+      <a class="social-link" href="https://www.linkedin.com/in/dearen-porice-58091a3a4/" target="_blank" rel="noopener noreferrer" aria-label="Dearen Porice on LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2ZM8.34 18H5.67V9.4h2.67ZM7 8.22a1.55 1.55 0 1 1 .02-3.1 1.55 1.55 0 0 1-.02 3.1ZM18.33 18h-2.66v-4.18c0-1-.02-2.28-1.4-2.28-1.4 0-1.61 1.09-1.61 2.21V18H10V9.4h2.55v1.17h.04a2.8 2.8 0 0 1 2.52-1.39c2.7 0 3.2 1.78 3.2 4.09Z"/></svg></a>
+      <a class="social-link" href="https://www.instagram.com/porisdearen/" target="_blank" rel="noopener noreferrer" aria-label="Dearen Porice on Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="18" cy="6" r=".9" fill="currentColor" stroke="none"/></svg></a>
+    </div>
     <span class="mm-meta">LAT -4.68° · SEYCHELLES</span>
   </div>
 </div>
@@ -1850,7 +1877,8 @@ window.__isLowEndHardware = (
           
           <div class="price-top"><span class="price-kicker">Template-based</span></div>
           <h3>Express Build</h3>
-          <div class="price-amount"><span class="cur">SCR</span><span class="num">4,500 – 6,000</span></div>
+          <div class="price-amount" data-usd-low="4500" data-usd-high="6000"><span class="cur">SCR</span><span class="num">4,500 – 6,000</span></div>
+          <p class="price-usd"></p>
           <p class="price-desc">Fast, budget-friendly online presence using a clean pre-built layout.</p>
           <ul class="price-list">
           <li>1–3 responsive pages</li>
@@ -1866,7 +1894,8 @@ window.__isLowEndHardware = (
           
           <div class="price-top"><span class="price-kicker">100% hand-coded</span></div>
           <h3>Custom Core</h3>
-          <div class="price-amount"><span class="cur">SCR</span><span class="num">8,500 – 12,000</span></div>
+          <div class="price-amount" data-usd-low="8500" data-usd-high="12000"><span class="cur">SCR</span><span class="num">8,500 – 12,000</span></div>
+          <p class="price-usd"></p>
           <p class="price-desc">Built from zero with no templates for maximum speed and clean code.</p>
           <ul class="price-list">
           <li>1–4 hand-coded responsive pages</li>
@@ -1881,7 +1910,8 @@ window.__isLowEndHardware = (
           <div class="glass-sheen"></div>
           <div class="price-top"><span class="price-badge">Most popular</span></div>
           <h3>Interactive Experience</h3>
-          <div class="price-amount"><span class="cur">SCR</span><span class="num">15,000 – 22,000</span></div>
+          <div class="price-amount" data-usd-low="15000" data-usd-high="22000"><span class="cur">SCR</span><span class="num">15,000 – 22,000</span></div>
+          <p class="price-usd"></p>
           <p class="price-desc">High-impact bespoke engineering with custom motion and interactive UI.</p>
           <ul class="price-list">
           <li>5–8 hand-coded pages</li>
@@ -1897,7 +1927,8 @@ window.__isLowEndHardware = (
           
           <div class="price-top"><span class="price-kicker">Full-stack &amp; live systems</span></div>
           <h3>Custom Web Platform</h3>
-          <div class="price-amount"><span class="cur">SCR</span><span class="num">25,000 – 45,000+</span></div>
+          <div class="price-amount" data-usd-low="25000" data-usd-high="45000" data-usd-plus="true"><span class="cur">SCR</span><span class="num">25,000 – 45,000+</span></div>
+          <p class="price-usd"></p>
           <p class="price-desc">End-to-end web applications with live databases and business automation.</p>
           <ul class="price-list">
           <li>Everything in Interactive Experience</li>
@@ -1915,6 +1946,7 @@ window.__isLowEndHardware = (
       </div>
       <div class="depth-carousel__dots price-carousel-dots" role="tablist" aria-label="Website development pricing cards"></div>
       </div>
+      <p class="price-currency-note">USD figures are estimates using SCR 14.50 per USD. Quotes and invoices are issued in SCR.</p>
       <p class="price-caption">All builds follow a 50% upfront deposit (after demo approval) and 50% upon launch.</p>
     </div>
 
@@ -1927,6 +1959,7 @@ window.__isLowEndHardware = (
           <button type="button" class="bill-btn" data-bill="y" aria-pressed="false">Yearly <span class="bill-save">(Save Most)</span></button>
         </div>
       </div>
+      <p class="price-currency-note">USD figures are estimates using SCR 14.50 per USD. Quotes and invoices are issued in SCR.</p>
       <div class="price-carousel" role="group" aria-roledescription="carousel" aria-label="Hosting and care pricing">
       <div class="price-grid price-grid--3" id="priceCareTrack">
         <article class="price-card glass" data-care="Essential Hosting">
@@ -1935,6 +1968,7 @@ window.__isLowEndHardware = (
           
           <h3>Essential Hosting</h3>
           <div class="price-amount" data-m="750" data-q="2000" data-y="7500"><span class="cur">SCR</span><span class="num">750</span><span class="per">/ mo</span></div>
+          <p class="price-usd"></p>
           <div class="price-sub"></div>
           <p class="price-desc">All-in-one infrastructure for static sites that rarely need updates.</p>
           <ul class="price-list">
@@ -1950,6 +1984,7 @@ window.__isLowEndHardware = (
           <div class="price-top"><span class="price-badge">Recommended</span></div>
           <h3>Managed Growth</h3>
           <div class="price-amount" data-m="2500" data-q="6250" data-y="24000"><span class="cur">SCR</span><span class="num">2,500</span><span class="per">/ mo</span></div>
+          <p class="price-usd"></p>
           <div class="price-sub"></div>
           <p class="price-desc">Hands-off updates, domain coverage, and active care for growing businesses.</p>
           <ul class="price-list">
@@ -1965,7 +2000,8 @@ window.__isLowEndHardware = (
           <div class="price-top"></div>
           
           <h3>Platform Care</h3>
-          <div class="price-amount" data-m="5000" data-q="10714" data-y="45714"><span class="cur">SCR</span><span class="num">5,000</span><span class="per">/ mo</span></div>
+          <div class="price-amount" data-m="5000" data-q="10714" data-y="50000"><span class="cur">SCR</span><span class="num">5,000</span><span class="per">/ mo</span></div>
+          <p class="price-usd"></p>
           <div class="price-sub"></div>
           <p class="price-desc">Priority engineering support for live databases and booking platforms.</p>
           <ul class="price-list">
@@ -2058,6 +2094,10 @@ window.__isLowEndHardware = (
     <a href="#contact">Contact</a>
     <a href="terms.html">Terms</a>
     <a href="admin.html" style="opacity:.35;">Admin</a>
+  </div>
+  <div class="social-links footer-socials" aria-label="AXIS social profiles">
+    <a class="social-link" href="https://www.linkedin.com/in/dearen-porice-58091a3a4/" target="_blank" rel="noopener noreferrer" aria-label="Dearen Porice on LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2ZM8.34 18H5.67V9.4h2.67ZM7 8.22a1.55 1.55 0 1 1 .02-3.1 1.55 1.55 0 0 1-.02 3.1ZM18.33 18h-2.66v-4.18c0-1-.02-2.28-1.4-2.28-1.4 0-1.61 1.09-1.61 2.21V18H10V9.4h2.55v1.17h.04a2.8 2.8 0 0 1 2.52-1.39c2.7 0 3.2 1.78 3.2 4.09Z"/></svg></a>
+    <a class="social-link" href="https://www.instagram.com/porisdearen/" target="_blank" rel="noopener noreferrer" aria-label="Dearen Porice on Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="18" cy="6" r=".9" fill="currentColor" stroke="none"/></svg></a>
   </div>
 </footer>
 
@@ -5441,6 +5481,14 @@ void main() {
 
   /* Monthly, quarterly and yearly retainer prices */
   const careCards = Array.from(root.querySelectorAll('.price-card[data-care]'));
+  const SCR_PER_USD = 14.5;
+  const usdEstimate = amount => '≈ USD $' + Math.round(Number(amount) / SCR_PER_USD).toLocaleString('en-US');
+  root.querySelectorAll('#panel-dev .price-amount[data-usd-low]').forEach(amount => {
+    const low = Number(amount.dataset.usdLow), high = Number(amount.dataset.usdHigh);
+    const plus = amount.dataset.usdPlus === 'true' ? '+' : '';
+    const line = amount.parentElement.querySelector('.price-usd');
+    if(line) line.textContent = '≈ USD $' + Math.round(low / SCR_PER_USD).toLocaleString('en-US') + ' – $' + Math.round(high / SCR_PER_USD).toLocaleString('en-US') + plus;
+  });
   const saving = el => 1 - Number(el.dataset.q) / (3 * Number(el.dataset.m));
   const maxSave = Math.max.apply(null, careCards.map(c => saving(c.querySelector('.price-amount'))));
   const saveChip = document.getElementById('billSave');
@@ -5451,8 +5499,11 @@ void main() {
       const amt = card.querySelector('.price-amount');
       const m = Number(amt.dataset.m), q = Number(amt.dataset.q), y = Number(amt.dataset.y);
       const pct = Math.round(saving(amt) * 100);
-      amt.querySelector('.num').textContent = fmt(billing === 'q' ? q : billing === 'y' ? y : m);
-      amt.querySelector('.per').textContent = billing === 'q' ? '/ qtr' : billing === 'y' ? '/ yr' : '/ mo';
+      const selectedAmount = billing === 'q' ? q : billing === 'y' ? y : m;
+      const period = billing === 'q' ? 'qtr' : billing === 'y' ? 'yr' : 'mo';
+      amt.querySelector('.num').textContent = fmt(selectedAmount);
+      amt.querySelector('.per').textContent = '/ ' + period;
+      card.querySelector('.price-usd').textContent = usdEstimate(selectedAmount) + ' / ' + period;
       card.querySelector('.price-sub').textContent = billing === 'q'
         ? 'SCR ' + fmt(q / 3) + '/mo · save ' + pct + '%'
         : billing === 'y'
